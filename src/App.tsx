@@ -63,6 +63,7 @@ function App() {
   const heroViewportRef = useRef<HTMLDivElement | null>(null)
   const heroCardRef = useRef<HTMLElement | null>(null)
   const heroInnerRef = useRef<HTMLDivElement | null>(null)
+  const betaFormRef = useRef<HTMLFormElement | null>(null)
   const whyRef = useRef<HTMLDivElement | null>(null)
   const { scrollYProgress: whyProgress } = useScroll({
     target: whyRef,
@@ -214,6 +215,21 @@ function App() {
       const d = `M ${startX},${startY} L ${midX},${midY} L ${endX},${endY}`
       beamGlow.setAttribute('d', d)
       beamCore.setAttribute('d', d)
+      // compute path length and set dash so CSS animation shows a single streak
+      try {
+        const len = Math.round(beamCore.getTotalLength())
+        const coreDash = Math.max(8, Math.round(len * 0.06))
+        const glowDash = Math.max(10, Math.round(len * 0.04))
+        beamCore.style.strokeDasharray = `${coreDash} ${len}`
+        beamCore.style.strokeDashoffset = `${len}`
+        beamCore.style.setProperty('--dashstart', String(len))
+
+        beamGlow.style.strokeDasharray = `${glowDash} ${len}`
+        beamGlow.style.strokeDashoffset = `${len}`
+        beamGlow.style.setProperty('--dashstart', String(len))
+      } catch (e) {
+        // SVG length not available yet
+      }
     }
 
     updateBeamPath()
@@ -256,6 +272,40 @@ function App() {
           stateStart = time
           splash.classList.remove('animate')
           setBeamOpacity('1')
+          // trigger a single streak animation when entering p2
+          try {
+            beamCore.classList.remove('streak-animate')
+            beamGlow.classList.remove('streak-animate')
+            // force reflow so the animation can be retriggered
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+            beamCore.offsetWidth
+            beamCore.classList.add('streak-animate')
+            beamGlow.classList.add('streak-animate')
+            const removeId = window.setTimeout(() => {
+              beamCore.classList.remove('streak-animate')
+              beamGlow.classList.remove('streak-animate')
+              window.clearTimeout(removeId)
+            }, 900)
+            // add a brief impact flash on the right node timed to the streak arrival
+            try {
+              const hitDelay = 700 // ms, tuned to roughly match 0.9s streak
+              const hitEl = nodeShield
+              if (hitEl) {
+                const hitId = window.setTimeout(() => {
+                  hitEl.classList.add('streak-hit')
+                  const clearHit = window.setTimeout(() => {
+                    hitEl.classList.remove('streak-hit')
+                    window.clearTimeout(clearHit)
+                  }, 360)
+                  window.clearTimeout(hitId)
+                }, hitDelay)
+              }
+            } catch (e) {
+              // ignore
+            }
+          } catch (err) {
+            // ignore
+          }
         }
       } else if (state === 'p2') {
         const progress = Math.min(elapsed / 800, 1)
@@ -270,6 +320,7 @@ function App() {
           state = 'idle'
           stateStart = time
         }
+        // keep visual motion handled by CSS animations
       } else if (state === 'idle') {
         if (elapsed >= 1000) {
           state = 'p1'
@@ -425,18 +476,18 @@ function App() {
             </defs>
             <path
               ref={beamGlowRef}
-              className="beam-path"
+              className="beam-path beam-glow"
               stroke="url(#beam-gradient)"
-              strokeWidth="2"
+              strokeWidth="3"
               filter="url(#glow)"
-              opacity="0.6"
+              opacity="0.7"
               fill="none"
             />
             <path
               ref={beamCoreRef}
-              className="beam-path"
+              className="beam-path beam-core"
               stroke="url(#beam-gradient)"
-              strokeWidth="0.8"
+              strokeWidth="1.2"
               fill="none"
             />
           </svg>
@@ -500,7 +551,19 @@ function App() {
             for modern hardware teams.
           </motion.p>
           <motion.div {...fadeUp(0.35)} className="hero-actions">
-            <a href="#" className="btn-cta">
+            <a
+              href="#"
+              className="btn-cta"
+              onClick={(e) => {
+                e.preventDefault()
+                try {
+                  betaFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                } catch (err) {
+                  // fallback: change location hash
+                  window.location.hash = '#beta'
+                }
+              }}
+            >
               Join the Beta
             </a>
             <a href="#" className="btn-ghost">
@@ -762,7 +825,7 @@ function App() {
               <span className="beta-pill">Edge AI Deployment</span>
             </div>
           </div>
-          <form className="beta-form" onSubmit={handleBetaSignup}>
+          <form ref={betaFormRef} id="beta" className="beta-form" onSubmit={handleBetaSignup}>
             <label className="beta-label" htmlFor="beta-email">
               Request early access
             </label>
