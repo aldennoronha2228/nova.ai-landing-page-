@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { motion, useScroll, useTransform, MotionValue } from 'framer-motion'
 
 const fadeUp = (delay: number) => ({
@@ -47,6 +47,11 @@ const WordReveal = ({
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isSubmittingBeta, setIsSubmittingBeta] = useState(false)
+  const [betaStatus, setBetaStatus] = useState<{
+    type: 'success' | 'error'
+    message: string
+  } | null>(null)
   const pipelineRef = useRef<HTMLDivElement | null>(null)
   const nodeStackRef = useRef<HTMLDivElement | null>(null)
   const nodeXRef = useRef<HTMLDivElement | null>(null)
@@ -110,6 +115,67 @@ function App() {
       window.clearTimeout(delayedFit)
     }
   }, [])
+
+  const handleBetaSignup = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (isSubmittingBeta) return
+
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    const email = String(formData.get('email') ?? '').trim()
+
+    if (!email) {
+      setBetaStatus({
+        type: 'error',
+        message: 'Please enter a valid email address.',
+      })
+      return
+    }
+
+    try {
+      setIsSubmittingBeta(true)
+      setBetaStatus(null)
+
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const rawResponse = await response.text()
+      let payload: { message?: string } = {}
+      if (rawResponse) {
+        try {
+          payload = JSON.parse(rawResponse) as { message?: string }
+        } catch {
+          payload = {}
+        }
+      }
+
+      if (!response.ok) {
+        throw new Error(payload.message ?? 'Unable to complete sign up.')
+      }
+
+      form.reset()
+      setBetaStatus({
+        type: 'success',
+        message:
+          payload.message ??
+          'Thanks for signing up. Check your inbox for a confirmation email from Nova AI.',
+      })
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Something went wrong. Try again.'
+      setBetaStatus({
+        type: 'error',
+        message,
+      })
+    } finally {
+      setIsSubmittingBeta(false)
+    }
+  }
 
   useEffect(() => {
     const pipeline = pipelineRef.current
@@ -696,7 +762,7 @@ function App() {
               <span className="beta-pill">Edge AI Deployment</span>
             </div>
           </div>
-          <form className="beta-form">
+          <form className="beta-form" onSubmit={handleBetaSignup}>
             <label className="beta-label" htmlFor="beta-email">
               Request early access
             </label>
@@ -707,11 +773,20 @@ function App() {
                 name="email"
                 placeholder="you@company.com"
                 required
+                disabled={isSubmittingBeta}
               />
-              <button type="submit" className="beta-submit">
-                Join Beta
+              <button type="submit" className="beta-submit" disabled={isSubmittingBeta}>
+                {isSubmittingBeta ? 'Sending...' : 'Join Beta'}
               </button>
             </div>
+            {betaStatus ? (
+              <p
+                className={`beta-message beta-message-${betaStatus.type}`}
+                role={betaStatus.type === 'error' ? 'alert' : 'status'}
+              >
+                {betaStatus.message}
+              </p>
+            ) : null}
             <p className="beta-footnote">
               Private rollout. Zero spam. Early users get priority access to
               experimental features, hardware simulation tools, and AI-powered
