@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { motion, useScroll, useTransform, MotionValue } from 'framer-motion'
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 20 },
   whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: '-120px' },
-  transition: { duration: 0.6, delay, ease: 'easeOut' as const },
-})
+  viewport: { once: true, margin: "-120px" },
+  transition: { duration: 0.6, delay, ease: "easeOut" as const },
+});
 
 const WordReveal = ({
   text,
@@ -15,582 +15,592 @@ const WordReveal = ({
   rootClassName,
   highlightClassName,
 }: {
-  text: string
-  progress: MotionValue<number>
-  highlightWords?: string[]
-  rootClassName?: string
-  highlightClassName?: string
+  text: string;
+  progress: MotionValue<number>;
+  highlightWords?: string[];
+  rootClassName?: string;
+  highlightClassName?: string;
 }) => {
-  const words = text.split(' ')
+  const words = text.split(" ");
   return (
-    <p className={`word-reveal ${rootClassName ?? ''}`}>
+    <p className={`word-reveal ${rootClassName ?? ""}`}>
       {words.map((word, index) => {
-        const start = index / words.length
-        const end = start + 1 / words.length
-        const opacity = useTransform(progress, [start, end], [0.15, 1])
-        const cleanWord = word.replace(/[^a-zA-Z]/g, '').toLowerCase()
-        const isHighlight = highlightWords.includes(cleanWord)
+        const start = index / words.length;
+        const end = start + 1 / words.length;
+        const opacity = useTransform(progress, [start, end], [0.15, 1]);
+        const cleanWord = word.replace(/[^a-zA-Z]/g, "").toLowerCase();
+        const isHighlight = highlightWords.includes(cleanWord);
 
         return (
           <motion.span
             key={`${word}-${index}`}
             style={{ opacity }}
-            className={isHighlight ? highlightClassName : ''}
+            className={isHighlight ? highlightClassName : ""}
           >
-            {word}{' '}
+            {word}{" "}
           </motion.span>
-        )
+        );
       })}
     </p>
-  )
-}
+  );
+};
 
 function App() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [isSubmittingBeta, setIsSubmittingBeta] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isSubmittingBeta, setIsSubmittingBeta] = useState(false);
   const [betaStatus, setBetaStatus] = useState<{
-    type: 'success' | 'error'
-    message: string
-  } | null>(null)
-  const pipelineRef = useRef<HTMLDivElement | null>(null)
-  const nodeStackRef = useRef<HTMLDivElement | null>(null)
-  const nodeXRef = useRef<HTMLDivElement | null>(null)
-  const nodeShieldRef = useRef<HTMLDivElement | null>(null)
-  const beamGlowRef = useRef<SVGPathElement | null>(null)
-  const beamCoreRef = useRef<SVGPathElement | null>(null)
-  const beamGradientRef = useRef<SVGLinearGradientElement | null>(null)
-  const splashRef = useRef<HTMLDivElement | null>(null)
-  const heroViewportRef = useRef<HTMLDivElement | null>(null)
-  const heroCardRef = useRef<HTMLElement | null>(null)
-  const heroInnerRef = useRef<HTMLDivElement | null>(null)
-  const betaFormRef = useRef<HTMLFormElement | null>(null)
-  const whyRef = useRef<HTMLDivElement | null>(null)
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+  const pipelineRef = useRef<HTMLDivElement | null>(null);
+  const nodeStackRef = useRef<HTMLDivElement | null>(null);
+  const nodeXRef = useRef<HTMLDivElement | null>(null);
+  const nodeShieldRef = useRef<HTMLDivElement | null>(null);
+  const beamAuraRef = useRef<SVGPathElement | null>(null);
+  const beamRailRef = useRef<SVGPathElement | null>(null);
+  const beamGlowRef = useRef<SVGPathElement | null>(null);
+  const beamCoreRef = useRef<SVGPathElement | null>(null);
+  const beamGradientRef = useRef<SVGLinearGradientElement | null>(null);
+  const beamSparkARef = useRef<SVGCircleElement | null>(null);
+  const beamSparkBRef = useRef<SVGCircleElement | null>(null);
+  const beamSparkCRef = useRef<SVGCircleElement | null>(null);
+  const splashRef = useRef<HTMLDivElement | null>(null);
+  const heroViewportRef = useRef<HTMLDivElement | null>(null);
+  const heroCardRef = useRef<HTMLElement | null>(null);
+  const heroInnerRef = useRef<HTMLDivElement | null>(null);
+  const betaFormRef = useRef<HTMLFormElement | null>(null);
+  const whyRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress: whyProgress } = useScroll({
     target: whyRef,
-    offset: ['start center', 'end center'],
-  })
+    offset: ["start center", "end center"],
+  });
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [menuOpen])
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
-    const viewport = heroViewportRef.current
-    const card = heroCardRef.current
-    const inner = heroInnerRef.current
-    if (!viewport || !card || !inner) return
+    const viewport = heroViewportRef.current;
+    const card = heroCardRef.current;
+    const inner = heroInnerRef.current;
+    if (!viewport || !card || !inner) return;
 
     const fitHero = () => {
-      inner.style.setProperty('--hero-scale', '1')
-      const cardStyles = getComputedStyle(card)
+      inner.style.setProperty("--hero-scale", "1");
+      const cardStyles = getComputedStyle(card);
       const padY =
-        parseFloat(cardStyles.paddingTop) + parseFloat(cardStyles.paddingBottom)
-      const available = card.clientHeight - padY
-      const needed = inner.scrollHeight
+        parseFloat(cardStyles.paddingTop) +
+        parseFloat(cardStyles.paddingBottom);
+      const available = card.clientHeight - padY;
+      const needed = inner.scrollHeight;
       if (needed > available && available > 0) {
-        let scale = Math.min(1, available / needed)
-        inner.style.setProperty('--hero-scale', scale.toFixed(4))
-        const scaledHeight = inner.getBoundingClientRect().height
+        let scale = Math.min(1, available / needed);
+        inner.style.setProperty("--hero-scale", scale.toFixed(4));
+        const scaledHeight = inner.getBoundingClientRect().height;
         if (scaledHeight > available) {
-          scale = Math.min(1, scale * (available / scaledHeight))
-          inner.style.setProperty('--hero-scale', scale.toFixed(4))
+          scale = Math.min(1, scale * (available / scaledHeight));
+          inner.style.setProperty("--hero-scale", scale.toFixed(4));
         }
       }
-    }
+    };
 
-    const ro = new ResizeObserver(fitHero)
-    ro.observe(viewport)
-    ro.observe(card)
-    ro.observe(inner)
-    window.addEventListener('resize', fitHero)
-    void document.fonts?.ready?.then(fitHero)
-    fitHero()
-    const delayedFit = window.setTimeout(fitHero, 400)
+    const ro = new ResizeObserver(fitHero);
+    ro.observe(viewport);
+    ro.observe(card);
+    ro.observe(inner);
+    window.addEventListener("resize", fitHero);
+    void document.fonts?.ready?.then(fitHero);
+    fitHero();
+    const delayedFit = window.setTimeout(fitHero, 400);
 
     return () => {
-      ro.disconnect()
-      window.removeEventListener('resize', fitHero)
-      window.clearTimeout(delayedFit)
-    }
-  }, [])
+      ro.disconnect();
+      window.removeEventListener("resize", fitHero);
+      window.clearTimeout(delayedFit);
+    };
+  }, []);
 
   const handleBetaSignup = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (isSubmittingBeta) return
+    event.preventDefault();
+    if (isSubmittingBeta) return;
 
-    const form = event.currentTarget
-    const formData = new FormData(form)
-    const email = String(formData.get('email') ?? '').trim()
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const email = String(formData.get("email") ?? "").trim();
 
     if (!email) {
       setBetaStatus({
-        type: 'error',
-        message: 'Please enter a valid email address.',
-      })
-      return
+        type: "error",
+        message: "Please enter a valid email address.",
+      });
+      return;
     }
 
     try {
-      setIsSubmittingBeta(true)
-      setBetaStatus(null)
+      setIsSubmittingBeta(true);
+      setBetaStatus(null);
 
-      const response = await fetch('/api/signup', {
-        method: 'POST',
+      const response = await fetch("/api/signup", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
-      })
+      });
 
-      const rawResponse = await response.text()
-      let payload: { message?: string } = {}
+      const rawResponse = await response.text();
+      let payload: { message?: string } = {};
       if (rawResponse) {
         try {
-          payload = JSON.parse(rawResponse) as { message?: string }
+          payload = JSON.parse(rawResponse) as { message?: string };
         } catch {
-          payload = {}
+          payload = {};
         }
       }
 
       if (!response.ok) {
-        throw new Error(payload.message ?? 'Unable to complete sign up.')
+        throw new Error(payload.message ?? "Unable to complete sign up.");
       }
 
-      form.reset()
+      form.reset();
       setBetaStatus({
-        type: 'success',
+        type: "success",
         message:
           payload.message ??
-          'Thanks for signing up. Check your inbox for a confirmation email from Nova AI.',
-      })
+          "Thanks for signing up. Check your inbox for a confirmation email from Nova AI.",
+      });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Something went wrong. Try again.'
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Try again.";
       setBetaStatus({
-        type: 'error',
+        type: "error",
         message,
-      })
+      });
     } finally {
-      setIsSubmittingBeta(false)
+      setIsSubmittingBeta(false);
     }
-  }
+  };
 
   useEffect(() => {
-    const pipeline = pipelineRef.current
-    const nodeStack = nodeStackRef.current
-    const nodeX = nodeXRef.current
-    const nodeShield = nodeShieldRef.current
-    const beamGlow = beamGlowRef.current
-    const beamCore = beamCoreRef.current
-    const beamGradient = beamGradientRef.current
-    const splash = splashRef.current
+    const pipeline = pipelineRef.current;
+    const nodeStack = nodeStackRef.current;
+    const nodeX = nodeXRef.current;
+    const nodeShield = nodeShieldRef.current;
+    const beamAura = beamAuraRef.current;
+    const beamRail = beamRailRef.current;
+    const beamGlow = beamGlowRef.current;
+    const beamCore = beamCoreRef.current;
+    const sparkA = beamSparkARef.current;
+    const sparkB = beamSparkBRef.current;
+    const sparkC = beamSparkCRef.current;
 
     if (
       !pipeline ||
       !nodeStack ||
       !nodeX ||
       !nodeShield ||
+      !beamAura ||
+      !beamRail ||
       !beamGlow ||
       !beamCore ||
-      !beamGradient ||
-      !splash
+      !sparkA ||
+      !sparkB ||
+      !sparkC
     ) {
-      return
+      return;
     }
+
+    let totalLen = 0;
+
+    const easeInOutCubic = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const edgeFade = (t: number) => {
+      const edge = 0.12;
+      if (t < edge) return t / edge;
+      if (t > 1 - edge) return (1 - t) / edge;
+      return 1;
+    };
 
     const updateBeamPath = () => {
-      const pRect = pipeline.getBoundingClientRect()
-      const sRect = nodeStack.getBoundingClientRect()
-      const xRect = nodeX.getBoundingClientRect()
-      const shRect = nodeShield.getBoundingClientRect()
-      const startX = sRect.left + sRect.width / 2 - pRect.left
-      const startY = sRect.top + sRect.height / 2 - pRect.top
-      const midX = xRect.left + xRect.width / 2 - pRect.left
-      const midY = xRect.top + xRect.height / 2 - pRect.top
-      const endX = shRect.left + shRect.width / 2 - pRect.left
-      const endY = shRect.top + shRect.height / 2 - pRect.top
-      const d = `M ${startX},${startY} L ${midX},${midY} L ${endX},${endY}`
-      beamGlow.setAttribute('d', d)
-      beamCore.setAttribute('d', d)
-      // compute path length and set dash so CSS animation shows a single streak
+      const pRect = pipeline.getBoundingClientRect();
+      const sRect = nodeStack.getBoundingClientRect();
+      const xRect = nodeX.getBoundingClientRect();
+      const shRect = nodeShield.getBoundingClientRect();
+      const startX = sRect.left + sRect.width / 2 - pRect.left;
+      const startY = sRect.top + sRect.height / 2 - pRect.top;
+      const midX = xRect.left + xRect.width / 2 - pRect.left;
+      const midY = xRect.top + xRect.height / 2 - pRect.top;
+      const endX = shRect.left + shRect.width / 2 - pRect.left;
+      const endY = shRect.top + shRect.height / 2 - pRect.top;
+      const d = `M ${startX},${startY} L ${midX},${midY} L ${endX},${endY}`;
+
+      beamAura.setAttribute("d", d);
+      beamRail.setAttribute("d", d);
+      beamGlow.setAttribute("d", d);
+      beamCore.setAttribute("d", d);
+
       try {
-        const len = Math.round(beamCore.getTotalLength())
-        const coreDash = Math.max(8, Math.round(len * 0.06))
-        const glowDash = Math.max(10, Math.round(len * 0.04))
-        beamCore.style.strokeDasharray = `${coreDash} ${len}`
-        beamCore.style.strokeDashoffset = `${len}`
-        beamCore.style.setProperty('--dashstart', String(len))
-
-        beamGlow.style.strokeDasharray = `${glowDash} ${len}`
-        beamGlow.style.strokeDashoffset = `${len}`
-        beamGlow.style.setProperty('--dashstart', String(len))
-      } catch (e) {
-        // SVG length not available yet
+        totalLen = Math.max(1, Math.round(beamCore.getTotalLength()));
+      } catch {
+        totalLen = 0;
       }
-    }
+    };
 
-    updateBeamPath()
-    window.addEventListener('resize', updateBeamPath)
+    updateBeamPath();
+    window.addEventListener("resize", updateBeamPath);
 
-    let rafId = 0
-    let state: 'p1' | 'splash' | 'p2' | 'idle' = 'p1'
-    let stateStart = 0
+    let rafId = 0;
+    const cycleMs = 2400;
+    const sparkEls = [sparkA, sparkB, sparkC];
+    const sparkLags = [14, 28, 44];
 
-    const setBeamOpacity = (value: string) => {
-      beamGlow.style.opacity = value
-      beamCore.style.opacity = value
-    }
+    const animateBeam = (time: number) => {
+      if (totalLen > 0) {
+        const raw = (time % cycleMs) / cycleMs;
+        const eased = easeInOutCubic(raw);
+        const dist = eased * totalLen;
+        const speedEnvelope = Math.sin(Math.PI * raw);
+        const visibility = edgeFade(raw);
 
-    const animate = (time: number) => {
-      if (!stateStart) {
-        stateStart = time
-      }
+        const coreLen = Math.max(
+          16,
+          Math.min(58, totalLen * 0.06 * (0.84 + speedEnvelope * 0.66)),
+        );
+        const glowLen = Math.max(
+          28,
+          Math.min(116, coreLen * (1.7 + speedEnvelope * 0.45)),
+        );
 
-      const elapsed = time - stateStart
-      let percentage = 0
+        beamCore.style.strokeDasharray = `${coreLen} ${Math.max(8, totalLen - coreLen)}`;
+        beamGlow.style.strokeDasharray = `${glowLen} ${Math.max(8, totalLen - glowLen)}`;
+        beamCore.style.strokeDashoffset = `${-dist}`;
+        beamGlow.style.strokeDashoffset = `${-dist}`;
 
-      if (state === 'p1') {
-        const progress = Math.min(elapsed / 800, 1)
-        percentage = 0 + 0.5 * progress
-        if (percentage < 0.4) {
-          nodeStack.classList.add('active')
-        } else {
-          nodeStack.classList.remove('active')
-        }
-        if (progress >= 1) {
-          state = 'splash'
-          stateStart = time
-          setBeamOpacity('0')
-          splash.classList.add('animate')
-        }
-      } else if (state === 'splash') {
-        if (elapsed >= 800) {
-          state = 'p2'
-          stateStart = time
-          splash.classList.remove('animate')
-          setBeamOpacity('1')
-          // trigger a single streak animation when entering p2
-          try {
-            beamCore.classList.remove('streak-animate')
-            beamGlow.classList.remove('streak-animate')
-            // force reflow so the animation can be retriggered
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            beamCore.offsetWidth
-            beamCore.classList.add('streak-animate')
-            beamGlow.classList.add('streak-animate')
-            const removeId = window.setTimeout(() => {
-              beamCore.classList.remove('streak-animate')
-              beamGlow.classList.remove('streak-animate')
-              window.clearTimeout(removeId)
-            }, 900)
-            // add a brief impact flash on the right node timed to the streak arrival
-            try {
-              const hitDelay = 700 // ms, tuned to roughly match 0.9s streak
-              const hitEl = nodeShield
-              if (hitEl) {
-                const hitId = window.setTimeout(() => {
-                  hitEl.classList.add('streak-hit')
-                  const clearHit = window.setTimeout(() => {
-                    hitEl.classList.remove('streak-hit')
-                    window.clearTimeout(clearHit)
-                  }, 360)
-                  window.clearTimeout(hitId)
-                }, hitDelay)
-              }
-            } catch (e) {
-              // ignore
-            }
-          } catch (err) {
-            // ignore
-          }
-        }
-      } else if (state === 'p2') {
-        const progress = Math.min(elapsed / 800, 1)
-        percentage = 0.5 + 0.5 * progress
-        if (percentage > 0.6) {
-          nodeShield.classList.add('active')
-        } else {
-          nodeShield.classList.remove('active')
-        }
-        if (progress >= 1) {
-          nodeShield.classList.remove('active')
-          state = 'idle'
-          stateStart = time
-        }
-        // keep visual motion handled by CSS animations
-      } else if (state === 'idle') {
-        if (elapsed >= 1000) {
-          state = 'p1'
-          stateStart = time
-        }
+        beamCore.style.opacity = `${(0.38 + speedEnvelope * 0.42) * visibility}`;
+        beamGlow.style.opacity = `${(0.2 + speedEnvelope * 0.52) * visibility}`;
+
+        sparkEls.forEach((spark, index) => {
+          const trailDist = Math.max(0, dist - sparkLags[index]);
+          const p = beamCore.getPointAtLength(trailDist);
+          spark.setAttribute("cx", `${p.x}`);
+          spark.setAttribute("cy", `${p.y}`);
+          spark.style.opacity = `${(0.2 + speedEnvelope * 0.42) * visibility * (1 - index * 0.28)}`;
+        });
       }
 
-      if (state === 'p1' || state === 'p2') {
-        const center = percentage * 100
-        beamGradient.setAttribute('x1', `${center - 5}%`)
-        beamGradient.setAttribute('x2', `${center + 5}%`)
-        beamGradient.setAttribute('y1', '0%')
-        beamGradient.setAttribute('y2', '0%')
-      }
+      rafId = window.requestAnimationFrame(animateBeam);
+    };
 
-      rafId = window.requestAnimationFrame(animate)
-    }
-
-    rafId = window.requestAnimationFrame(animate)
+    rafId = window.requestAnimationFrame(animateBeam);
 
     return () => {
-      window.removeEventListener('resize', updateBeamPath)
-      window.cancelAnimationFrame(rafId)
-    }
-  }, [])
+      window.removeEventListener("resize", updateBeamPath);
+      window.cancelAnimationFrame(rafId);
+    };
+  }, []);
 
   useEffect(() => {
-    const root = document.documentElement
-    const revealItems = Array.from(document.querySelectorAll<HTMLElement>('.reveal'))
+    const root = document.documentElement;
+    const revealItems = Array.from(
+      document.querySelectorAll<HTMLElement>(".reveal"),
+    );
     const parallaxItems = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-parallax]'),
-    )
+      document.querySelectorAll<HTMLElement>("[data-parallax]"),
+    );
     const staggerGroups = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-stagger]'),
-    )
+      document.querySelectorAll<HTMLElement>("[data-stagger]"),
+    );
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible')
+            entry.target.classList.add("is-visible");
           }
-        })
+        });
       },
       { threshold: 0.2 },
-    )
+    );
 
-    revealItems.forEach((item) => observer.observe(item))
+    revealItems.forEach((item) => observer.observe(item));
     staggerGroups.forEach((group) => {
       Array.from(group.children).forEach((child, index) => {
         if (child instanceof HTMLElement) {
-          child.style.setProperty('--stagger-index', index.toString())
+          child.style.setProperty("--stagger-index", index.toString());
         }
-      })
-    })
+      });
+    });
 
-    let rafId = 0
+    let rafId = 0;
     const update = () => {
-      const scrollY = window.scrollY
-      const maxScroll = document.body.scrollHeight - window.innerHeight
-      const progress = maxScroll > 0 ? scrollY / maxScroll : 0
-      root.style.setProperty('--scroll-progress', progress.toString())
-      root.style.setProperty('--scroll-shift', `${progress * 100}%`)
+      const scrollY = window.scrollY;
+      const maxScroll = document.body.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? scrollY / maxScroll : 0;
+      root.style.setProperty("--scroll-progress", progress.toString());
+      root.style.setProperty("--scroll-shift", `${progress * 100}%`);
 
       parallaxItems.forEach((item) => {
-        const speed = Number(item.dataset.parallax ?? '0.08')
-        const offset = scrollY * speed * -1
-        item.style.setProperty('--parallax-offset', `${offset}px`)
-      })
+        const speed = Number(item.dataset.parallax ?? "0.08");
+        const offset = scrollY * speed * -1;
+        item.style.setProperty("--parallax-offset", `${offset}px`);
+      });
 
-      rafId = 0
-    }
+      rafId = 0;
+    };
 
     const onScroll = () => {
       if (!rafId) {
-        rafId = window.requestAnimationFrame(update)
+        rafId = window.requestAnimationFrame(update);
       }
-    }
+    };
 
-    update()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
 
     return () => {
-      observer.disconnect()
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
+      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       if (rafId) {
-        window.cancelAnimationFrame(rafId)
+        window.cancelAnimationFrame(rafId);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   return (
     <>
       <div className="hero-viewport" ref={heroViewportRef}>
-      <nav className="nav-bar">
-        <span className="nav-logo">Nova AI</span>
-        <div className={`nav-menu ${menuOpen ? 'active' : ''}`}>
-          <ul className="nav-links">
-            <li>
-              <a href="#">Platform</a>
-            </li>
-            <li>
-              <a href="#">Features</a>
-            </li>
-            <li>
-              <a href="#">Docs</a>
-            </li>
-          </ul>
-          <div className="nav-actions">
-            <button type="button" className="btn-login">
-              Login
-            </button>
-            <button type="button" className="btn-signup">
-              Request Access
-            </button>
-          </div>
-        </div>
-        <button
-          type="button"
-          className={`menu-toggle ${menuOpen ? 'active' : ''}`}
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-label="Toggle menu"
-        >
-          <span />
-          <span />
-        </button>
-      </nav>
-
-      <section className="hero-card" ref={heroCardRef}>
-        <div className="scroll-glow hero-glow" data-parallax="0.12" aria-hidden="true" />
-        <div className="hero-grid" data-parallax="0.06" />
-        <div className="hero-card-inner" ref={heroInnerRef}>
-        <div className="icon-pipeline" ref={pipelineRef}>
-          <svg className="beam-svg" aria-hidden="true">
-            <defs>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                <feComposite in="coloredBlur" in2="SourceGraphic" operator="over" />
-              </filter>
-              <linearGradient
-                id="beam-gradient"
-                gradientUnits="userSpaceOnUse"
-                ref={beamGradientRef}
-              >
-                <stop offset="0%" stopColor="#b04090" stopOpacity="0" />
-                <stop offset="20%" stopColor="#b04090" stopOpacity="0.8" />
-                <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
-                <stop offset="80%" stopColor="#c8a0e0" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#c8a0e0" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <path
-              ref={beamGlowRef}
-              className="beam-path beam-glow"
-              stroke="url(#beam-gradient)"
-              strokeWidth="3"
-              filter="url(#glow)"
-              opacity="0.7"
-              fill="none"
-            />
-            <path
-              ref={beamCoreRef}
-              className="beam-path beam-core"
-              stroke="url(#beam-gradient)"
-              strokeWidth="1.2"
-              fill="none"
-            />
-          </svg>
-
-          <div className="icon-node-wrap">
-            <div
-              className="icon-node node-light-right"
-              id="node-stack"
-              ref={nodeStackRef}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                <polyline points="2 17 12 22 22 17" />
-                <polyline points="2 12 12 17 22 12" />
-              </svg>
+        <nav className="nav-bar">
+          <span className="nav-logo">Nova AI</span>
+          <div className={`nav-menu ${menuOpen ? "active" : ""}`}>
+            <ul className="nav-links">
+              <li>
+                <a href="#">Platform</a>
+              </li>
+              <li>
+                <a href="#">Features</a>
+              </li>
+              <li>
+                <a href="#">Docs</a>
+              </li>
+            </ul>
+            <div className="nav-actions">
+              <button type="button" className="btn-login">
+                Login
+              </button>
+              <button type="button" className="btn-signup">
+                Request Access
+              </button>
             </div>
-            <span className="icon-caption">AI Circuit Design</span>
           </div>
+          <button
+            type="button"
+            className={`menu-toggle ${menuOpen ? "active" : ""}`}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label="Toggle menu"
+          >
+            <span />
+            <span />
+          </button>
+        </nav>
 
-          <div className="pipeline-line" />
-
-          <div className="center-wrap">
-            <div className="splash" ref={splashRef} />
-            <div className="icon-node-center" id="node-x" ref={nodeXRef}>
-              <svg viewBox="0 0 40 40" aria-hidden="true">
-                <path d="M10 8h6l4 6 4-6h6l-7 10 7 10h-6l-4-6-4 6h-6l7-10z" />
+        <section className="hero-card" ref={heroCardRef}>
+          <div
+            className="scroll-glow hero-glow"
+            data-parallax="0.12"
+            aria-hidden="true"
+          />
+          <div className="hero-grid" data-parallax="0.06" />
+          <div className="hero-card-inner" ref={heroInnerRef}>
+            <div className="icon-pipeline" ref={pipelineRef}>
+              <svg className="beam-svg" aria-hidden="true">
+                <defs>
+                  <filter id="beam-soft-glow">
+                    <feGaussianBlur stdDeviation="2.8" result="soft" />
+                    <feComposite
+                      in="soft"
+                      in2="SourceGraphic"
+                      operator="over"
+                    />
+                  </filter>
+                  <linearGradient
+                    id="beam-gradient"
+                    gradientUnits="objectBoundingBox"
+                    ref={beamGradientRef}
+                  >
+                    <stop offset="0%" stopColor="#f6f4ff" stopOpacity="0.75" />
+                    <stop offset="40%" stopColor="#f8f1ff" stopOpacity="1" />
+                    <stop
+                      offset="100%"
+                      stopColor="#d9cbff"
+                      stopOpacity="0.78"
+                    />
+                  </linearGradient>
+                </defs>
+                <path
+                  ref={beamAuraRef}
+                  className="beam-path beam-aura"
+                  stroke="rgba(212, 196, 255, 0.28)"
+                  strokeWidth="2.2"
+                  fill="none"
+                />
+                <path
+                  ref={beamRailRef}
+                  className="beam-path beam-rail"
+                  stroke="rgba(228, 224, 255, 0.3)"
+                  strokeWidth="0.95"
+                  fill="none"
+                />
+                <path
+                  ref={beamGlowRef}
+                  className="beam-path beam-glow"
+                  stroke="url(#beam-gradient)"
+                  strokeWidth="4"
+                  filter="url(#beam-soft-glow)"
+                  opacity="0"
+                  fill="none"
+                />
+                <path
+                  ref={beamCoreRef}
+                  className="beam-path beam-core"
+                  stroke="url(#beam-gradient)"
+                  strokeWidth="1.6"
+                  opacity="0"
+                  fill="none"
+                />
+                <circle
+                  ref={beamSparkARef}
+                  className="beam-spark beam-spark-a"
+                  r="1.7"
+                  cx="0"
+                  cy="0"
+                />
+                <circle
+                  ref={beamSparkBRef}
+                  className="beam-spark beam-spark-b"
+                  r="1.35"
+                  cx="0"
+                  cy="0"
+                />
+                <circle
+                  ref={beamSparkCRef}
+                  className="beam-spark beam-spark-c"
+                  r="1.05"
+                  cx="0"
+                  cy="0"
+                />
               </svg>
+
+              <div className="icon-node-wrap">
+                <div
+                  className="icon-node node-light-right"
+                  id="node-stack"
+                  ref={nodeStackRef}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                    <polyline points="2 17 12 22 22 17" />
+                    <polyline points="2 12 12 17 22 12" />
+                  </svg>
+                </div>
+                <span className="icon-caption">AI Circuit Design</span>
+              </div>
+
+              <div className="pipeline-line" />
+
+              <div className="center-wrap">
+                <div className="splash" ref={splashRef} />
+                <div className="icon-node-center" id="node-x" ref={nodeXRef}>
+                  <svg viewBox="0 0 40 40" aria-hidden="true">
+                    <path d="M10 8h6l4 6 4-6h6l-7 10 7 10h-6l-4-6-4 6h-6l7-10z" />
+                  </svg>
+                </div>
+                <span className="icon-caption center">Nova Neural Core</span>
+              </div>
+
+              <div className="pipeline-line right" />
+
+              <div className="icon-node-wrap">
+                <div
+                  className="icon-node node-light-left"
+                  id="node-shield"
+                  ref={nodeShieldRef}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <polyline points="9 12 11 14 15 10" />
+                  </svg>
+                </div>
+                <span className="icon-caption">Secure Edge Deployment</span>
+              </div>
             </div>
-            <span className="icon-caption center">Nova Neural Core</span>
-          </div>
 
-          <div className="pipeline-line right" />
-
-          <div className="icon-node-wrap">
-            <div
-              className="icon-node node-light-left"
-              id="node-shield"
-              ref={nodeShieldRef}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <polyline points="9 12 11 14 15 10" />
-              </svg>
+            <div className="hero-content">
+              <motion.span {...fadeUp(0.05)} className="hero-kicker">
+                AI-NATIVE HARDWARE PLATFORM
+              </motion.span>
+              <motion.h1 {...fadeUp(0.15)} className="hero-heading">
+                Design, simulate, and deploy
+                <br />
+                <span className="accent-serif">intelligent hardware</span> with
+                AI.
+              </motion.h1>
+              <motion.p {...fadeUp(0.25)} className="hero-sub">
+                Nova AI combines circuit generation, embedded code intelligence,
+                real-time simulation, and edge deployment into one seamless
+                workspace for modern hardware teams.
+              </motion.p>
+              <motion.div {...fadeUp(0.35)} className="hero-actions">
+                <a
+                  href="#"
+                  className="btn-cta"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    try {
+                      betaFormRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                    } catch (err) {
+                      // fallback: change location hash
+                      window.location.hash = "#beta";
+                    }
+                  }}
+                >
+                  Join the Beta
+                </a>
+                <a href="#" className="btn-ghost">
+                  View Platform
+                </a>
+              </motion.div>
+              <p className="hero-note">
+                Built for Arduino, ESP32, robotics, IoT, and edge AI systems.
+              </p>
+              <motion.div {...fadeUp(0.45)} className="hero-trust">
+                <span>1,200+ early builders joined</span>
+                <span>Private beta launching soon</span>
+                <span>
+                  Built for embedded systems and real-world hardware workflows
+                </span>
+              </motion.div>
+              <motion.div {...fadeUp(0.55)} className="hero-pills">
+                <span>AI Circuit Generation</span>
+                <span>Real-Time Simulation</span>
+                <span>Embedded Code AI</span>
+                <span>Edge Deployment</span>
+                <span>Hardware Collaboration</span>
+                <span>Live Debugging</span>
+              </motion.div>
             </div>
-            <span className="icon-caption">Secure Edge Deployment</span>
           </div>
-        </div>
-
-        <div className="hero-content">
-          <motion.span {...fadeUp(0.05)} className="hero-kicker">
-            AI-NATIVE HARDWARE PLATFORM
-          </motion.span>
-          <motion.h1 {...fadeUp(0.15)} className="hero-heading">
-            Design, simulate, and deploy
-            <br />
-            <span className="accent-serif">intelligent hardware</span> with AI.
-          </motion.h1>
-          <motion.p {...fadeUp(0.25)} className="hero-sub">
-            Nova AI combines circuit generation, embedded code intelligence,
-            real-time simulation, and edge deployment into one seamless workspace
-            for modern hardware teams.
-          </motion.p>
-          <motion.div {...fadeUp(0.35)} className="hero-actions">
-            <a
-              href="#"
-              className="btn-cta"
-              onClick={(e) => {
-                e.preventDefault()
-                try {
-                  betaFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                } catch (err) {
-                  // fallback: change location hash
-                  window.location.hash = '#beta'
-                }
-              }}
-            >
-              Join the Beta
-            </a>
-            <a href="#" className="btn-ghost">
-              View Platform
-            </a>
-          </motion.div>
-          <p className="hero-note">
-            Built for Arduino, ESP32, robotics, IoT, and edge AI systems.
-          </p>
-          <motion.div {...fadeUp(0.45)} className="hero-trust">
-            <span>1,200+ early builders joined</span>
-            <span>Private beta launching soon</span>
-            <span>
-              Built for embedded systems and real-world hardware workflows
-            </span>
-          </motion.div>
-          <motion.div {...fadeUp(0.55)} className="hero-pills">
-            <span>AI Circuit Generation</span>
-            <span>Real-Time Simulation</span>
-            <span>Embedded Code AI</span>
-            <span>Edge Deployment</span>
-            <span>Hardware Collaboration</span>
-            <span>Live Debugging</span>
-          </motion.div>
-        </div>
-        </div>
-      </section>
+        </section>
       </div>
 
       <div className="brands">
@@ -638,7 +648,8 @@ function App() {
             />
           </svg>
           <span>
-            HubSp<span className="hubspot-dot" />t
+            HubSp
+            <span className="hubspot-dot" />t
           </span>
         </div>
         <div className="brand-item">
@@ -677,8 +688,9 @@ function App() {
           <motion.article {...fadeUp(0.15)} className="feature-card">
             <h3>AI Circuit Generation</h3>
             <p>
-              Describe your idea in plain English and instantly generate complete
-              circuits, wiring layouts, and hardware architectures powered by AI.
+              Describe your idea in plain English and instantly generate
+              complete circuits, wiring layouts, and hardware architectures
+              powered by AI.
             </p>
             <ul>
               <li>Smart component selection</li>
@@ -690,8 +702,9 @@ function App() {
           <motion.article {...fadeUp(0.2)} className="feature-card">
             <h3>Real-Time Hardware Simulation</h3>
             <p>
-              Test and validate electronics projects directly in the browser with
-              live simulation, real-time signal updates, and instant feedback loops.
+              Test and validate electronics projects directly in the browser
+              with live simulation, real-time signal updates, and instant
+              feedback loops.
             </p>
             <ul>
               <li>Browser-based simulation</li>
@@ -703,8 +716,8 @@ function App() {
           <motion.article {...fadeUp(0.25)} className="feature-card">
             <h3>Embedded Code Intelligence</h3>
             <p>
-              Generate, edit, optimize, and debug embedded firmware using AI trained
-              for hardware workflows and microcontroller systems.
+              Generate, edit, optimize, and debug embedded firmware using AI
+              trained for hardware workflows and microcontroller systems.
             </p>
             <ul>
               <li>AI firmware assistant</li>
@@ -716,8 +729,8 @@ function App() {
           <motion.article {...fadeUp(0.3)} className="feature-card">
             <h3>One-Click Deployment</h3>
             <p>
-              Compile and push code directly to connected boards without switching
-              tools, terminals, or desktop applications.
+              Compile and push code directly to connected boards without
+              switching tools, terminals, or desktop applications.
             </p>
             <ul>
               <li>Direct USB flashing</li>
@@ -742,8 +755,9 @@ function App() {
           <motion.article {...fadeUp(0.4)} className="feature-card">
             <h3>Edge AI Infrastructure</h3>
             <p>
-              Deploy intelligent hardware systems capable of autonomous operation,
-              local decision making, and offline execution at the edge.
+              Deploy intelligent hardware systems capable of autonomous
+              operation, local decision making, and offline execution at the
+              edge.
             </p>
             <ul>
               <li>Local AI workflows</li>
@@ -762,7 +776,7 @@ function App() {
             <WordReveal
               text="Modern electronics development is fragmented across simulators, IDEs, documentation, AI tools, and deployment systems. Nova AI brings everything into a single intelligent workflow designed for speed, experimentation, and real-world deployment."
               progress={whyProgress}
-              highlightWords={['intelligent', 'speed', 'deployment']}
+              highlightWords={["intelligent", "speed", "deployment"]}
               rootClassName="why-reveal"
               highlightClassName="word-highlight"
             />
@@ -806,7 +820,11 @@ function App() {
       </section>
 
       <section className="beta-section">
-        <div className="scroll-glow beta-glow" data-parallax="0.14" aria-hidden="true" />
+        <div
+          className="scroll-glow beta-glow"
+          data-parallax="0.14"
+          aria-hidden="true"
+        />
         <div className="beta-grid" data-parallax="0.08" />
         <motion.div {...fadeUp(0.15)} className="beta-inner">
           <div className="beta-copy">
@@ -816,8 +834,9 @@ function App() {
             </h2>
             <p className="beta-sub">
               Nova AI combines intelligent circuit design, real-time simulation,
-              embedded code generation, and autonomous deployment into one seamless
-              platform — built for the next generation of electronics engineering.
+              embedded code generation, and autonomous deployment into one
+              seamless platform — built for the next generation of electronics
+              engineering.
             </p>
             <div className="beta-highlights">
               <span className="beta-pill">AI Circuit Generation</span>
@@ -825,7 +844,12 @@ function App() {
               <span className="beta-pill">Edge AI Deployment</span>
             </div>
           </div>
-          <form ref={betaFormRef} id="beta" className="beta-form" onSubmit={handleBetaSignup}>
+          <form
+            ref={betaFormRef}
+            id="beta"
+            className="beta-form"
+            onSubmit={handleBetaSignup}
+          >
             <label className="beta-label" htmlFor="beta-email">
               Request early access
             </label>
@@ -838,14 +862,18 @@ function App() {
                 required
                 disabled={isSubmittingBeta}
               />
-              <button type="submit" className="beta-submit" disabled={isSubmittingBeta}>
-                {isSubmittingBeta ? 'Sending...' : 'Join Beta'}
+              <button
+                type="submit"
+                className="beta-submit"
+                disabled={isSubmittingBeta}
+              >
+                {isSubmittingBeta ? "Sending..." : "Join Beta"}
               </button>
             </div>
             {betaStatus ? (
               <p
                 className={`beta-message beta-message-${betaStatus.type}`}
-                role={betaStatus.type === 'error' ? 'alert' : 'status'}
+                role={betaStatus.type === "error" ? "alert" : "status"}
               >
                 {betaStatus.message}
               </p>
@@ -859,7 +887,7 @@ function App() {
         </motion.div>
       </section>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
