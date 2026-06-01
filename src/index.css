@@ -117,41 +117,6 @@ button {
     color: var(--text);
 }
 
-.nav-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-}
-
-.btn-login {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 7px 18px;
-    border-radius: 999px;
-    font-size: 0.82rem;
-    font-weight: 500;
-    transition: background 0.2s ease;
-}
-
-.btn-login:hover {
-    background: rgba(255, 255, 255, 0.12);
-}
-
-.btn-signup {
-    background: #ffffff;
-    color: #0a0a0f;
-    padding: 7px 18px;
-    border-radius: 999px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    transition: opacity 0.2s ease;
-}
-
-.btn-signup:hover {
-    opacity: 0.88;
-}
-
 .menu-toggle {
     display: none;
     width: 24px;
@@ -1486,17 +1451,6 @@ button {
         flex-direction: column;
         align-items: center;
         gap: 24px;
-    }
-
-    .nav-actions {
-        flex-direction: column;
-        width: min(320px, 80%);
-    }
-
-    .nav-actions button {
-        width: 100%;
-        padding: 12px 18px;
-        font-size: 0.9rem;
     }
 
     .menu-toggle {

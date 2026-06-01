@@ -421,14 +421,6 @@ function App() {
                 <a href="#">Docs</a>
               </li>
             </ul>
-            <div className="nav-actions">
-              <button type="button" className="btn-login">
-                Login
-              </button>
-              <button type="button" className="btn-signup">
-                Request Access
-              </button>
-            </div>
           </div>
           <button
             type="button"
