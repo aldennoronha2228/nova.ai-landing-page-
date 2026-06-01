@@ -408,9 +408,9 @@ function App() {
     <>
       <div className="hero-viewport" ref={heroViewportRef}>
         <nav className="nav-bar">
-          <a className="nav-brand" href="#" aria-label="Nova Ai home">
+          <a className="nav-brand" href="#" aria-label="Nova AI home">
             <img className="nav-logo" src="/nova-logo-n.png" alt="" />
-            <span>Nova Ai</span>
+            <span>Nova AI</span>
           </a>
           <div className={`nav-menu ${menuOpen ? "active" : ""}`}>
             <ul className="nav-links">
@@ -418,7 +418,7 @@ function App() {
                 <a href="#">Platform</a>
               </li>
               <li>
-                <a href="#">Features</a>
+                <a href="#core-features">Features</a>
               </li>
               <li>
                 <a href="#">Docs</a>
@@ -699,7 +699,7 @@ function App() {
         </div>
       </div>
 
-      <section className="features-section">
+      <section className="features-section" id="core-features">
         <motion.div {...fadeUp(0.1)} className="features-header">
           <span className="section-label">Core Features</span>
           <h2>Everything you need to build intelligent hardware.</h2>

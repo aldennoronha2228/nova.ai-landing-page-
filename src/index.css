@@ -8,7 +8,8 @@
     --border: rgba(255, 255, 255, 0.08);
     --scroll-progress: 0;
     --scroll-shift: 0%;
-    --font-serif: "Instrument Serif", serif;
+    --font-sans: var(--font-inter), "Inter", sans-serif;
+    --font-serif: var(--font-instrument-serif), "Instrument Serif", serif;
     --page-gutter: 6px;
     --content-max: min(1920px, calc(100vw - var(--page-gutter) * 2));
     --hero-scroll-peek: 72px;
@@ -26,7 +27,7 @@ html {
 
 body {
     margin: 0;
-    font-family: "Inter", sans-serif;
+    font-family: var(--font-sans);
     background: var(--bg);
     color: var(--text);
     display: flex;
@@ -94,8 +95,17 @@ button {
     gap: 12px;
     width: fit-content;
     color: var(--text);
-    font-size: 1.05rem;
-    font-weight: 700;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 760;
+    line-height: 1;
+    font-variation-settings: "opsz" 32;
+    text-rendering: geometricPrecision;
+}
+
+.nav-brand span {
+    display: block;
+    translate: 0 -1px;
 }
 
 .nav-logo {
@@ -920,6 +930,7 @@ button {
     overflow: hidden;
     border-radius: 20px;
     isolation: isolate;
+    scroll-margin-top: 88px;
 }
 
 .features-section::after {
