@@ -88,8 +88,18 @@ button {
     flex-shrink: 0;
 }
 
+.nav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    width: fit-content;
+    color: var(--text);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
 .nav-logo {
-    width: 46px;
+    width: 38px;
     height: auto;
     display: block;
 }
