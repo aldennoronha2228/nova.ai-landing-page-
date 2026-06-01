@@ -92,24 +92,24 @@ button {
 .nav-brand {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     width: fit-content;
     color: var(--text);
-    font-family: var(--font-sans);
-    font-size: 1rem;
-    font-weight: 760;
-    line-height: 1;
-    font-variation-settings: "opsz" 32;
-    text-rendering: geometricPrecision;
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 1.02rem;
+    font-weight: 680;
+    line-height: 1.1;
+    letter-spacing: 0;
+    font-synthesis: none;
 }
 
 .nav-brand span {
     display: block;
-    translate: 0 -1px;
+    translate: 0 -0.5px;
 }
 
 .nav-logo {
-    width: 38px;
+    width: 36px;
     height: auto;
     display: block;
 }
