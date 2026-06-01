@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app'
+import Head from 'next/head'
 import { Inter, Instrument_Serif } from 'next/font/google'
 import '../src/index.css'
 
@@ -16,8 +17,16 @@ const instrumentSerif = Instrument_Serif({
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <div className={`${inter.variable} ${instrumentSerif.variable}`}>
-      <Component {...pageProps} />
-    </div>
+    <>
+      <Head>
+        <title>Nova AI</title>
+        <meta name="description" content="The AI workspace for hardware engineers." />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </Head>
+      <div className={`${inter.variable} ${instrumentSerif.variable}`}>
+        <Component {...pageProps} />
+      </div>
+    </>
   )
 }

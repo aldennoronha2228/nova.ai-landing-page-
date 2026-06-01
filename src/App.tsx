@@ -408,7 +408,7 @@ function App() {
     <>
       <div className="hero-viewport" ref={heroViewportRef}>
         <nav className="nav-bar">
-          <span className="nav-logo">Nova AI</span>
+          <img className="nav-logo" src="/nova-logo-n.png" alt="Nova AI" />
           <div className={`nav-menu ${menuOpen ? "active" : ""}`}>
             <ul className="nav-links">
               <li>
