@@ -14,7 +14,7 @@ Marketing site for **Nova AI** — an AI-native platform for circuit design, emb
 
 - [React](https://react.dev/) 19
 - [TypeScript](https://www.typescriptlang.org/)
-- [Vite](https://vite.dev/)
+- [Next.js](https://nextjs.org/)
 - [Framer Motion](https://www.framer.com/motion/)
 - [Inter](https://fonts.google.com/specimen/Inter) & [Instrument Serif](https://fonts.google.com/specimen/Instrument+Serif) fonts
 
@@ -37,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Open the URL shown in the terminal (default: `http://localhost:5173`).
+Open the URL shown in the terminal (default: `http://localhost:3000`).
 
 ### Build
 
@@ -45,7 +45,7 @@ Open the URL shown in the terminal (default: `http://localhost:5173`).
 npm run build
 ```
 
-Output is written to `dist/`.
+Build output is produced in the Next.js build directories; run `npm run start` to serve the production build.
 
 ### Preview production build
 
@@ -66,9 +66,9 @@ npm run lint
 ├── src/
 │   ├── App.tsx      # Page sections and layout
 │   ├── index.css    # Global styles
-│   └── main.tsx     # App entry
-├── index.html
-└── vite.config.ts
+│   └── (Vite entry removed)
+├── pages/           # Next.js pages and API routes
+└── next.config.mjs
 ```
 
 ## License

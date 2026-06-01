@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
+import { addDoc, collection } from "firebase/firestore";
+import { firebase } from "./firebase";
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 20 },
@@ -129,7 +131,17 @@ function App() {
 
     const form = event.currentTarget;
     const formData = new FormData(form);
+    const name = String(formData.get("name") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
+
+    if (!name || !phone || !email) {
+      setBetaStatus({
+        type: "error",
+        message: "Please enter your name, phone number, and email address.",
+      });
+      return;
+    }
 
     if (!email) {
       setBetaStatus({
@@ -143,19 +155,37 @@ function App() {
       setIsSubmittingBeta(true);
       setBetaStatus(null);
 
+      if (firebase.db) {
+        try {
+          await addDoc(collection(firebase.db, "signups"), {
+            name,
+            phone,
+            email,
+            createdAt: new Date().toISOString(),
+          });
+        } catch (dbError) {
+          // eslint-disable-next-line no-console
+          console.warn("Client-side signup write failed:", dbError);
+        }
+      }
+
       const response = await fetch("/api/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ name, phone, email }),
       });
 
       const rawResponse = await response.text();
-      let payload: { message?: string } = {};
+      let payload: { message?: string; saved?: boolean; emailed?: boolean } = {};
       if (rawResponse) {
         try {
-          payload = JSON.parse(rawResponse) as { message?: string };
+          payload = JSON.parse(rawResponse) as {
+            message?: string;
+            saved?: boolean;
+            emailed?: boolean;
+          };
         } catch {
           payload = {};
         }
@@ -853,7 +883,23 @@ function App() {
             <label className="beta-label" htmlFor="beta-email">
               Request early access
             </label>
-            <div className="beta-input-row">
+            <div className="beta-input-grid">
+              <input
+                id="beta-name"
+                type="text"
+                name="name"
+                placeholder="Your name"
+                required
+                disabled={isSubmittingBeta}
+              />
+              <input
+                id="beta-phone"
+                type="tel"
+                name="phone"
+                placeholder="Phone number"
+                required
+                disabled={isSubmittingBeta}
+              />
               <input
                 id="beta-email"
                 type="email"
