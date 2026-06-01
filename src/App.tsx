@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
-import { addDoc, collection } from "firebase/firestore";
-import { firebase } from "./firebase";
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 20 },
@@ -155,20 +153,6 @@ function App() {
       setIsSubmittingBeta(true);
       setBetaStatus(null);
 
-      if (firebase.db) {
-        try {
-          await addDoc(collection(firebase.db, "signups"), {
-            name,
-            phone,
-            email,
-            createdAt: new Date().toISOString(),
-          });
-        } catch (dbError) {
-          // eslint-disable-next-line no-console
-          console.warn("Client-side signup write failed:", dbError);
-        }
-      }
-
       const response = await fetch("/api/signup", {
         method: "POST",
         headers: {
@@ -178,17 +162,33 @@ function App() {
       });
 
       const rawResponse = await response.text();
-      let payload: { message?: string; saved?: boolean; emailed?: boolean } = {};
+      let payload: {
+        message?: string;
+        saved?: boolean;
+        emailed?: boolean;
+        duplicate?: boolean;
+      } = {};
       if (rawResponse) {
         try {
           payload = JSON.parse(rawResponse) as {
             message?: string;
             saved?: boolean;
             emailed?: boolean;
+            duplicate?: boolean;
           };
         } catch {
           payload = {};
         }
+      }
+
+      if (response.status === 409 && payload.duplicate) {
+        setBetaStatus({
+          type: "success",
+          message:
+            payload.message ??
+            "You have already applied for the Nova AI beta version.",
+        });
+        return;
       }
 
       if (!response.ok) {

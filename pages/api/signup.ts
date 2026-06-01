@@ -1,7 +1,59 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { cert, getApps, initializeApp } from 'firebase-admin/app'
+import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
+const duplicateSignupMessage = 'You have already applied for the Nova AI beta version.'
+
+type ServiceAccount = {
+  project_id?: string
+  client_email?: string
+  private_key?: string
+}
+
+declare global {
+  // eslint-disable-next-line no-var
+  var novaSignupEmails: Set<string> | undefined
+}
+
+const getSignupMemory = () => {
+  globalThis.novaSignupEmails ??= new Set<string>()
+  return globalThis.novaSignupEmails
+}
+
+const normalizeEmail = (email: string): string => email.trim().toLowerCase()
+
+const getSignupDocId = (email: string): string =>
+  Buffer.from(email).toString('base64url')
+
+const getAdminDb = () => {
+  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+  if (!rawServiceAccount) return null
+
+  try {
+    const serviceAccount = JSON.parse(rawServiceAccount) as ServiceAccount
+    if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
+      return null
+    }
+
+    const app =
+      getApps()[0] ??
+      initializeApp({
+        credential: cert({
+          projectId: serviceAccount.project_id,
+          clientEmail: serviceAccount.client_email,
+          privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'),
+        }),
+      })
+
+    return getFirestore(app)
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Firebase Admin is not configured correctly:', error)
+    return null
+  }
+}
 
 const getStringField = (body: unknown, field: string): string => {
   if (!body) return ''
@@ -50,6 +102,59 @@ const isValidEmail = (value: string): boolean =>
 const isValidPhone = (value: string): boolean =>
   /^[+()\d\s.-]{7,}$/.test(value)
 
+const rememberSignup = async ({
+  name,
+  phone,
+  email,
+}: {
+  name: string
+  phone: string
+  email: string
+}): Promise<{ duplicate: boolean; saved: boolean }> => {
+  const normalizedEmail = normalizeEmail(email)
+  const db = getAdminDb()
+
+  if (!db) {
+    const signupMemory = getSignupMemory()
+    if (signupMemory.has(normalizedEmail)) {
+      return { duplicate: true, saved: false }
+    }
+
+    signupMemory.add(normalizedEmail)
+    return { duplicate: false, saved: false }
+  }
+
+  const signups = db.collection('signups')
+  const signupRef = signups.doc(getSignupDocId(normalizedEmail))
+  const [existingDoc, existingEmailQuery] = await Promise.all([
+    signupRef.get(),
+    signups.where('email', '==', email).limit(1).get(),
+  ])
+
+  if (existingDoc.exists || !existingEmailQuery.empty) {
+    return { duplicate: true, saved: true }
+  }
+
+  try {
+    await signupRef.create({
+      name,
+      phone,
+      email,
+      normalizedEmail,
+      createdAt: FieldValue.serverTimestamp(),
+    })
+  } catch (error) {
+    const code = (error as { code?: string | number }).code
+    if (code === 6 || code === 'already-exists') {
+      return { duplicate: true, saved: true }
+    }
+
+    throw error
+  }
+
+  return { duplicate: false, saved: true }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -76,6 +181,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const firstName = name.split(/\s+/)[0] || 'there'
 
   try {
+    const signup = await rememberSignup({ name, phone, email })
+
+    if (signup.duplicate) {
+      return res.status(409).json({
+        message: duplicateSignupMessage,
+        saved: signup.saved,
+        duplicate: true,
+      })
+    }
+
     if (resendApiKey && senderEmail) {
       try {
         const textBody = `Hi ${firstName},
@@ -168,8 +283,9 @@ The AI Workspace for Hardware Engineers.`
       name,
       phone,
       email,
-      saved: true,
+      saved: signup.saved,
       emailed: emailSent,
+      duplicate: false,
     })
   } catch (error) {
     const message =
