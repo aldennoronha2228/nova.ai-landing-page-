@@ -2036,6 +2036,33 @@ button {
     }
 }
 
+/* On very small screens, make the hero pill list horizontally scrollable
+   and reduce padding so it doesn't create a long vertical stack. */
+@media (max-width: 420px) {
+    .hero-pills {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding-bottom: 8px;
+        scroll-snap-type: x mandatory;
+    }
+
+    .hero-pills span {
+        flex: 0 0 auto;
+        min-width: min(40%, 180px);
+        padding: 6px 10px;
+        font-size: 0.78rem;
+        border-radius: 14px;
+        scroll-snap-align: start;
+    }
+
+    /* If user prefers to hide the pills entirely on extra-small devices,
+       they can uncomment the next rule. */
+    /* .hero-pills { display: none !important; } */
+}
+
 @media (max-width: 560px) {
     .how-steps {
         grid-template-columns: 1fr;
