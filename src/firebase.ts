@@ -3,17 +3,22 @@ import { getAnalytics } from 'firebase/analytics'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? 'AIzaSyCpYjIBNnY8aigW1SGJ1vzwWu0-xubNjng',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? 'bmshavkathon.firebaseapp.com',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? 'bmshavkathon',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? 'bmshavkathon.firebasestorage.app',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? '364939405585',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? '1:364939405585:web:d20e54ca41e754898b84b0',
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ?? 'G-JRP7E3FHQ7',
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? '',
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? '',
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? '',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? '',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? '',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? '',
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ?? '',
 }
 
 function initFirebase() {
   try {
+    const isConfigured = Object.values(firebaseConfig).every(Boolean)
+    if (!isConfigured) {
+      return { app: null, analytics: null, db: null }
+    }
+
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
     let analytics: ReturnType<typeof getAnalytics> | null = null
     try {

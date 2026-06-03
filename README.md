@@ -4,19 +4,19 @@
 
 ## Nova AI
 
-This repository contains a marketing landing page and private signup flow for Nova AI. It is intended as a lightweight, responsive site to capture private alpha signups and deliver confirmation emails.
+This repository contains a marketing landing page and private signup flow for Nova AI. It is intended as a lightweight, responsive site to capture private alpha signups and store them in Firestore.
 
 </div>
 
 ## Overview
 
-A small, focused landing page built with Next.js. The project includes a signup endpoint that validates and records submissions and attempts to send confirmation messages when configured.
+A small, focused landing page built with Next.js. The project includes a signup flow that validates submissions, writes them directly to Firestore, and attempts to send confirmation messages when configured.
 
 ## Key Features
 
 - Animated hero and responsive layout
-- Private signup form with serverless API endpoint
-- Optional Firestore storage for signups
+- Private alpha signup form with direct Firestore writes
+- Alpha waitlist duplicate protection
 - Optional Resend integration for confirmation emails
 
 ## Tech Stack
@@ -52,37 +52,40 @@ Open http://localhost:3000 in your browser.
 
 ## Environment
 
-Create a `.env.local` file with the values needed for email and optional server-side Firestore writes:
+Create a `.env.local` file with the values needed for email and Firestore writes:
 
 ```env
 RESEND_API_KEY=your_resend_api_key
 RESEND_FROM_EMAIL=Your Name <onboarding@yourdomain.com>
 FIREBASE_SERVICE_ACCOUNT={"project_id":"...","client_email":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"}
 
-# Optional public Firebase config (client-side)
+# Public Firebase config for client-side Firestore writes
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
 ```
-
+The active Firebase project is controlled by the `NEXT_PUBLIC_FIREBASE_*` values. In the current environment those values point at project `bmshavkathon`.
 If `FIREBASE_SERVICE_ACCOUNT` is not provided the app will attempt client-side Firestore writes (subject to your Firestore rules).
 
 ## API
 
-POST `/api/signup`
-
-Request body (JSON):
+The signup UI writes directly to the `alpha_users` collection with this document shape:
 
 ```json
 {
-  "name": "Full Name",
-  "phone": "+1 555 0100",
-  "email": "user@example.com"
+  "email": "user@example.com",
+  "fullName": "Full Name",
+  "company": "Company",
+  "role": "Role",
+  "signupDate": "server timestamp",
+  "source": "website",
+  "status": "pending",
+  "phase": "alpha"
 }
 ```
 
-Response contains a message and flags indicating whether the submission was saved and whether an email was sent.
+The API route at `POST /api/signup` mirrors the same schema and messages as a fallback path.
 
 ## Project structure
 

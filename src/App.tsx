@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
+import { collection, doc, getDocs, limit, query, runTransaction, serverTimestamp, where } from "firebase/firestore";
+
+import { firebase } from "./firebase";
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 20 },
@@ -7,6 +10,23 @@ const fadeUp = (delay: number) => ({
   viewport: { once: true, margin: "-120px" },
   transition: { duration: 0.6, delay, ease: "easeOut" as const },
 });
+
+const heroMotionProps = (delay: number, disabled: boolean) =>
+  disabled
+    ? {}
+    : fadeUp(delay);
+
+const alphaSuccessMessage =
+  "Welcome to Nova AI Alpha. Your request has been received and added to the Alpha waitlist.";
+const alphaDuplicateMessage = "You're already registered for Nova AI Alpha.";
+const alphaErrorMessage = "We couldn't process your request. Please try again.";
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
+const getAlphaDocId = (email: string) => normalizeEmail(email);
+
+const isValidEmail = (value: string): boolean => emailPattern.test(value);
 
 const WordReveal = ({
   text,
@@ -47,8 +67,8 @@ const WordReveal = ({
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isSubmittingBeta, setIsSubmittingBeta] = useState(false);
-  const [betaStatus, setBetaStatus] = useState<{
+  const [isSubmittingAlpha, setIsSubmittingAlpha] = useState(false);
+  const [alphaStatus, setAlphaStatus] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
@@ -68,12 +88,15 @@ function App() {
   const heroViewportRef = useRef<HTMLDivElement | null>(null);
   const heroCardRef = useRef<HTMLElement | null>(null);
   const heroInnerRef = useRef<HTMLDivElement | null>(null);
-  const betaFormRef = useRef<HTMLFormElement | null>(null);
+  const alphaFormRef = useRef<HTMLFormElement | null>(null);
   const whyRef = useRef<HTMLDivElement | null>(null);
+  const alphaDb = firebase.db;
   const { scrollYProgress: whyProgress } = useScroll({
     target: whyRef,
     offset: ["start center", "end center"],
   });
+
+  const [disableMobileMotion, setDisableMobileMotion] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -81,6 +104,18 @@ function App() {
       document.body.style.overflow = "";
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    const updateMotion = () => {
+      setDisableMobileMotion(
+        typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches,
+      );
+    };
+
+    updateMotion();
+    window.addEventListener("resize", updateMotion);
+    return () => window.removeEventListener("resize", updateMotion);
+  }, []);
 
   useEffect(() => {
     const viewport = heroViewportRef.current;
@@ -123,109 +158,119 @@ function App() {
     };
   }, []);
 
-  const handleBetaSignup = async (event: FormEvent<HTMLFormElement>) => {
+  const handleAlphaSignup = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (isSubmittingBeta) return;
+    if (isSubmittingAlpha) return;
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const name = String(formData.get("name") ?? "").trim();
-    const phone = String(formData.get("phone") ?? "").trim();
+    const fullName = String(formData.get("fullName") ?? "").trim();
+    const company = String(formData.get("company") ?? "").trim();
+    const role = String(formData.get("role") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
 
-    if (!name || !phone || !email) {
-      setBetaStatus({
+    if (!fullName || !company || !role || !email) {
+      setAlphaStatus({
         type: "error",
-        message: "Please enter your name, phone number, and email address.",
+        message: alphaErrorMessage,
       });
       return;
     }
 
-    if (!email) {
-      setBetaStatus({
+    if (!isValidEmail(email)) {
+      setAlphaStatus({
         type: "error",
-        message: "Please enter a valid email address.",
+        message: alphaErrorMessage,
       });
       return;
     }
 
     try {
-      setIsSubmittingBeta(true);
-      setBetaStatus(null);
-
-      const response = await fetch("/api/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, phone, email }),
-      });
-
-      const rawResponse = await response.text();
-      let payload: {
-        message?: string;
-        saved?: boolean;
-        emailed?: boolean;
-        duplicate?: boolean;
-      } = {};
-      if (rawResponse) {
-        try {
-          payload = JSON.parse(rawResponse) as {
-            message?: string;
-            saved?: boolean;
-            emailed?: boolean;
-            duplicate?: boolean;
-          };
-        } catch {
-          payload = {};
-        }
+      if (!alphaDb) {
+        throw new Error(alphaErrorMessage);
       }
 
-      if (response.status === 409 && payload.duplicate) {
-        setBetaStatus({
-          type: "success",
-          message:
-            payload.message ??
-            "You have already applied for Nova AI Alpha access.",
+      setIsSubmittingAlpha(true);
+      setAlphaStatus(null);
+
+      const normalizedEmail = normalizeEmail(email);
+      const alphaUsers = collection(alphaDb, "alpha_users");
+      const duplicateSnapshot = await getDocs(
+        query(alphaUsers, where("email", "==", normalizedEmail), limit(1)),
+      );
+
+      if (!duplicateSnapshot.empty) {
+        setAlphaStatus({
+          type: "error",
+          message: alphaDuplicateMessage,
         });
         return;
       }
 
-      if (!response.ok) {
-        throw new Error(payload.message ?? "Unable to complete sign up.");
-      }
+      const docId = getAlphaDocId(normalizedEmail);
+      const userRef = doc(alphaDb, "alpha_users", docId);
+
+      await runTransaction(alphaDb, async (transaction) => {
+        const existingDoc = await transaction.get(userRef);
+        if (existingDoc.exists()) {
+          throw new Error("duplicate-signup");
+        }
+
+        transaction.set(userRef, {
+          email: normalizedEmail,
+          fullName,
+          company,
+          role,
+          signupDate: serverTimestamp(),
+          source: "website",
+          status: "pending",
+          phase: "alpha",
+        });
+      });
+
+      // eslint-disable-next-line no-console
+      console.log("Alpha signup stored successfully", {
+        docId,
+        email: normalizedEmail,
+        collection: "alpha_users",
+      });
 
       form.reset();
-      setBetaStatus({
+      setAlphaStatus({
         type: "success",
-        message:
-          payload.message ??
-          "You're on the alpha list! Check your inbox for a confirmation email from Nova AI.",
+        message: alphaSuccessMessage,
       });
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Something went wrong. Try again.";
-      setBetaStatus({
+      if (error instanceof Error && error.message === "duplicate-signup") {
+        setAlphaStatus({
+          type: "error",
+          message: alphaDuplicateMessage,
+        });
+        return;
+      }
+
+      // eslint-disable-next-line no-console
+      console.error("Alpha signup failed:", error);
+
+      setAlphaStatus({
         type: "error",
-        message,
+        message: alphaErrorMessage,
       });
     } finally {
-      setIsSubmittingBeta(false);
+      setIsSubmittingAlpha(false);
     }
   };
 
-  const scrollToBeta = (event: MouseEvent<HTMLAnchorElement>) => {
+  const scrollToAlpha = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     setMenuOpen(false);
     try {
-      betaFormRef.current?.scrollIntoView({
+      alphaFormRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     } catch (err) {
-      window.location.hash = "#beta";
+      window.location.hash = "#alpha";
     }
   };
 
@@ -447,7 +492,7 @@ function App() {
               <a href="#" className="mobile-menu-secondary" onClick={() => setMenuOpen(false)}>
                 Sign In
               </a>
-              <a href="#beta" className="mobile-menu-primary" onClick={scrollToBeta}>
+              <a href="#alpha" className="mobile-menu-primary" onClick={scrollToAlpha}>
                 Get Alpha Access
               </a>
             </div>
@@ -595,25 +640,25 @@ function App() {
             </div>
 
             <div className="hero-content">
-              <motion.span {...fadeUp(0.05)} className="hero-kicker">
+              <motion.span {...heroMotionProps(0.05, disableMobileMotion)} className="hero-kicker">
                 AI-NATIVE HARDWARE PLATFORM
               </motion.span>
-              <motion.h1 {...fadeUp(0.15)} className="hero-heading">
+              <motion.h1 {...heroMotionProps(0.15, disableMobileMotion)} className="hero-heading">
                 Design, simulate, and deploy
                 <br />
                 <span className="accent-serif">intelligent hardware</span> with
                 AI.
               </motion.h1>
-              <motion.p {...fadeUp(0.25)} className="hero-sub">
+              <motion.p {...heroMotionProps(0.25, disableMobileMotion)} className="hero-sub">
                 Nova AI combines circuit generation, embedded code intelligence,
                 real-time simulation, and edge deployment into one seamless
                 workspace for modern hardware teams.
               </motion.p>
-              <motion.div {...fadeUp(0.35)} className="hero-actions">
+              <motion.div {...heroMotionProps(0.35, disableMobileMotion)} className="hero-actions">
                 <a
                   href="#"
                   className="btn-cta"
-                  onClick={scrollToBeta}
+                  onClick={scrollToAlpha}
                 >
                   Join the Alpha
                 </a>
@@ -623,14 +668,14 @@ function App() {
                 feedback channels, and the opportunity to influence Nova AI's
                 development.
               </p>
-              <motion.div {...fadeUp(0.45)} className="hero-trust">
+              <motion.div {...heroMotionProps(0.45, disableMobileMotion)} className="hero-trust">
                 <span>1,200+ early builders joined</span>
                 <span>Private alpha now accepting applications</span>
                 <span>
                   Alpha users help shape Nova AI's development
                 </span>
               </motion.div>
-              <motion.div {...fadeUp(0.55)} className="hero-pills">
+              <motion.div {...heroMotionProps(0.55, disableMobileMotion)} className="hero-pills">
                 <div className="hero-pills-track" aria-hidden="false">
                   <span>AI Circuit Generation</span>
                   <span>Real-Time Simulation</span>
@@ -892,53 +937,61 @@ function App() {
             </div>
           </div>
           <form
-            ref={betaFormRef}
-            id="beta"
+            ref={alphaFormRef}
+            id="alpha"
             className="beta-form"
-            onSubmit={handleBetaSignup}
+            onSubmit={handleAlphaSignup}
           >
-            <label className="beta-label" htmlFor="beta-email">
+            <label className="beta-label" htmlFor="alpha-email">
               Reserve your spot in the Nova AI Alpha.
             </label>
             <div className="beta-input-grid">
               <input
-                id="beta-name"
+                id="alpha-fullName"
                 type="text"
-                name="name"
-                placeholder="Your name"
+                name="fullName"
+                placeholder="Full name"
                 required
-                disabled={isSubmittingBeta}
+                disabled={isSubmittingAlpha}
               />
               <input
-                id="beta-phone"
-                type="tel"
-                name="phone"
-                placeholder="Phone number"
+                id="alpha-company"
+                type="text"
+                name="company"
+                placeholder="Company"
                 required
-                disabled={isSubmittingBeta}
+                disabled={isSubmittingAlpha}
               />
               <input
-                id="beta-email"
+                id="alpha-role"
+                type="text"
+                name="role"
+                placeholder="Role"
+                required
+                disabled={isSubmittingAlpha}
+              />
+              <input
+                id="alpha-email"
                 type="email"
                 name="email"
                 placeholder="you@company.com"
                 required
-                disabled={isSubmittingBeta}
+                disabled={isSubmittingAlpha}
               />
               <button
                 type="submit"
                 className="beta-submit"
-                disabled={isSubmittingBeta}
+                disabled={isSubmittingAlpha}
               >
-                {isSubmittingBeta ? "Sending..." : "Request Alpha Access"}
+                {isSubmittingAlpha ? "Sending..." : "Request Alpha Access"}
               </button>
             </div>
-            {betaStatus ? (
+            {alphaStatus ? (
               <p
-                className={`beta-message beta-message-${betaStatus.type}`}
-                role={betaStatus.type === "error" ? "alert" : "status"}
+                className={`beta-message beta-message-${alphaStatus.type}`}
+                role={alphaStatus.type === "error" ? "alert" : "status"}
               >
-                {betaStatus.message}
+                {alphaStatus.message}
               </p>
             ) : null}
             <p className="beta-footnote">

@@ -4,7 +4,7 @@ import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
-const duplicateSignupMessage = 'You have already applied for Nova AI Alpha access.'
+const duplicateSignupMessage = "You're already registered for Nova AI Alpha."
 
 type ServiceAccount = {
   project_id?: string
@@ -17,15 +17,9 @@ declare global {
   var novaSignupEmails: Set<string> | undefined
 }
 
-const getSignupMemory = () => {
-  globalThis.novaSignupEmails ??= new Set<string>()
-  return globalThis.novaSignupEmails
-}
-
 const normalizeEmail = (email: string): string => email.trim().toLowerCase()
 
-const getSignupDocId = (email: string): string =>
-  Buffer.from(email).toString('base64url')
+const getSignupDocId = (email: string): string => normalizeEmail(email)
 
 const getAdminDb = () => {
   const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
@@ -99,60 +93,51 @@ const getEmailFromBody = (body: unknown): string => {
 const isValidEmail = (value: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 
-const isValidPhone = (value: string): boolean =>
-  /^[+()\d\s.-]{7,}$/.test(value)
-
 const rememberSignup = async ({
-  name,
-  phone,
+  fullName,
   email,
+  company,
+  role,
 }: {
-  name: string
-  phone: string
+  fullName: string
   email: string
-}): Promise<{ duplicate: boolean; saved: boolean }> => {
+  company: string
+  role: string
+}): Promise<{ duplicate: boolean; saved: boolean; docId?: string }> => {
   const normalizedEmail = normalizeEmail(email)
   const db = getAdminDb()
 
   if (!db) {
-    const signupMemory = getSignupMemory()
-    if (signupMemory.has(normalizedEmail)) {
-      return { duplicate: true, saved: false }
-    }
-
-    signupMemory.add(normalizedEmail)
-    return { duplicate: false, saved: false }
+    // Require admin credentials for production writes. Returning an explicit error
+    // lets callers surface a clear message to the operator.
+    throw new Error('Firebase Admin SDK is not configured. Set FIREBASE_SERVICE_ACCOUNT.')
   }
 
-  const signups = db.collection('signups')
-  const signupRef = signups.doc(getSignupDocId(normalizedEmail))
-  const [existingDoc, existingEmailQuery] = await Promise.all([
-    signupRef.get(),
-    signups.where('email', '==', email).limit(1).get(),
+  const users = db.collection('alpha_users')
+  const docId = getSignupDocId(normalizedEmail)
+  const userRef = users.doc(docId)
+
+  const [existingDoc, existingQuery] = await Promise.all([
+    userRef.get(),
+    users.where('email', '==', normalizedEmail).limit(1).get(),
   ])
 
-  if (existingDoc.exists || !existingEmailQuery.empty) {
-    return { duplicate: true, saved: true }
+  if (existingDoc.exists || !existingQuery.empty) {
+    return { duplicate: true, saved: true, docId: existingDoc.exists ? userRef.id : existingQuery.docs[0].id }
   }
 
-  try {
-    await signupRef.create({
-      name,
-      phone,
-      email,
-      normalizedEmail,
-      createdAt: FieldValue.serverTimestamp(),
-    })
-  } catch (error) {
-    const code = (error as { code?: string | number }).code
-    if (code === 6 || code === 'already-exists') {
-      return { duplicate: true, saved: true }
-    }
+  await userRef.create({
+    email: normalizedEmail,
+    fullName,
+    company,
+    role,
+    signupDate: FieldValue.serverTimestamp(),
+    source: 'website',
+    status: 'pending',
+    phase: 'alpha',
+  })
 
-    throw error
-  }
-
-  return { duplicate: false, saved: true }
+  return { duplicate: false, saved: true, docId }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -160,34 +145,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
-  const name = getStringField(req.body, 'name')
-  const phone = getStringField(req.body, 'phone')
+  const fullName = getStringField(req.body, 'fullName') || getStringField(req.body, 'name')
   const email = getEmailFromBody(req.body)
+  const company = getStringField(req.body, 'company')
+  const role = getStringField(req.body, 'role')
 
-  if (!name || !phone || !email) {
-    return res.status(400).json({ message: 'Please provide your name, phone number, and email address.' })
+  if (!fullName || !company || !role || !email) {
+    return res.status(400).json({ message: 'Please provide your full name, company, role, and a valid email address.' })
   }
 
   if (!isValidEmail(email)) {
     return res.status(400).json({ message: 'Please provide a valid email address.' })
   }
 
-  if (!isValidPhone(phone)) {
-    return res.status(400).json({ message: 'Please provide a valid phone number.' })
-  }
-
   const emailConfigured = Boolean(resendApiKey && senderEmail)
   let emailSent = false
-  const firstName = name.split(/\s+/)[0] || 'there'
+  const firstName = fullName.split(/\s+/)[0] || 'there'
 
   try {
-    const signup = await rememberSignup({ name, phone, email })
+    const signup = await rememberSignup({ fullName, email, company, role })
 
     if (signup.duplicate) {
       return res.status(409).json({
         message: duplicateSignupMessage,
         saved: signup.saved,
         duplicate: true,
+        docId: signup.docId,
       })
     }
 
@@ -276,20 +259,31 @@ The AI Workspace for Hardware Engineers.`
       console.warn('Email service is not configured. Skipping confirmation email.')
     }
 
-    const message = "You're in. Thanks for signing up."
+    const message = 'Welcome to Nova AI Alpha. Your request has been received and added to the Alpha waitlist.'
+
+    // eslint-disable-next-line no-console
+    console.log('Alpha signup stored successfully', {
+      docId: signup.docId,
+      email: normalizeEmail(email),
+      collection: 'alpha_users',
+    })
 
     return res.status(200).json({
       message,
-      name,
-      phone,
+      fullName,
       email,
+      company,
+      role,
       saved: signup.saved,
       emailed: emailSent,
       duplicate: false,
+      docId: signup.docId,
     })
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Failed to send confirmation email.'
-    return res.status(500).json({ message })
+    // Provide a concise, user-facing message but log details server-side.
+    const errMsg = error instanceof Error ? error.message : 'We could not process your request.'
+    // eslint-disable-next-line no-console
+    console.error('Signup handler error:', error)
+    return res.status(500).json({ message: "We couldn't process your request. Please try again." })
   }
 }
