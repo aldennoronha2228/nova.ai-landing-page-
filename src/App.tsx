@@ -1,151 +1,76 @@
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
-      <div className="brands" aria-hidden={false}>
-        <div className="brands-track" aria-hidden={false}>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" fill="currentColor" />
-              <path fill="var(--bg)" d="M8 9h8v2H8zm0 4h6v2H8z" />
-            </svg>
-            <span>Expedia</span>
-          </div>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="7" r="4" fill="currentColor" />
-              <circle cx="5" cy="16" r="3.5" fill="currentColor" />
-              <circle cx="19" cy="16" r="3.5" fill="currentColor" />
-            </svg>
-            <span>asana</span>
-          </div>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="4 8 20 8" fill="none" />
-              <polyline points="8 12 16 12" fill="none" />
-              <polyline points="4 16 20 16" fill="none" />
-            </svg>
-            <span>zenefits</span>
-          </div>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="15.5" cy="8.5" r="2.5" fill="currentColor" />
-              <circle
-                cx="8.5"
-                cy="8.5"
-                r="2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M10.2 9.8l3.2 2.6m0 0H18m-4.6 0v4.2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>
-              HubSp
-              <span className="hubspot-dot" />
-              t
-            </span>
-          </div>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span>loom</span>
-          </div>
-        </div>
 
-        {/* duplicated track for seamless looping */}
-        <div className="brands-track" aria-hidden={true}>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" fill="currentColor" />
-              <path fill="var(--bg)" d="M8 9h8v2H8zm0 4h6v2H8z" />
-            </svg>
-            <span>Expedia</span>
-          </div>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="7" r="4" fill="currentColor" />
-              <circle cx="5" cy="16" r="3.5" fill="currentColor" />
-              <circle cx="19" cy="16" r="3.5" fill="currentColor" />
-            </svg>
-            <span>asana</span>
-          </div>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="4 8 20 8" fill="none" />
-              <polyline points="8 12 16 12" fill="none" />
-              <polyline points="4 16 20 16" fill="none" />
-            </svg>
-            <span>zenefits</span>
-          </div>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="15.5" cy="8.5" r="2.5" fill="currentColor" />
-              <circle
-                cx="8.5"
-                cy="8.5"
-                r="2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M10.2 9.8l3.2 2.6m0 0H18m-4.6 0v4.2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>
-              HubSp
-              <span className="hubspot-dot" />
-              t
-            </span>
-          </div>
-          <div className="brand-item">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span>loom</span>
-          </div>
-        </div>
-      </div>
+const fadeUp = (delay: number) => ({
+  initial: { opacity: 0, y: 20 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-120px" },
+  transition: { duration: 0.6, delay, ease: "easeOut" as const },
+});
+
+const WordReveal = ({
+  text,
+  progress,
+  highlightWords = [],
+  rootClassName,
+  highlightClassName,
+}: {
+  text: string;
+  progress: MotionValue<number>;
+  highlightWords?: string[];
+  rootClassName?: string;
+  highlightClassName?: string;
+}) => {
+  const words = text.split(" ");
+  return (
+    <p className={`word-reveal ${rootClassName ?? ""}`}>
+      {words.map((word, index) => {
+        const start = index / words.length;
+        const end = start + 1 / words.length;
+        const opacity = useTransform(progress, [start, end], [0.15, 1]);
+        const cleanWord = word.replace(/[^a-zA-Z]/g, "").toLowerCase();
+        const isHighlight = highlightWords.includes(cleanWord);
+
+        return (
+          <motion.span
+            key={`${word}-${index}`}
+            style={{ opacity }}
+            className={isHighlight ? highlightClassName : ""}
+          >
+            {word} {" "}
+          </motion.span>
+        );
+      })}
+    </p>
+  );
+};
+
+function App() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isSubmittingBeta, setIsSubmittingBeta] = useState(false);
+  const [betaStatus, setBetaStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+  const pipelineRef = useRef<HTMLDivElement | null>(null);
+  const nodeStackRef = useRef<HTMLDivElement | null>(null);
+  const nodeXRef = useRef<HTMLDivElement | null>(null);
+  const nodeShieldRef = useRef<HTMLDivElement | null>(null);
+  const beamAuraRef = useRef<SVGPathElement | null>(null);
+  const beamRailRef = useRef<SVGPathElement | null>(null);
+  const beamGlowRef = useRef<SVGPathElement | null>(null);
+  const beamCoreRef = useRef<SVGPathElement | null>(null);
+  const beamGradientRef = useRef<SVGLinearGradientElement | null>(null);
+  const beamSparkARef = useRef<SVGCircleElement | null>(null);
+  const beamSparkBRef = useRef<SVGCircleElement | null>(null);
+  const beamSparkCRef = useRef<SVGCircleElement | null>(null);
+  const splashRef = useRef<HTMLDivElement | null>(null);
+  const heroViewportRef = useRef<HTMLDivElement | null>(null);
+  const heroCardRef = useRef<HTMLElement | null>(null);
+  const heroInnerRef = useRef<HTMLDivElement | null>(null);
+  const betaFormRef = useRef<HTMLFormElement | null>(null);
+  const whyRef = useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress: whyProgress } = useScroll({
     target: whyRef,
     offset: ["start center", "end center"],
   });
@@ -692,9 +617,6 @@ import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
                 >
                   Join the Alpha
                 </a>
-                <a href="#" className="btn-ghost">
-                  View Platform
-                </a>
               </motion.div>
               <p className="hero-note">
                 Alpha users receive early access to upcoming features, direct
@@ -709,12 +631,20 @@ import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
                 </span>
               </motion.div>
               <motion.div {...fadeUp(0.55)} className="hero-pills">
-                <span>AI Circuit Generation</span>
-                <span>Real-Time Simulation</span>
-                <span>Embedded Code AI</span>
-                <span>Edge Deployment</span>
-                <span>Hardware Collaboration</span>
-                <span>Live Debugging</span>
+                <div className="hero-pills-track" aria-hidden="false">
+                  <span>AI Circuit Generation</span>
+                  <span>Real-Time Simulation</span>
+                  <span>Embedded Code AI</span>
+                  <span>Edge Deployment</span>
+                  <span>Hardware Collaboration</span>
+                  <span>Live Debugging</span>
+                  <span>AI Circuit Generation</span>
+                  <span>Real-Time Simulation</span>
+                  <span>Embedded Code AI</span>
+                  <span>Edge Deployment</span>
+                  <span>Hardware Collaboration</span>
+                  <span>Live Debugging</span>
+                </div>
               </motion.div>
             </div>
           </div>

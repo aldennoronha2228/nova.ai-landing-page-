@@ -4,7 +4,7 @@ import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
-const duplicateSignupMessage = 'You have already applied for the Nova AI beta version.'
+const duplicateSignupMessage = 'You have already applied for Nova AI Alpha access.'
 
 type ServiceAccount = {
   project_id?: string
@@ -195,20 +195,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         const textBody = `Hi ${firstName},
 
-Thank you for joining the Nova AI Beta.
+Thank you for joining the Nova AI Alpha.
 
 We're building Nova AI to make hardware development dramatically faster — from circuit design and component selection to embedded software generation and simulation, all powered by AI.
 
-As one of our early beta users, you'll get:
+As one of our early alpha users, you'll get:
 
-- Early access to new features
-- Priority invitations to private testing
+- Early access to upcoming features
+- Priority invitations to private alpha testing
 - Direct influence on our product roadmap
 - Exclusive updates from the Nova AI team
 
 We're still in the early stages, and your feedback will help shape the future of the platform.
 
-We'll be in touch soon with updates, sneak peeks, and your beta access details.
+We'll be in touch soon with updates, sneak peeks, and your alpha access details.
 
 Thank you for being part of this journey.
 
@@ -221,14 +221,14 @@ The AI Workspace for Hardware Engineers.`
         const htmlBody = `
             <div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#111827">
               <p>Hi ${firstName},</p>
-              <p>Thank you for joining the Nova AI Beta.</p>
+              <p>Thank you for joining the Nova AI Alpha.</p>
               <p>
                 We're building Nova AI to make hardware development dramatically faster - from circuit design and component selection to embedded software generation and simulation, all powered by AI.
               </p>
-              <p>As one of our early beta users, you'll get:</p>
+              <p>As one of our early alpha users, you'll get:</p>
               <ul>
-                <li>Early access to new features</li>
-                <li>Priority invitations to private testing</li>
+                <li>Early access to upcoming features</li>
+                <li>Priority invitations to private alpha testing</li>
                 <li>Direct influence on our product roadmap</li>
                 <li>Exclusive updates from the Nova AI team</li>
               </ul>
@@ -236,7 +236,7 @@ The AI Workspace for Hardware Engineers.`
                 We're still in the early stages, and your feedback will help shape the future of the platform.
               </p>
               <p>
-                We'll be in touch soon with updates, sneak peeks, and your beta access details.
+                We'll be in touch soon with updates, sneak peeks, and your alpha access details.
               </p>
               <p>Thank you for being part of this journey.</p>
               <p>Best regards,</p>
@@ -254,7 +254,7 @@ The AI Workspace for Hardware Engineers.`
           body: JSON.stringify({
             from: senderEmail,
             to: [email],
-            subject: `Welcome to Nova AI Beta, ${firstName}`,
+            subject: `Welcome to Nova AI Alpha, ${firstName}`,
             text: textBody,
             html: htmlBody,
           }),

@@ -687,6 +687,14 @@ button {
     justify-content: center;
 }
 
+.hero-pills-track {
+    display: contents;
+}
+
+.hero-pills-track span:nth-child(n + 7) {
+    display: none;
+}
+
 .hero-pills span {
     padding: 8px 14px;
     border-radius: 999px;
@@ -1797,7 +1805,7 @@ button {
     .hero-actions {
         width: 100%;
         flex-direction: column;
-        align-items: stretch;
+        align-items: center;
         gap: 12px;
         margin-bottom: 18px;
     }
@@ -1806,7 +1814,7 @@ button {
     .btn-ghost,
     .beta-submit {
         min-height: 50px;
-        width: 100%;
+        width: min(100%, 260px);
         justify-content: center;
         padding: 14px 18px;
         font-size: 0.98rem;
@@ -1832,7 +1840,6 @@ button {
     .hero-trust span,
     .hero-pills span,
     .beta-pill {
-        width: 100%;
         min-height: 36px;
         display: inline-flex;
         align-items: center;
@@ -1843,18 +1850,34 @@ button {
     }
 
     .hero-pills {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: block;
+        overflow: hidden;
         width: 100%;
+    }
+
+    .hero-pills-track {
+        display: flex;
+        flex-wrap: nowrap;
+        width: max-content;
         gap: 8px;
+        animation: hero-pills-marquee 34s linear infinite;
+    }
+
+    .hero-pills-track span {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: max-content;
+        padding-left: 12px;
+        padding-right: 12px;
+        white-space: nowrap;
+    }
+
+    .hero-pills-track span:nth-child(n + 7) {
+        display: inline-flex;
     }
 
     .brands {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        padding: 18px 14px 6px;
-        max-width: 100%;
+        display: none;
     }
 
     .brand-item {
@@ -2046,6 +2069,15 @@ button {
     .step-card::after,
     .step-card::before {
         display: none;
+    }
+
+    @keyframes hero-pills-marquee {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(-50%);
+        }
     }
 
     .final-cta {
