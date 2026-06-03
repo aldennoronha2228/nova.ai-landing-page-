@@ -634,12 +634,22 @@ function App() {
                 </span>
               </motion.div>
               <motion.div {...fadeUp(0.55)} className="hero-pills">
-                <span>AI Circuit Generation</span>
-                <span>Real-Time Simulation</span>
-                <span>Embedded Code AI</span>
-                <span>Edge Deployment</span>
-                <span>Hardware Collaboration</span>
-                <span>Live Debugging</span>
+                <div className="hero-pills-track" aria-hidden="false">
+                  <span>AI Circuit Generation</span>
+                  <span>Real-Time Simulation</span>
+                  <span>Embedded Code AI</span>
+                  <span>Edge Deployment</span>
+                  <span>Hardware Collaboration</span>
+                  <span>Live Debugging</span>
+
+                  {/* duplicate sequence for seamless looping */}
+                  <span>AI Circuit Generation</span>
+                  <span>Real-Time Simulation</span>
+                  <span>Embedded Code AI</span>
+                  <span>Edge Deployment</span>
+                  <span>Hardware Collaboration</span>
+                  <span>Live Debugging</span>
+                </div>
               </motion.div>
             </div>
           </div>

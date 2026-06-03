@@ -696,6 +696,40 @@ button {
     font-size: 0.78rem;
 }
 
+/* Marquee-style looping track for the hero pills */
+.hero-pills {
+    overflow: hidden;
+    position: relative;
+}
+
+.hero-pills-track {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    white-space: nowrap;
+    /* duplicated content means 50% shift equals one full iteration */
+    animation: marquee-ltr 36s linear infinite;
+}
+
+.hero-pills-track > * {
+    flex: 0 0 auto;
+}
+
+@keyframes marquee-ltr {
+    0% {
+        transform: translateX(-50%);
+    }
+    100% {
+        transform: translateX(0%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-pills-track {
+        animation: none;
+    }
+}
+
 .brands {
     display: flex;
     gap: 64px;
