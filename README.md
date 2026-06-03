@@ -1,6 +1,6 @@
 <div align="center">
 
-![Nova AI logo](/nova-logo-n.png){width="96"}
+<img src="public/nova-logo-n.png" width="96" alt="Nova AI logo" />
 
 ## Nova AI
 
