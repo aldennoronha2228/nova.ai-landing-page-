@@ -10,14 +10,14 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "next": "^14.0.0",
     "@fontsource/instrument-serif": "^5.2.8",
     "@fontsource/inter": "^5.2.8",
-    "framer-motion": "^12.40.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "firebase": "^10.14.1",
     "firebase-admin": "^11.11.1",
+    "framer-motion": "^12.40.0",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "resend": "^6.12.3"
   },
   "devDependencies": {
@@ -31,5 +31,4 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2"
   }
-
 }

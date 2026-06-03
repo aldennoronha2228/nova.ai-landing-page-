@@ -21,12 +21,26 @@ const playfair = Playfair_Display({
   weight: ['400','600','700'],
 })
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '')
+const shareImage = siteUrl ? `${siteUrl}/nova-logo-n.png` : '/nova-logo-n.png'
+const pageUrl = siteUrl || undefined
+
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
         <title>Nova AI - AI Hardware Development Platform | Alpha Access</title>
         <meta name="description" content="Join the Nova AI Alpha and help shape the future of AI-powered hardware engineering." />
+        {pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Nova AI - AI Hardware Development Platform | Alpha Access" />
+        <meta property="og:description" content="Join the Nova AI Alpha and help shape the future of AI-powered hardware engineering." />
+        <meta property="og:image" content={shareImage} />
+        <meta property="og:image:alt" content="Nova AI logo" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Nova AI - AI Hardware Development Platform | Alpha Access" />
+        <meta name="twitter:description" content="Join the Nova AI Alpha and help shape the future of AI-powered hardware engineering." />
+        <meta name="twitter:image" content={shareImage} />
         <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </Head>
