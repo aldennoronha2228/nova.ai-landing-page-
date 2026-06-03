@@ -68,6 +68,7 @@ const WordReveal = ({
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isSubmittingAlpha, setIsSubmittingAlpha] = useState(false);
+  const [isStudent, setIsStudent] = useState<string>("");
   const [alphaStatus, setAlphaStatus] = useState<{
     type: "success" | "error";
     message: string;
@@ -165,11 +166,11 @@ function App() {
     const form = event.currentTarget;
     const formData = new FormData(form);
     const fullName = String(formData.get("fullName") ?? "").trim();
-    const company = String(formData.get("company") ?? "").trim();
-    const role = String(formData.get("role") ?? "").trim();
+    const student = String(formData.get("student") ?? "").trim();
+    const identity = String(formData.get("identity") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
 
-    if (!fullName || !company || !role || !email) {
+    if (!fullName || !student || !email || (student === "no" && !identity)) {
       setAlphaStatus({
         type: "error",
         message: alphaErrorMessage,
@@ -219,8 +220,8 @@ function App() {
         transaction.set(userRef, {
           email: normalizedEmail,
           fullName,
-          company,
-          role,
+          student,
+          identity: student === "no" ? identity : "",
           signupDate: serverTimestamp(),
           source: "website",
           status: "pending",
@@ -233,9 +234,11 @@ function App() {
         docId,
         email: normalizedEmail,
         collection: "alpha_users",
+        student,
       });
 
       form.reset();
+      setIsStudent("");
       setAlphaStatus({
         type: "success",
         message: alphaSuccessMessage,
@@ -942,63 +945,85 @@ function App() {
             className="beta-form"
             onSubmit={handleAlphaSignup}
           >
-            <label className="beta-label" htmlFor="alpha-email">
-              Reserve your spot in the Nova AI Alpha.
-            </label>
-            <div className="beta-input-grid">
-              <input
-                id="alpha-fullName"
-                type="text"
-                name="fullName"
-                placeholder="Full name"
-                required
-                disabled={isSubmittingAlpha}
-              />
-              <input
-                id="alpha-company"
-                type="text"
-                name="company"
-                placeholder="Company"
-                required
-                disabled={isSubmittingAlpha}
-              />
-              <input
-                id="alpha-role"
-                type="text"
-                name="role"
-                placeholder="Role"
-                required
-                disabled={isSubmittingAlpha}
-              />
-              <input
-                id="alpha-email"
-                type="email"
-                name="email"
-                placeholder="you@company.com"
-                required
-                disabled={isSubmittingAlpha}
-              />
-              <button
-                type="submit"
-                className="beta-submit"
-                disabled={isSubmittingAlpha}
-              >
-                {isSubmittingAlpha ? "Sending..." : "Request Alpha Access"}
-              </button>
-            </div>
-            {alphaStatus ? (
-              <p
-                className={`beta-message beta-message-${alphaStatus.type}`}
-                role={alphaStatus.type === "error" ? "alert" : "status"}
-              >
-                {alphaStatus.message}
-              </p>
-            ) : null}
-            <p className="beta-footnote">
-              Alpha users receive early access to upcoming features, direct
-              feedback channels, and the opportunity to influence Nova AI's
-              development.
-            </p>
+              <div className="alpha-form-container">
+                <h3 className="beta-heading">Reserve your spot in the Nova AI Alpha</h3>
+
+                <div className="alpha-form-fields">
+                  <input
+                    id="alpha-fullName"
+                    type="text"
+                    name="fullName"
+                    placeholder="Full name"
+                    required
+                    disabled={isSubmittingAlpha}
+                    className="form-control"
+                  />
+
+                  <input
+                    id="alpha-email"
+                    type="email"
+                    name="email"
+                    placeholder="you@example.com"
+                    required
+                    disabled={isSubmittingAlpha}
+                    className="form-control"
+                  />
+
+                  <div className="beta-field-group">
+                    <label className="beta-field-label" htmlFor="alpha-student">
+                      Are you a student?
+                    </label>
+                    <select
+                      id="alpha-student"
+                      name="student"
+                      required
+                      disabled={isSubmittingAlpha}
+                      value={isStudent}
+                      onChange={(event) => setIsStudent(event.target.value)}
+                      className="form-control"
+                    >
+                      <option value="" disabled>
+                        Select yes or no
+                      </option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
+                  </div>
+
+                  <input
+                    id="alpha-identity"
+                    type="text"
+                    name="identity"
+                    placeholder={isStudent === "yes" ? "If not a student, tell us who you are" : "Tell us who you are"}
+                    required={isStudent === "no"}
+                    disabled={isSubmittingAlpha || isStudent === "yes"}
+                    className="form-control"
+                  />
+
+                  <button
+                    type="submit"
+                    className="beta-submit"
+                    disabled={isSubmittingAlpha}
+                  >
+                    {isSubmittingAlpha ? "Sending..." : "Request Alpha Access"}
+                  </button>
+
+                  {alphaStatus ? (
+                    <p
+                      className={`beta-message beta-message-${alphaStatus.type}`}
+                      role={alphaStatus.type === "error" ? "alert" : "status"}
+                    >
+                      {alphaStatus.message}
+                    </p>
+                  ) : null}
+
+                  <p className="beta-footnote">
+                    Alpha users receive early access to upcoming features, direct
+                    feedback channels, and the opportunity to influence Nova AI's
+                    development.
+                  </p>
+                </div>
+              </div>
           </form>
         </motion.div>
       </section>

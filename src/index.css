@@ -24,6 +24,7 @@
 html {
     scroll-behavior: smooth;
     font-size: 106.25%;
+    scrollbar-color: rgba(176, 48, 136, 0.7) rgba(8, 8, 13, 0.92);
 }
 
 body {
@@ -36,6 +37,29 @@ body {
     align-items: center;
     padding: var(--page-gutter);
     min-height: 100dvh;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+    background: rgba(8, 8, 13, 0.92);
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(176, 48, 136, 0.92), rgba(118, 34, 92, 0.94));
+    border-radius: 999px;
+    border: 2px solid rgba(8, 8, 13, 0.92);
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(204, 81, 160, 0.96), rgba(145, 41, 108, 0.98));
 }
 
 .hero-viewport {
@@ -907,49 +931,139 @@ button {
 }
 
 .beta-form {
-    background: rgba(10, 12, 18, 0.7);
-    border: 1px solid rgba(176, 48, 136, 0.22);
-    border-radius: 18px;
-    padding: 24px;
-    box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.35),
-        inset 0 0 0 1px rgba(176, 48, 136, 0.08);
+    position: relative;
+    background: linear-gradient(180deg, rgba(10,12,18,0.78), rgba(7,8,12,0.72));
+    border-radius: 20px;
+    padding: 40px;
+    overflow: visible;
+    box-shadow: 0 30px 80px rgba(12, 8, 20, 0.6), 0 8px 30px rgba(176,48,136,0.06) inset;
+}
+
+.beta-form::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(176,48,136,0.14), rgba(200,120,180,0.08));
+    z-index: 0;
+}
+
+.beta-heading {
+    font-size: 1.36rem;
+    margin: 0 0 20px 0;
+    color: rgba(255,255,255,0.96);
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .beta-label {
     display: block;
-    font-size: 0.85rem;
-    margin-bottom: 12px;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.beta-input-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.beta-input-grid input,
-.beta-input-grid .beta-submit {
-    width: 100%;
-}
-
-.beta-input-grid input {
-    flex: 1;
-    padding: 12px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(176, 48, 136, 0.25);
-    background: rgba(6, 8, 12, 0.8);
-    color: #ffffff;
     font-size: 0.9rem;
-    outline: none;
+    margin-bottom: 12px;
+    color: rgba(255, 255, 255, 0.78);
 }
+
+.alpha-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    align-items: start;
+}
+
+.alpha-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 1;
+}
+
+.alpha-col-right .action-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 8px;
+}
+
+.beta-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.beta-field-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.68);
+}
+
+.form-control {
+    width: 100%;
+    height: 60px;
+    padding: 14px 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(176,48,136,0.18);
+    background: rgba(6,8,12,0.82);
+    color: #ffffff;
+    font-size: 0.98rem;
+    outline: none;
+    transition: box-shadow 200ms ease, transform 160ms ease, border-color 180ms ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.form-control::placeholder {
+    color: rgba(255,255,255,0.48);
+}
+
+.form-control:focus {
+    border-color: rgba(240,110,210,0.9);
+    box-shadow: 0 10px 40px rgba(176,48,136,0.12);
+    transform: translateY(-2px);
+}
+
+.form-control[aria-hidden="true"] { display:none; }
+
+.form-control::-ms-expand { display: none; }
+
+.beta-field-group select {
+    box-sizing: border-box;
+}
+
+.beta-submit {
+    height: 60px;
+    width: 100%;
+    padding: 0 28px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #f3f3f5);
+    color: #0a0a0f;
+    font-weight: 700;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 14px 36px rgba(176,48,136,0.09);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.beta-submit:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 70px rgba(176,48,136,0.16);
+}
+
+.beta-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
 .beta-input-grid input::placeholder {
     color: rgba(255, 255, 255, 0.4);
 }
 
-.beta-input-grid input:focus {
+.beta-input-grid input:focus,
+.beta-input-grid select:focus {
     border-color: rgba(240, 110, 210, 0.7);
     box-shadow: 0 0 0 3px rgba(176, 48, 136, 0.2);
 }
@@ -1960,6 +2074,89 @@ button {
         min-height: 50px;
         font-size: 1rem;
         padding: 13px 16px;
+    }
+
+    .alpha-form-container { padding: 0; }
+    .alpha-form-fields { gap: 16px; }
+
+    /* Center form and constrain width on desktop */
+    .alpha-form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .alpha-form-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 20px; /* consistent gap between fields */
+        align-items: stretch;
+    }
+
+    /* Ensure controls are full-width and touch-friendly */
+    .form-control {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Mobile-specific adjustments */
+    @media (max-width: 767px) {
+        .beta-form {
+            padding: 20px;
+            border-radius: 14px;
+        }
+
+        .beta-heading {
+            font-size: 1.12rem;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .alpha-form-container { padding-left: 8px; padding-right: 8px; }
+
+        .alpha-form-fields { gap: 16px; }
+
+        .form-control {
+            height: 60px;
+            padding: 14px 16px;
+            font-size: 1rem;
+        }
+
+        .beta-submit {
+            height: 60px;
+            width: 100%;
+            padding-left: 22px;
+            padding-right: 22px;
+        }
+
+        .beta-footnote {
+            text-align: center;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        /* ensure disabled identity input is visually subdued but still occupies space */
+        #alpha-identity[disabled] {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* prevent horizontal scrolling caused by wide shadows/gradients */
+        .beta-form, .alpha-form-container { overflow-x: hidden; }
+    }
+
+    .alpha-col-right .action-wrap {
+        justify-content: stretch;
+    }
+
+    .beta-field-label { font-size: 0.86rem; }
+
+    .beta-input-grid select {
+        min-height: 50px;
+        font-size: 1rem;
+        padding: 13px 16px;
+        padding-right: 42px;
     }
 
     .features-section,

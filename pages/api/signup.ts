@@ -96,13 +96,13 @@ const isValidEmail = (value: string): boolean =>
 const rememberSignup = async ({
   fullName,
   email,
-  company,
-  role,
+  student,
+  identity,
 }: {
   fullName: string
   email: string
-  company: string
-  role: string
+  student: string
+  identity: string
 }): Promise<{ duplicate: boolean; saved: boolean; docId?: string }> => {
   const normalizedEmail = normalizeEmail(email)
   const db = getAdminDb()
@@ -129,8 +129,8 @@ const rememberSignup = async ({
   await userRef.create({
     email: normalizedEmail,
     fullName,
-    company,
-    role,
+    student,
+    identity: student === 'no' ? identity : '',
     signupDate: FieldValue.serverTimestamp(),
     source: 'website',
     status: 'pending',
@@ -147,11 +147,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const fullName = getStringField(req.body, 'fullName') || getStringField(req.body, 'name')
   const email = getEmailFromBody(req.body)
-  const company = getStringField(req.body, 'company')
-  const role = getStringField(req.body, 'role')
+  const student = getStringField(req.body, 'student')
+  const identity = getStringField(req.body, 'identity')
 
-  if (!fullName || !company || !role || !email) {
-    return res.status(400).json({ message: 'Please provide your full name, company, role, and a valid email address.' })
+  if (!fullName || !student || !email || (student === 'no' && !identity)) {
+    return res.status(400).json({ message: 'Please provide your full name, student status, and a valid email address.' })
   }
 
   if (!isValidEmail(email)) {
@@ -163,7 +163,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const firstName = fullName.split(/\s+/)[0] || 'there'
 
   try {
-    const signup = await rememberSignup({ fullName, email, company, role })
+    const signup = await rememberSignup({ fullName, email, student, identity })
 
     if (signup.duplicate) {
       return res.status(409).json({
@@ -272,8 +272,8 @@ The AI Workspace for Hardware Engineers.`
       message,
       fullName,
       email,
-      company,
-      role,
+      student,
+      identity: student === 'no' ? identity : '',
       saved: signup.saved,
       emailed: emailSent,
       duplicate: false,
