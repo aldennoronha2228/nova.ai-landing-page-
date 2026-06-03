@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getAnalytics } from 'firebase/analytics'
-import { getFirestore } from 'firebase/firestore'
+import { initializeFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? '',
@@ -28,7 +28,9 @@ function initFirebase() {
     } catch {
       analytics = null
     }
-    const db = getFirestore(app)
+    const db = initializeFirestore(app, {
+      experimentalAutoDetectLongPolling: true,
+    })
     return { app, analytics, db }
   } catch (err) {
     // If initialization fails, return nulls

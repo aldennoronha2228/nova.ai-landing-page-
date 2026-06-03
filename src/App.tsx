@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
-import { collection, doc, getDocs, limit, query, runTransaction, serverTimestamp, where } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 
 import { firebase } from "./firebase";
 
@@ -20,6 +20,8 @@ const alphaSuccessMessage =
   "Welcome to Nova AI Alpha. Your request has been received and added to the Alpha waitlist.";
 const alphaDuplicateMessage = "You're already registered for Nova AI Alpha.";
 const alphaErrorMessage = "We couldn't process your request. Please try again.";
+const alphaBackendMessage =
+  "Nova AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
@@ -187,20 +189,18 @@ function App() {
     }
 
     try {
-      if (!alphaDb) {
-        throw new Error(alphaErrorMessage);
-      }
-
       setIsSubmittingAlpha(true);
       setAlphaStatus(null);
 
-      const normalizedEmail = normalizeEmail(email);
-      const alphaUsers = collection(alphaDb, "alpha_users");
-      const duplicateSnapshot = await getDocs(
-        query(alphaUsers, where("email", "==", normalizedEmail), limit(1)),
-      );
+      if (!alphaDb) {
+        throw new Error("Firebase client is not configured.");
+      }
 
-      if (!duplicateSnapshot.empty) {
+      const normalizedEmail = normalizeEmail(email);
+      const docId = getAlphaDocId(normalizedEmail);
+      const userRef = doc(alphaDb, "alpha_users", docId);
+      const existingDoc = await getDoc(userRef);
+      if (existingDoc.exists()) {
         setAlphaStatus({
           type: "error",
           message: alphaDuplicateMessage,
@@ -208,32 +208,41 @@ function App() {
         return;
       }
 
-      const docId = getAlphaDocId(normalizedEmail);
-      const userRef = doc(alphaDb, "alpha_users", docId);
-
-      await runTransaction(alphaDb, async (transaction) => {
-        const existingDoc = await transaction.get(userRef);
-        if (existingDoc.exists()) {
-          throw new Error("duplicate-signup");
-        }
-
-        transaction.set(userRef, {
-          email: normalizedEmail,
-          fullName,
-          student,
-          identity: student === "no" ? identity : "",
-          signupDate: serverTimestamp(),
-          source: "website",
-          status: "pending",
-          phase: "alpha",
-        });
+      await setDoc(userRef, {
+        email: normalizedEmail,
+        fullName,
+        student,
+        identity: student === "no" ? identity : "",
+        signupDate: serverTimestamp(),
+        source: "website",
+        status: "pending",
+        phase: "alpha",
       });
 
+      const response = await fetch("/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName,
+          email,
+          student,
+          identity: student === "no" ? identity : "",
+          clientStored: true,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as { message?: string }
+
+      if (!response.ok) {
+        throw new Error(payload.message ?? alphaErrorMessage)
+      }
+
       // eslint-disable-next-line no-console
-      console.log("Alpha signup stored successfully", {
+      console.log("Alpha signup submitted successfully", {
         docId,
         email: normalizedEmail,
-        collection: "alpha_users",
         student,
       });
 
@@ -241,13 +250,14 @@ function App() {
       setIsStudent("");
       setAlphaStatus({
         type: "success",
-        message: alphaSuccessMessage,
+        message: payload.message ?? alphaSuccessMessage,
       });
     } catch (error) {
-      if (error instanceof Error && error.message === "duplicate-signup") {
+      const errorMessage = error instanceof Error ? error.message : "";
+      if (/database \(default\) does not exist|Firestore|client is not configured/i.test(errorMessage)) {
         setAlphaStatus({
           type: "error",
-          message: alphaDuplicateMessage,
+          message: alphaBackendMessage,
         });
         return;
       }
