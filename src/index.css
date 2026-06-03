@@ -2114,10 +2114,17 @@ button {
         display: flex !important;
         flex-wrap: nowrap !important;
         overflow-x: auto;
+        overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
         gap: 8px;
         padding-bottom: 8px;
         scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .hero-pills::-webkit-scrollbar {
+        display: none;
     }
 
     .hero-pills span {
