@@ -829,19 +829,21 @@ button {
 .beta-pill {
     padding: 8px 14px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 205, 250, 0.85);
-    font-size: 0.82rem;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--accent);
+    font-size: 0.86rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 6px 20px rgba(176,48,136,0.06), inset 0 1px 0 rgba(255,255,255,0.02);
 }
 
 .alpha-badge {
-    background: rgba(9, 9, 14, 0.86);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 0 22px rgba(240, 110, 210, 0.18);
+    /* unify with `.beta-pill` but slightly emphasized */
+    background: linear-gradient(180deg, rgba(176,48,136,0.14), rgba(176,48,136,0.08));
+    border-color: rgba(176,48,136,0.28);
+    color: white;
+    box-shadow: 0 10px 30px rgba(176,48,136,0.12), inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .beta-form {
