@@ -1,203 +1,99 @@
-# ⚡ Nova AI Landing Page
-
 <div align="center">
 
-### Premium beta landing page for Nova AI
+![Nova AI logo](/nova-logo-n.png){width="96"}
 
-An AI-native hardware workspace landing page with cinematic motion, beta signup capture, confirmation email delivery, and duplicate application protection.
+## Nova AI
 
-<br/>
-
-<img src="https://readme-typing-svg.demolab.com?font=Inter&weight=600&size=24&duration=3000&pause=1000&color=8B5CF6&center=true&vCenter=true&width=700&lines=AI+Workspace+for+Hardware+Engineers;Design.+Simulate.+Build.;Private+Beta+Signup+Flow;Built+with+Next.js+%2B+Framer+Motion" />
-
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=16&duration=2200&pause=900&color=4F8BFF&center=true&vCenter=true&width=700&lines=Animated+Hero+Pipeline;Scroll+Driven+Product+Story;Responsive+Landing+Experience" />
-
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=14&duration=1800&pause=800&color=22D3EE&center=true&vCenter=true&width=700&lines=Firestore+Signup+Memory;Resend+Email+Confirmation;Vercel+Ready+Deployment" />
+This repository contains a marketing landing page and private signup flow for Nova AI. It is intended as a lightweight, responsive site to capture private alpha signups and deliver confirmation emails.
 
 </div>
 
----
+## Overview
 
-## ✨ Features
+A small, focused landing page built with Next.js. The project includes a signup endpoint that validates and records submissions and attempts to send confirmation messages when configured.
 
-* ⚡ Premium animated hero section
-* 🧠 AI hardware workflow storytelling
-* 🔌 Circuit, embedded, and simulation-focused product sections
-* 🎛️ Scroll-driven glow, parallax, and reveal effects
-* 📱 Fully responsive mobile navigation
-* 📝 Private beta signup form
-* 📬 Confirmation emails with Resend
-* 🧾 Duplicate beta application detection
-* 🔥 Firebase Firestore signup storage
-* 🚀 Vercel-ready Next.js deployment
+## Key Features
 
----
+- Animated hero and responsive layout
+- Private signup form with serverless API endpoint
+- Optional Firestore storage for signups
+- Optional Resend integration for confirmation emails
 
-## 🧠 Product Focus
+## Tech Stack
 
-```txt
-AI Circuit Generation
-Component Selection
-Embedded Software Assistance
-Live Arduino Simulation
-Edge AI Deployment
-Private Beta Access
-```
+- Next.js
+- React
+- TypeScript
+- Framer Motion
+- Firebase (client + optional admin)
 
----
+## Getting Started
 
-## ⚙️ Tech Stack
-
-* Next.js 14
-* React 18
-* TypeScript
-* Framer Motion
-* Firebase + Firebase Admin
-* Resend
-* CSS Modules / Global CSS
-* Vercel
-
----
-
-## 🚀 Getting Started
-
-### 1. Clone the Repository
+1. Clone the repository
 
 ```bash
 git clone https://github.com/aldennoronha2228/nova.ai-landing-page-.git
 cd nova.ai-landing-page-
 ```
 
-### 2. Install Dependencies
+2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Run Development Server
+3. Run the development server
 
 ```bash
 npm run dev
 ```
 
-Open:
+Open http://localhost:3000 in your browser.
 
-```txt
-http://localhost:3000
-```
+## Environment
 
----
-
-## 🔑 Environment Setup
-
-Create a `.env.local` file and configure:
+Create a `.env.local` file with the values needed for email and optional server-side Firestore writes:
 
 ```env
-RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxx
-RESEND_FROM_EMAIL=Nova AI <onboarding@yourdomain.com>
-FIREBASE_SERVICE_ACCOUNT={"project_id":"your-project-id","client_email":"firebase-adminsdk@example.iam.gserviceaccount.com","private_key":"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"}
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL=Your Name <onboarding@yourdomain.com>
+FIREBASE_SERVICE_ACCOUNT={"project_id":"...","client_email":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"}
+
+# Optional public Firebase config (client-side)
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
 ```
 
-Optional public Firebase values:
+If `FIREBASE_SERVICE_ACCOUNT` is not provided the app will attempt client-side Firestore writes (subject to your Firestore rules).
 
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your_public_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
-```
+## API
 
----
+POST `/api/signup`
 
-## 🌐 API Configuration
-
-Beta signup endpoint:
-
-```txt
-POST /api/signup
-```
-
-Example Request:
+Request body (JSON):
 
 ```json
 {
-  "name": "Alex Carter",
+  "name": "Full Name",
   "phone": "+1 555 0100",
-  "email": "alex@example.com"
+  "email": "user@example.com"
 }
 ```
 
-Duplicate Response:
+Response contains a message and flags indicating whether the submission was saved and whether an email was sent.
 
-```json
-{
-  "message": "You have already applied for the Nova AI beta version.",
-  "saved": true,
-  "duplicate": true
-}
-```
+## Project structure
 
----
+- `pages/` — Next.js pages and API routes
+- `src/` — React components and client code
+- `public/` — Static assets (logo and images)
 
-## 📂 Project Structure
+## License
 
-```bash
-pages/
-pages/api/
-src/
-src/assets/
-public/
-.github/
-```
+Private — all rights reserved.
 
 ---
 
-## 🎨 UI Inspiration
-
-* Apple-style product storytelling
-* Premium AI SaaS launch pages
-* Hardware engineering workspaces
-* Cinematic scroll experiences
-
----
-
-## ⚡ Performance Focused
-
-This landing page is designed to be:
-
-* Fast
-* Responsive
-* Polished
-* Conversion-focused
-* Easy to deploy
-* Lightweight for a visual marketing page
-
-No unnecessary dashboard complexity.
-
----
-
-## 🛠️ Roadmap
-
-* [ ] Add beta waitlist admin dashboard
-* [ ] Add analytics for signup conversion
-* [ ] Add richer product screenshots
-* [ ] Add interactive hardware demo preview
-* [ ] Add email sequence automation
-* [ ] Add launch countdown section
-
----
-
-## 📜 License
-
-Private - all rights reserved.
-
----
-
-<div align="center">
-
-### Built for the future of hardware engineering ⚡
-
-</div>
+If you'd like a different tone or more detail (for example a developer quickstart or deployment steps), tell me what to include and I will update the file.
