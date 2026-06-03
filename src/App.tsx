@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 
 const fadeUp = (delay: number) => ({
@@ -186,7 +186,7 @@ function App() {
           type: "success",
           message:
             payload.message ??
-            "You have already applied for the Nova AI beta version.",
+            "You have already applied for Nova AI Alpha access.",
         });
         return;
       }
@@ -200,7 +200,7 @@ function App() {
         type: "success",
         message:
           payload.message ??
-          "Thanks for signing up. Check your inbox for a confirmation email from Nova AI.",
+          "You're on the alpha list! Check your inbox for a confirmation email from Nova AI.",
       });
     } catch (error) {
       const message =
@@ -213,6 +213,19 @@ function App() {
       });
     } finally {
       setIsSubmittingBeta(false);
+    }
+  };
+
+  const scrollToBeta = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    setMenuOpen(false);
+    try {
+      betaFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    } catch (err) {
+      window.location.hash = "#beta";
     }
   };
 
@@ -415,15 +428,29 @@ function App() {
           <div className={`nav-menu ${menuOpen ? "active" : ""}`}>
             <ul className="nav-links">
               <li>
-                <a href="#">Platform</a>
+                <a href="#" onClick={() => setMenuOpen(false)}>
+                  Platform
+                </a>
               </li>
               <li>
-                <a href="#core-features">Features</a>
+                <a href="#core-features" onClick={() => setMenuOpen(false)}>
+                  Features
+                </a>
               </li>
               <li>
-                <a href="#">Docs</a>
+                <a href="#" onClick={() => setMenuOpen(false)}>
+                  Docs
+                </a>
               </li>
             </ul>
+            <div className="mobile-menu-actions">
+              <a href="#" className="mobile-menu-secondary" onClick={() => setMenuOpen(false)}>
+                Sign In
+              </a>
+              <a href="#beta" className="mobile-menu-primary" onClick={scrollToBeta}>
+                Get Alpha Access
+              </a>
+            </div>
           </div>
           <button
             type="button"
@@ -586,33 +613,24 @@ function App() {
                 <a
                   href="#"
                   className="btn-cta"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    try {
-                      betaFormRef.current?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center",
-                      });
-                    } catch (err) {
-                      // fallback: change location hash
-                      window.location.hash = "#beta";
-                    }
-                  }}
+                  onClick={scrollToBeta}
                 >
-                  Join the Beta
+                  Join the Alpha
                 </a>
                 <a href="#" className="btn-ghost">
                   View Platform
                 </a>
               </motion.div>
               <p className="hero-note">
-                Built for Arduino, ESP32, robotics, IoT, and edge AI systems.
+                Alpha users receive early access to upcoming features, direct
+                feedback channels, and the opportunity to influence Nova AI's
+                development.
               </p>
               <motion.div {...fadeUp(0.45)} className="hero-trust">
                 <span>1,200+ early builders joined</span>
-                <span>Private beta launching soon</span>
+                <span>Private alpha now accepting applications</span>
                 <span>
-                  Built for embedded systems and real-world hardware workflows
+                  Alpha users help shape Nova AI's development
                 </span>
               </motion.div>
               <motion.div {...fadeUp(0.55)} className="hero-pills">
@@ -853,20 +871,19 @@ function App() {
         <div className="beta-grid" data-parallax="0.08" />
         <motion.div {...fadeUp(0.15)} className="beta-inner">
           <div className="beta-copy">
-            <span className="beta-kicker">Private Beta Access</span>
+            <span className="beta-kicker">Private Alpha Access</span>
             <h2 className="beta-heading">
-              The AI-native hardware workspace for teams building at the edge.
+              Join the Alpha Waitlist.
             </h2>
             <p className="beta-sub">
-              Nova AI combines intelligent circuit design, real-time simulation,
-              embedded code generation, and autonomous deployment into one
-              seamless platform — built for the next generation of electronics
-              engineering.
+              Nova AI is currently in private alpha. Join the waitlist to gain
+              early access and help us build the future of intelligent hardware
+              development.
             </p>
             <div className="beta-highlights">
-              <span className="beta-pill">AI Circuit Generation</span>
-              <span className="beta-pill">Live Arduino Simulation</span>
-              <span className="beta-pill">Edge AI Deployment</span>
+              <span className="beta-pill alpha-badge">Private Alpha</span>
+              <span className="beta-pill">Direct Feedback Channels</span>
+              <span className="beta-pill">Influence Product Development</span>
             </div>
           </div>
           <form
@@ -876,7 +893,7 @@ function App() {
             onSubmit={handleBetaSignup}
           >
             <label className="beta-label" htmlFor="beta-email">
-              Request early access
+              Reserve your spot in the Nova AI Alpha.
             </label>
             <div className="beta-input-grid">
               <input
@@ -908,7 +925,7 @@ function App() {
                 className="beta-submit"
                 disabled={isSubmittingBeta}
               >
-                {isSubmittingBeta ? "Sending..." : "Join Beta"}
+                {isSubmittingBeta ? "Sending..." : "Request Alpha Access"}
               </button>
             </div>
             {betaStatus ? (
@@ -920,9 +937,9 @@ function App() {
               </p>
             ) : null}
             <p className="beta-footnote">
-              Private rollout. Zero spam. Early users get priority access to
-              experimental features, hardware simulation tools, and AI-powered
-              workflows before public launch.
+              Alpha users receive early access to upcoming features, direct
+              feedback channels, and the opportunity to influence Nova AI's
+              development.
             </p>
           </form>
         </motion.div>
