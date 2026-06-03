@@ -1,6 +1,6 @@
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import { Inter, Instrument_Serif } from 'next/font/google'
+import { Inter, Instrument_Serif, Playfair_Display } from 'next/font/google'
 import '../src/index.css'
 
 const inter = Inter({
@@ -15,16 +15,22 @@ const instrumentSerif = Instrument_Serif({
   style: ['normal', 'italic'],
 })
 
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  weight: ['400','600','700'],
+})
+
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>Nova AI</title>
-        <meta name="description" content="The AI workspace for hardware engineers." />
+        <title>Nova AI - AI Hardware Development Platform | Alpha Access</title>
+        <meta name="description" content="Join the Nova AI Alpha and help shape the future of AI-powered hardware engineering." />
         <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </Head>
-      <div className={`${inter.variable} ${instrumentSerif.variable}`}>
+      <div className={`${inter.variable} ${instrumentSerif.variable} ${playfair.variable}`}>
         <Component {...pageProps} />
       </div>
     </>
