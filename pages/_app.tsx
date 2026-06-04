@@ -26,9 +26,9 @@ const siteUrlBase =
   'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
 const shareImage = `${siteUrl}/og-image-small.png`
-const faviconUrl = `${siteUrl}/favicon.ico`
-const faviconPngUrl = `${siteUrl}/favicon.png`
-const appleTouchIconUrl = `${siteUrl}/apple-touch-icon.png`
+const faviconPngUrl = '/favicon.png?v=3'
+const faviconUrl = '/favicon.ico?v=3'
+const appleTouchIconUrl = '/apple-touch-icon.png?v=3'
 const pageUrl = siteUrl
 const shareTitle = 'Nova AI — AI-Powered Hardware Development'
 const shareDescription = 'Join the Nova AI Alpha Waitlist and help shape the future of AI-powered hardware engineering.'
@@ -58,8 +58,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta name="twitter:description" content={shareDescription} />
         <meta name="twitter:image" content={shareImage} />
         <meta name="twitter:image:alt" content="Nova AI logo" />
-        <link rel="icon" type="image/x-icon" href={faviconUrl} />
         <link rel="icon" type="image/png" href={faviconPngUrl} />
+        <link rel="shortcut icon" href={faviconPngUrl} />
+        <link rel="icon" type="image/x-icon" href={faviconUrl} />
         <link rel="apple-touch-icon" href={appleTouchIconUrl} />
       </Head>
       <div className={`${inter.variable} ${instrumentSerif.variable} ${playfair.variable}`}>
