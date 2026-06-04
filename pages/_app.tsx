@@ -29,17 +29,17 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>Nova AI - AI Hardware Development Platform | Alpha Access</title>
-        <meta name="description" content="Join the Nova AI Alpha and help shape the future of AI-powered hardware engineering." />
+        <title>NOVA AI — Private Alpha Waitlist</title>
+        <meta name="description" content="NOVA AI is currently in private Alpha. Apply to join the Alpha waitlist for early tester consideration before public launch." />
         {pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Nova AI - AI Hardware Development Platform | Alpha Access" />
-        <meta property="og:description" content="Join the Nova AI Alpha and help shape the future of AI-powered hardware engineering." />
+        <meta property="og:title" content="NOVA AI — Private Alpha Waitlist" />
+        <meta property="og:description" content="NOVA AI is currently in private Alpha. Apply to join the Alpha waitlist for early tester consideration before public launch." />
         <meta property="og:image" content={shareImage} />
         <meta property="og:image:alt" content="Nova AI logo" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Nova AI - AI Hardware Development Platform | Alpha Access" />
-        <meta name="twitter:description" content="Join the Nova AI Alpha and help shape the future of AI-powered hardware engineering." />
+        <meta name="twitter:title" content="NOVA AI — Private Alpha Waitlist" />
+        <meta name="twitter:description" content="NOVA AI is currently in private Alpha. Apply to join the Alpha waitlist for early tester consideration before public launch." />
         <meta name="twitter:image" content={shareImage} />
         <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

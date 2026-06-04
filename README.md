@@ -4,7 +4,7 @@
 
 ## Nova AI
 
-This repository contains a marketing landing page and private signup flow for Nova AI. It is intended as a lightweight, responsive site to capture private alpha signups and store them in Firestore.
+This repository contains a marketing landing page and private Alpha waitlist flow for Nova AI. It is intended as a lightweight, responsive site to capture Alpha waitlist applications and store them in Firestore.
 
 </div>
 
@@ -15,7 +15,7 @@ A small, focused landing page built with Next.js. The project includes a signup 
 ## Key Features
 
 - Animated hero and responsive layout
-- Private alpha signup form with direct Firestore writes
+- Private Alpha waitlist form with direct Firestore writes
 - Alpha waitlist duplicate protection
 - Optional Resend integration for confirmation emails
 

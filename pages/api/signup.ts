@@ -1,12 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { cert, getApps, initializeApp } from 'firebase-admin/app'
 import { FieldValue, getFirestore } from 'firebase-admin/firestore'
-import { getApps as getClientApps, initializeApp as initializeClientApp } from 'firebase/app'
-import { collection, doc, getDoc, getDocs, getFirestore as getClientFirestore, limit, query, runTransaction, serverTimestamp, where } from 'firebase/firestore'
+import { existsSync, readFileSync } from 'fs'
+import { resolve } from 'path'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
-const duplicateSignupMessage = "You're already registered for Nova AI Alpha."
+const duplicateSignupMessage = "You're already on the Nova AI Alpha waitlist."
+const storageDisabledMessage =
+  'Nova AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.'
+const isDev = process.env.NODE_ENV !== 'production'
+
+const logDebug = (...args: unknown[]) => {
+  if (isDev) {
+    // eslint-disable-next-line no-console
+    console.debug('[signup debug]', ...args)
+  }
+}
 
 type ServiceAccount = {
   project_id?: string
@@ -24,10 +34,6 @@ type PublicFirebaseConfig = {
   measurementId?: string
 }
 
-type WritableDb =
-  | { mode: 'admin'; db: ReturnType<typeof getFirestore> }
-  | { mode: 'client'; db: ReturnType<typeof getClientFirestore> }
-
 declare global {
   // eslint-disable-next-line no-var
   var novaSignupEmails: Set<string> | undefined
@@ -37,75 +43,80 @@ const normalizeEmail = (email: string): string => email.trim().toLowerCase()
 
 const getSignupDocId = (email: string): string => normalizeEmail(email)
 
-const getPublicFirebaseConfig = (): PublicFirebaseConfig | null => {
-  const config: PublicFirebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? '',
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? '',
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? '',
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? '',
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? '',
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? '',
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ?? '',
-  }
-
-  const hasRequiredConfig = [
-    config.apiKey,
-    config.authDomain,
-    config.projectId,
-    config.storageBucket,
-    config.messagingSenderId,
-    config.appId,
-  ].every(Boolean)
-  return hasRequiredConfig ? config : null
-}
-
-const getWritableDb = (): WritableDb | null => {
-  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-  if (rawServiceAccount) {
-    try {
-      const serviceAccount = JSON.parse(rawServiceAccount) as ServiceAccount
-      if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
-        return null
-      }
-
-      const app =
-        getApps()[0] ??
-        initializeApp({
-          credential: cert({
-            projectId: serviceAccount.project_id,
-            clientEmail: serviceAccount.client_email,
-            privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'),
-          }),
-        })
-
-      return { mode: 'admin', db: getFirestore(app) }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('Firebase Admin is not configured correctly:', error)
-    }
-  }
-
-  const publicConfig = getPublicFirebaseConfig()
-  if (!publicConfig) return null
+const resolveServiceAccount = (rawServiceAccount: string): ServiceAccount | null => {
+  const trimmed = rawServiceAccount.trim()
+  if (!trimmed) return null
 
   try {
-    const clientApp =
-      getClientApps()[0] ??
-      initializeClientApp({
-        apiKey: publicConfig.apiKey,
-        authDomain: publicConfig.authDomain,
-        projectId: publicConfig.projectId,
-        storageBucket: publicConfig.storageBucket,
-        messagingSenderId: publicConfig.messagingSenderId,
-        appId: publicConfig.appId,
-        measurementId: publicConfig.measurementId,
+    return JSON.parse(trimmed) as ServiceAccount
+  } catch {
+    try {
+      const filePath = resolve(process.cwd(), trimmed)
+      if (!existsSync(filePath)) return null
+      const fileContents = readFileSync(filePath, 'utf8').trim()
+      return JSON.parse(fileContents) as ServiceAccount
+    } catch {
+      return null
+    }
+  }
+}
+
+const getWritableDb = () => {
+  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+  logDebug('NODE_ENV:', process.env.NODE_ENV)
+  logDebug('FIREBASE_SERVICE_ACCOUNT set:', Boolean(rawServiceAccount))
+  logDebug('Public Firebase client config:', {
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+    apiKeySet: Boolean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
+  })
+
+  if (!rawServiceAccount) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT is not set in environment. Admin Firestore cannot initialize.')
+  }
+
+  const serviceAccount = resolveServiceAccount(rawServiceAccount)
+  if (!serviceAccount) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT value could not be parsed. It must be JSON or a valid path to a JSON file.')
+  }
+
+  if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT is missing required fields: project_id, client_email, or private_key.')
+  }
+
+  logDebug('Resolved Firebase service account:', {
+    projectId: serviceAccount.project_id,
+    clientEmail: Boolean(serviceAccount.client_email),
+    hasPrivateKey: Boolean(serviceAccount.private_key),
+  })
+
+  try {
+    const existingApp = getApps()[0]
+    if (existingApp) {
+      logDebug('Reusing existing firebase-admin app', existingApp.name)
+    }
+
+    const app =
+      existingApp ??
+      initializeApp({
+        credential: cert({
+          projectId: serviceAccount.project_id,
+          clientEmail: serviceAccount.client_email,
+          privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'),
+        }),
       })
 
-    return { mode: 'client', db: getClientFirestore(clientApp) }
+    const db = getFirestore(app)
+    logDebug('Firestore initialized successfully for project:', serviceAccount.project_id)
+    return db
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn('Firebase client fallback is not configured correctly:', error)
-    return null
+    const message = error instanceof Error ? error.message : 'Unknown Firestore initialization error.'
+    logDebug('Firestore initialization failed:', message)
+    throw error
   }
 }
 
@@ -153,27 +164,6 @@ const getEmailFromBody = (body: unknown): string => {
 const isValidEmail = (value: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 
-const getBooleanField = (body: unknown, field: string): boolean => {
-  if (!body) return false
-
-  if (typeof body === 'string') {
-    try {
-      const parsed = JSON.parse(body) as Record<string, unknown>
-      const value = parsed[field]
-      return value === true || value === 'true'
-    } catch {
-      return false
-    }
-  }
-
-  if (typeof body === 'object' && body !== null && field in body) {
-    const value = (body as Record<string, unknown>)[field]
-    return value === true || value === 'true'
-  }
-
-  return false
-}
-
 const rememberSignup = async ({
   fullName,
   email,
@@ -188,69 +178,29 @@ const rememberSignup = async ({
   const normalizedEmail = normalizeEmail(email)
   const writableDb = getWritableDb()
 
-  if (!writableDb) {
-    // Require admin credentials for production writes. Returning an explicit error
-    // lets callers surface a clear message to the operator.
-    throw new Error('Firebase is not configured. Set FIREBASE_SERVICE_ACCOUNT or the public Firebase env vars.')
-  }
-
   const docId = getSignupDocId(normalizedEmail)
 
-  if (writableDb.mode === 'admin') {
-    const users = writableDb.db.collection('alpha_users')
-    const userRef = users.doc(docId)
-
-    const [existingDoc, existingQuery] = await Promise.all([
-      userRef.get(),
-      users.where('email', '==', normalizedEmail).limit(1).get(),
-    ])
-
-    if (existingDoc.exists || !existingQuery.empty) {
-      return { duplicate: true, saved: true, docId: existingDoc.exists ? userRef.id : existingQuery.docs[0].id }
-    }
-
-    await userRef.create({
-      email: normalizedEmail,
-      fullName,
-      student,
-      identity: student === 'no' ? identity : '',
-      signupDate: FieldValue.serverTimestamp(),
-      source: 'website',
-      status: 'pending',
-      phase: 'alpha',
-    })
-
-    return { duplicate: false, saved: true, docId }
-  }
-
-  const users = collection(writableDb.db, 'alpha_users')
-  const userRef = doc(writableDb.db, 'alpha_users', docId)
+  const users = writableDb.collection('alpha_users')
+  const userRef = users.doc(docId)
 
   const [existingDoc, existingQuery] = await Promise.all([
-    getDoc(userRef),
-    getDocs(query(users, where('email', '==', normalizedEmail), limit(1))),
+    userRef.get(),
+    users.where('email', '==', normalizedEmail).limit(1).get(),
   ])
 
-  if (existingDoc.exists() || !existingQuery.empty) {
-    return { duplicate: true, saved: true, docId: existingDoc.exists() ? userRef.id : existingQuery.docs[0].id }
+  if (existingDoc.exists || !existingQuery.empty) {
+    return { duplicate: true, saved: true, docId: existingDoc.exists ? userRef.id : existingQuery.docs[0].id }
   }
 
-  await runTransaction(writableDb.db, async (transaction) => {
-    const snapshot = await transaction.get(userRef)
-    if (snapshot.exists()) {
-      throw new Error('duplicate-signup')
-    }
-
-    transaction.set(userRef, {
-      email: normalizedEmail,
-      fullName,
-      student,
-      identity: student === 'no' ? identity : '',
-      signupDate: serverTimestamp(),
-      source: 'website',
-      status: 'pending',
-      phase: 'alpha',
-    })
+  await userRef.create({
+    email: normalizedEmail,
+    fullName,
+    student,
+    identity: student === 'no' ? identity : '',
+    signupDate: FieldValue.serverTimestamp(),
+    source: 'website',
+    status: 'pending',
+    phase: 'alpha',
   })
 
   return { duplicate: false, saved: true, docId }
@@ -261,11 +211,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
+  logDebug('Incoming signup request', { method: req.method, url: req.url })
+
   const fullName = getStringField(req.body, 'fullName') || getStringField(req.body, 'name')
   const email = getEmailFromBody(req.body)
   const student = getStringField(req.body, 'student')
   const identity = getStringField(req.body, 'identity')
-  const clientStored = getBooleanField(req.body, 'clientStored')
 
   if (!fullName || !student || !email || (student === 'no' && !identity)) {
     return res.status(400).json({ message: 'Please provide your full name, student status, and a valid email address.' })
@@ -280,11 +231,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const firstName = fullName.split(/\s+/)[0] || 'there'
 
   try {
-    const signup = clientStored
-      ? { duplicate: false, saved: true, docId: normalizeEmail(email) }
-      : await rememberSignup({ fullName, email, student, identity })
+    const signup = await rememberSignup({ fullName, email, student, identity })
 
-    if (!clientStored && signup.duplicate) {
+    if (signup.duplicate) {
       return res.status(409).json({
         message: duplicateSignupMessage,
         saved: signup.saved,
@@ -297,53 +246,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         const textBody = `Hi ${firstName},
 
-Thank you for joining the Nova AI Alpha.
+Thank you for joining the Nova AI Alpha Waitlist.
 
-We're building Nova AI to make hardware development dramatically faster — from circuit design and component selection to embedded software generation and simulation, all powered by AI.
+Nova AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware engineering.
 
-As one of our early alpha users, you'll get:
+Your application has been received successfully.
 
-- Early access to upcoming features
-- Priority invitations to private alpha testing
-- Direct influence on our product roadmap
-- Exclusive updates from the Nova AI team
+As we expand access, selected users will receive invitations to participate in the Alpha program and provide valuable feedback on the platform.
 
-We're still in the early stages, and your feedback will help shape the future of the platform.
+What happens next?
 
-We'll be in touch soon with updates, sneak peeks, and your alpha access details.
+• We review Alpha waitlist applications.
+• Selected users receive Alpha invitations.
+• Testers gain early access to upcoming features.
+• Feedback directly influences product development.
 
-Thank you for being part of this journey.
+We're excited to have you with us at this early stage.
 
-Best regards,
-
-Team Nova AI
-
-Design. Simulate. Build.
-The AI Workspace for Hardware Engineers.`
+— Team Nova AI`
         const htmlBody = `
             <div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#111827">
               <p>Hi ${firstName},</p>
-              <p>Thank you for joining the Nova AI Alpha.</p>
+              <p>Thank you for joining the Nova AI Alpha Waitlist.</p>
               <p>
-                We're building Nova AI to make hardware development dramatically faster - from circuit design and component selection to embedded software generation and simulation, all powered by AI.
+                Nova AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware engineering.
               </p>
-              <p>As one of our early alpha users, you'll get:</p>
+              <p>Your application has been received successfully.</p>
+              <p>
+                As we expand access, selected users will receive invitations to participate in the Alpha program and provide valuable feedback on the platform.
+              </p>
+              <p>What happens next?</p>
               <ul>
-                <li>Early access to upcoming features</li>
-                <li>Priority invitations to private alpha testing</li>
-                <li>Direct influence on our product roadmap</li>
-                <li>Exclusive updates from the Nova AI team</li>
+                <li>We review Alpha waitlist applications.</li>
+                <li>Selected users receive Alpha invitations.</li>
+                <li>Testers gain early access to upcoming features.</li>
+                <li>Feedback directly influences product development.</li>
               </ul>
-              <p>
-                We're still in the early stages, and your feedback will help shape the future of the platform.
-              </p>
-              <p>
-                We'll be in touch soon with updates, sneak peeks, and your alpha access details.
-              </p>
-              <p>Thank you for being part of this journey.</p>
-              <p>Best regards,</p>
-              <p>Team Nova AI</p>
-              <p>Design. Simulate. Build.<br/>The AI Workspace for Hardware Engineers.</p>
+              <p>We're excited to have you with us at this early stage.</p>
+              <p>— Team Nova AI</p>
             </div>
           `
 
@@ -356,7 +296,7 @@ The AI Workspace for Hardware Engineers.`
           body: JSON.stringify({
             from: senderEmail,
             to: [email],
-            subject: `Welcome to Nova AI Alpha, ${firstName}`,
+            subject: `Welcome to the Nova AI Alpha Waitlist`,
             text: textBody,
             html: htmlBody,
           }),
@@ -378,7 +318,7 @@ The AI Workspace for Hardware Engineers.`
       console.warn('Email service is not configured. Skipping confirmation email.')
     }
 
-    const message = 'Welcome to Nova AI Alpha. Your request has been received and added to the Alpha waitlist.'
+    const message = 'You are on the Nova AI Alpha waitlist. We have received your application and will contact selected users with Alpha invitations soon.'
 
     // eslint-disable-next-line no-console
     console.log('Alpha signup stored successfully', {
@@ -399,10 +339,49 @@ The AI Workspace for Hardware Engineers.`
       docId: signup.docId,
     })
   } catch (error) {
-    // Provide a concise, user-facing message but log details server-side.
     const errMsg = error instanceof Error ? error.message : 'We could not process your request.'
+    const errStack = error instanceof Error ? error.stack : undefined
+    const errCode = (error as any)?.code ?? ''
+    const errDetails = (error as any)?.details ?? ''
+    const failingLine = errStack?.split('\n')[1]?.trim()
+
     // eslint-disable-next-line no-console
-    console.error('Signup handler error:', error)
-    return res.status(500).json({ message: "We couldn't process your request. Please try again." })
+    console.error('Signup handler error:', errMsg)
+    // eslint-disable-next-line no-console
+    console.error('Error code:', errCode)
+    if (errDetails) {
+      // eslint-disable-next-line no-console
+      console.error('Error details:', errDetails)
+    }
+    if (errStack) {
+      // eslint-disable-next-line no-console
+      console.error(errStack)
+    }
+    if (failingLine) {
+      // eslint-disable-next-line no-console
+      console.error('Failure line:', failingLine)
+    }
+
+    const responsePayload: Record<string, unknown> = {
+      message: isDev ? errMsg : 'We could not process your request. Please try again.',
+    }
+
+    if (isDev) {
+      responsePayload.error = errMsg
+      responsePayload.code = errCode
+      responsePayload.details = errDetails
+      responsePayload.stack = errStack
+      responsePayload.line = failingLine
+    }
+
+    const statusCode = /Firestore|database \(default\) does not exist|storage is not enabled|NOT_FOUND/i.test(errMsg + ' ' + errCode + ' ' + errDetails)
+      ? 503
+      : 500
+
+    if (statusCode === 503) {
+      responsePayload.message = storageDisabledMessage
+    }
+
+    return res.status(statusCode).json(responsePayload)
   }
 }

@@ -1517,6 +1517,28 @@ button {
     color: rgba(255, 255, 255, 0.45);
 }
 
+.site-footer {
+    margin-top: clamp(24px, 3vh, 40px);
+    padding: 18px 22px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+}
+
+.site-footer-note {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.site-footer-asterisk {
+    display: inline-block;
+    margin-right: 0.4em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.75);
+}
+
 @keyframes haze-drift {
     0%,
     100% {

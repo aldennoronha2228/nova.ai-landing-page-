@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
-
-import { firebase } from "./firebase";
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 20 },
@@ -17,16 +14,13 @@ const heroMotionProps = (delay: number, disabled: boolean) =>
     : fadeUp(delay);
 
 const alphaSuccessMessage =
-  "Welcome to Nova AI Alpha. Your request has been received and added to the Alpha waitlist.";
-const alphaDuplicateMessage = "You're already registered for Nova AI Alpha.";
+  "You're on the Nova AI Alpha waitlist. Thank you for your interest in Nova AI — we've received your application and will reach out with Alpha invitations to selected testers soon.";
 const alphaErrorMessage = "We couldn't process your request. Please try again.";
 const alphaBackendMessage =
   "Nova AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
-
-const getAlphaDocId = (email: string) => normalizeEmail(email);
 
 const isValidEmail = (value: string): boolean => emailPattern.test(value);
 
@@ -93,7 +87,6 @@ function App() {
   const heroInnerRef = useRef<HTMLDivElement | null>(null);
   const alphaFormRef = useRef<HTMLFormElement | null>(null);
   const whyRef = useRef<HTMLDivElement | null>(null);
-  const alphaDb = firebase.db;
   const { scrollYProgress: whyProgress } = useScroll({
     target: whyRef,
     offset: ["start center", "end center"],
@@ -192,33 +185,6 @@ function App() {
       setIsSubmittingAlpha(true);
       setAlphaStatus(null);
 
-      if (!alphaDb) {
-        throw new Error("Firebase client is not configured.");
-      }
-
-      const normalizedEmail = normalizeEmail(email);
-      const docId = getAlphaDocId(normalizedEmail);
-      const userRef = doc(alphaDb, "alpha_users", docId);
-      const existingDoc = await getDoc(userRef);
-      if (existingDoc.exists()) {
-        setAlphaStatus({
-          type: "error",
-          message: alphaDuplicateMessage,
-        });
-        return;
-      }
-
-      await setDoc(userRef, {
-        email: normalizedEmail,
-        fullName,
-        student,
-        identity: student === "no" ? identity : "",
-        signupDate: serverTimestamp(),
-        source: "website",
-        status: "pending",
-        phase: "alpha",
-      });
-
       const response = await fetch("/api/signup", {
         method: "POST",
         headers: {
@@ -229,20 +195,24 @@ function App() {
           email,
           student,
           identity: student === "no" ? identity : "",
-          clientStored: true,
         }),
       });
 
       const payload = (await response.json().catch(() => ({}))) as { message?: string }
 
       if (!response.ok) {
+        if (payload.message && /signup storage is not enabled|Nova AI signup storage is not enabled/i.test(payload.message)) {
+          setAlphaStatus({ type: 'error', message: alphaBackendMessage })
+          setIsSubmittingAlpha(false)
+          return
+        }
+
         throw new Error(payload.message ?? alphaErrorMessage)
       }
 
       // eslint-disable-next-line no-console
       console.log("Alpha signup submitted successfully", {
-        docId,
-        email: normalizedEmail,
+        email: normalizeEmail(email),
         student,
       });
 
@@ -284,6 +254,18 @@ function App() {
       });
     } catch (err) {
       window.location.hash = "#alpha";
+    }
+  };
+
+  const scrollToWhy = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    setMenuOpen(false);
+    try {
+      whyRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+    } catch (err) {
+      window.location.hash = "#why";
     }
   };
 
@@ -506,7 +488,7 @@ function App() {
                 Sign In
               </a>
               <a href="#alpha" className="mobile-menu-primary" onClick={scrollToAlpha}>
-                Get Alpha Access
+                Alpha Waitlist
               </a>
             </div>
           </div>
@@ -669,24 +651,27 @@ function App() {
               </motion.p>
               <motion.div {...heroMotionProps(0.35, disableMobileMotion)} className="hero-actions">
                 <a
-                  href="#"
+                  href="#alpha"
                   className="btn-cta"
                   onClick={scrollToAlpha}
                 >
-                  Join the Alpha
+                  Join Alpha Waitlist
+                </a>
+                <a
+                  href="#why"
+                  className="btn-cta"
+                  onClick={scrollToWhy}
+                >
+                  Learn More
                 </a>
               </motion.div>
               <p className="hero-note">
-                Alpha users receive early access to upcoming features, direct
-                feedback channels, and the opportunity to influence Nova AI's
-                development.
+                Nova AI is currently in private Alpha. Apply to the Alpha waitlist to be considered for early testing and help shape the platform before public launch.
               </p>
               <motion.div {...heroMotionProps(0.45, disableMobileMotion)} className="hero-trust">
-                <span>1,200+ early builders joined</span>
-                <span>Private alpha now accepting applications</span>
-                <span>
-                  Alpha users help shape Nova AI's development
-                </span>
+                <span>Early builders are joining the Alpha waitlist</span>
+                <span>Private Alpha applications are now open</span>
+                <span>Selected testers help shape Nova AI's development</span>
               </motion.div>
               <motion.div {...heroMotionProps(0.55, disableMobileMotion)} className="hero-pills">
                 <div className="hero-pills-track" aria-hidden="false">
@@ -874,7 +859,7 @@ function App() {
         </div>
       </section>
 
-      <section className="why-section" ref={whyRef}>
+      <section id="why" className="why-section" ref={whyRef}>
         <motion.div {...fadeUp(0.1)} className="why-card">
           <div>
             <span className="section-label">Why Nova AI</span>
@@ -934,14 +919,12 @@ function App() {
         <div className="beta-grid" data-parallax="0.08" />
         <motion.div {...fadeUp(0.15)} className="beta-inner">
           <div className="beta-copy">
-            <span className="beta-kicker">Private Alpha Access</span>
+            <span className="beta-kicker">Alpha Waitlist</span>
             <h2 className="beta-heading">
               Join the Alpha Waitlist.
             </h2>
             <p className="beta-sub">
-              Nova AI is currently in private alpha. Join the waitlist to gain
-              early access and help us build the future of intelligent hardware
-              development.
+              Nova AI is currently in private Alpha. Apply now to be considered for a small group of early testers and help us refine the platform before public release.
             </p>
             <div className="beta-highlights">
               <span className="beta-pill alpha-badge">Private Alpha</span>
@@ -956,7 +939,10 @@ function App() {
             onSubmit={handleAlphaSignup}
           >
               <div className="alpha-form-container">
-                <h3 className="beta-heading">Reserve your spot in the Nova AI Alpha</h3>
+                <h3 className="beta-heading">Apply for the Nova AI Alpha</h3>
+                <p className="beta-sub">
+                  We're selecting a small group of early testers to help us validate and improve Nova AI before launch.
+                </p>
 
                 <div className="alpha-form-fields">
                   <input
@@ -1015,7 +1001,7 @@ function App() {
                     className="beta-submit"
                     disabled={isSubmittingAlpha}
                   >
-                    {isSubmittingAlpha ? "Sending..." : "Request Alpha Access"}
+                    {isSubmittingAlpha ? "Sending..." : "Join Alpha Waitlist"}
                   </button>
 
                   {alphaStatus ? (
@@ -1028,15 +1014,18 @@ function App() {
                   ) : null}
 
                   <p className="beta-footnote">
-                    Alpha users receive early access to upcoming features, direct
-                    feedback channels, and the opportunity to influence Nova AI's
-                    development.
+                    We're selecting a limited group of testers to validate Nova AI before public launch. Selected users will receive Alpha invitations and help shape the platform.
                   </p>
                 </div>
               </div>
           </form>
         </motion.div>
       </section>
+      <footer className="site-footer">
+        <p className="site-footer-note">
+          <span className="site-footer-asterisk">*</span> Nova AI is currently in private Alpha and not yet publicly available. This form is for Alpha waitlist applications only; selected candidates will be invited to help test the platform.
+        </p>
+      </footer>
     </>
   );
 }
