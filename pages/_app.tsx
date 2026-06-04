@@ -26,7 +26,7 @@ const siteUrlBase =
   'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
 const shareImage = `${siteUrl}/og-image-small.png`
-const appIconUrl = '/nova-logo-n.png?v=4'
+const appIconUrl = '/nova-app-icon.png?v=1'
 const pageUrl = siteUrl
 const shareTitle = 'Nova AI — AI-Powered Hardware Development'
 const shareDescription = 'Join the Nova AI Alpha Waitlist and help shape the future of AI-powered hardware engineering.'
