@@ -42,8 +42,8 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:image" content={shareImage} />
         <meta property="og:image:secure_url" content={shareImage} />
         <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta property="og:image:width" content="512" />
+        <meta property="og:image:height" content="368" />
         <meta property="og:image:alt" content="Nova AI logo" />
         <link rel="image_src" href={shareImage} />
         <meta name="twitter:card" content="summary_large_image" />
