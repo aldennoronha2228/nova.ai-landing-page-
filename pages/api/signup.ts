@@ -170,11 +170,13 @@ const rememberSignup = async ({
   email,
   student,
   identity,
+  useCase,
 }: {
   fullName: string
   email: string
   student: string
   identity: string
+  useCase: string
 }): Promise<{ duplicate: boolean; saved: boolean; docId?: string }> => {
   const normalizedEmail = normalizeEmail(email)
   const writableDb = getWritableDb()
@@ -197,7 +199,8 @@ const rememberSignup = async ({
     email: normalizedEmail,
     fullName,
     student,
-    identity: student === 'no' ? identity : '',
+    identity,
+    useCase,
     signupDate: FieldValue.serverTimestamp(),
     source: 'website',
     status: 'pending',
@@ -218,6 +221,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const email = getEmailFromBody(req.body)
   const student = getStringField(req.body, 'student')
   const identity = getStringField(req.body, 'identity')
+  const useCase = getStringField(req.body, 'useCase')
 
   if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
     return res.status(503).json({
@@ -226,8 +230,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   }
 
-  if (!fullName || !student || !email || (student === 'no' && !identity)) {
-    return res.status(400).json({ message: 'Please provide your full name, student status, and a valid email address.' })
+  if (!fullName || !student || !email || !identity || !useCase) {
+    return res.status(400).json({ message: 'Please provide your full name, student status, identity, and intended use case.' })
   }
 
   if (!isValidEmail(email)) {
@@ -239,7 +243,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const firstName = fullName.split(/\s+/)[0] || 'there'
 
   try {
-    const signup = await rememberSignup({ fullName, email, student, identity })
+    const signup = await rememberSignup({ fullName, email, student, identity, useCase })
 
     if (signup.duplicate) {
       return res.status(409).json({

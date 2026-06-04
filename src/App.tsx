@@ -164,8 +164,9 @@ function App() {
     const student = String(formData.get("student") ?? "").trim();
     const identity = String(formData.get("identity") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
+    const useCase = String(formData.get("useCase") ?? "").trim();
 
-    if (!fullName || !student || !email || (student === "no" && !identity)) {
+    if (!fullName || !student || !email || !identity || !useCase) {
       setAlphaStatus({
         type: "error",
         message: alphaErrorMessage,
@@ -194,7 +195,8 @@ function App() {
           fullName,
           email,
           student,
-          identity: student === "no" ? identity : "",
+          identity,
+          useCase,
         }),
       });
 
@@ -995,11 +997,26 @@ function App() {
                     id="alpha-identity"
                     type="text"
                     name="identity"
-                    placeholder={isStudent === "yes" ? "If not a student, tell us who you are" : "Tell us who you are"}
-                    required={isStudent === "no"}
-                    disabled={isSubmittingAlpha || isStudent === "yes"}
+                    placeholder="Tell us who you are"
+                    required
+                    disabled={isSubmittingAlpha}
                     className="form-control"
                   />
+
+                  <div className="beta-field-group">
+                    <label className="beta-field-label" htmlFor="alpha-useCase">
+                      What will you use Nova AI for?
+                    </label>
+                    <textarea
+                      id="alpha-useCase"
+                      name="useCase"
+                      placeholder="Describe your intended use case for Nova AI"
+                      required
+                      disabled={isSubmittingAlpha}
+                      className="form-control"
+                      rows={4}
+                    />
+                  </div>
 
                   <button
                     type="submit"
