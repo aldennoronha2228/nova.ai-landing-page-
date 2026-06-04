@@ -26,35 +26,42 @@ const siteUrlBase =
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') ||
   'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
-const shareImage = `${siteUrl}/nova-logo-n.png`
+const shareImage = `${siteUrl}/og-image.png`
+const faviconUrl = `${siteUrl}/favicon.ico`
+const faviconPngUrl = `${siteUrl}/favicon.png`
+const appleTouchIconUrl = `${siteUrl}/apple-touch-icon.png`
 const pageUrl = siteUrl
+const shareTitle = 'Nova AI — AI-Powered Hardware Development'
+const shareDescription = 'Join the Nova AI Alpha Waitlist and help shape the future of AI-powered hardware engineering.'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>NOVA AI — Private Alpha Waitlist</title>
-        <meta name="description" content="NOVA AI is currently in private Alpha. Apply to join the Alpha waitlist for early tester consideration before public launch." />
+        <title>{shareTitle}</title>
+        <meta name="description" content={shareDescription} />
+        {pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
         {pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="NOVA AI — Private Alpha Waitlist" />
-        <meta property="og:description" content="NOVA AI is currently in private Alpha. Apply to join the Alpha waitlist for early tester consideration before public launch." />
+        <meta property="og:site_name" content="Nova AI" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:title" content={shareTitle} />
+        <meta property="og:description" content={shareDescription} />
         <meta property="og:image" content={shareImage} />
         <meta property="og:image:secure_url" content={shareImage} />
         <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="512" />
-        <meta property="og:image:height" content="368" />
-        <meta property="og:image:alt" content="Nova AI logo" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Nova AI branding image" />
         <link rel="image_src" href={shareImage} />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={shareTitle} />
+        <meta name="twitter:description" content={shareDescription} />
         <meta name="twitter:image" content={shareImage} />
-        <meta name="twitter:image:src" content={shareImage} />
-        <meta name="twitter:image:alt" content="Nova AI logo" />
-        <meta name="twitter:title" content="NOVA AI — Private Alpha Waitlist" />
-        <meta name="twitter:description" content="NOVA AI is currently in private Alpha. Apply to join the Alpha waitlist for early tester consideration before public launch." />
-        <meta name="twitter:image" content={shareImage} />
-        <link rel="icon" type="image/png" href="/favicon.png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="twitter:image:alt" content="Nova AI branding image" />
+        <link rel="icon" type="image/x-icon" href={faviconUrl} />
+        <link rel="icon" type="image/png" href={faviconPngUrl} />
+        <link rel="apple-touch-icon" href={appleTouchIconUrl} />
       </Head>
       <div className={`${inter.variable} ${instrumentSerif.variable} ${playfair.variable}`}>
         <Component {...pageProps} />
