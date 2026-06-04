@@ -25,7 +25,7 @@ const siteUrlBase =
   process.env.NEXT_PUBLIC_SITE_URL ||
   'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
-const shareImage = `${siteUrl}/og-image.png`
+const shareImage = `${siteUrl}/nova-logo-n.png`
 const faviconUrl = `${siteUrl}/favicon.ico`
 const faviconPngUrl = `${siteUrl}/favicon.png`
 const appleTouchIconUrl = `${siteUrl}/apple-touch-icon.png`
@@ -49,15 +49,15 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:image" content={shareImage} />
         <meta property="og:image:secure_url" content={shareImage} />
         <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Nova AI branding image" />
+        <meta property="og:image:width" content="512" />
+        <meta property="og:image:height" content="368" />
+        <meta property="og:image:alt" content="Nova AI logo" />
         <link rel="image_src" href={shareImage} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={shareTitle} />
         <meta name="twitter:description" content={shareDescription} />
         <meta name="twitter:image" content={shareImage} />
-        <meta name="twitter:image:alt" content="Nova AI branding image" />
+        <meta name="twitter:image:alt" content="Nova AI logo" />
         <link rel="icon" type="image/x-icon" href={faviconUrl} />
         <link rel="icon" type="image/png" href={faviconPngUrl} />
         <link rel="apple-touch-icon" href={appleTouchIconUrl} />
