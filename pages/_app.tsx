@@ -45,7 +45,11 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content="Nova AI logo" />
+        <link rel="image_src" href={shareImage} />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content={shareImage} />
+        <meta name="twitter:image:src" content={shareImage} />
+        <meta name="twitter:image:alt" content="Nova AI logo" />
         <meta name="twitter:title" content="NOVA AI — Private Alpha Waitlist" />
         <meta name="twitter:description" content="NOVA AI is currently in private Alpha. Apply to join the Alpha waitlist for early tester consideration before public launch." />
         <meta name="twitter:image" content={shareImage} />
