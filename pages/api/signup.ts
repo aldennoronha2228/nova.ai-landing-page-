@@ -7,9 +7,9 @@ import { resolve } from 'path'
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
 const emailServiceConfigured = Boolean(resendApiKey && senderEmail)
-const duplicateSignupMessage = "You're already on the Nova AI Alpha waitlist."
+const duplicateSignupMessage = "You're already on the NovaBoard AI Alpha waitlist."
 const storageDisabledMessage =
-  'Nova AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.'
+  'NovaBoard AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.'
 const serviceAccountParseMessage =
   'Server configuration error: FIREBASE_SERVICE_ACCOUNT could not be parsed. Paste the full Firebase service account JSON into Vercel, then redeploy.'
 const serviceAccountMissingFieldsMessage =
@@ -45,7 +45,7 @@ type PublicFirebaseConfig = {
 
 declare global {
   // eslint-disable-next-line no-var
-  var novaSignupEmails: Set<string> | undefined
+  var novaboardSignupEmails: Set<string> | undefined
 }
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase()
@@ -272,44 +272,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         const textBody = `Hi ${firstName},
 
-Thank you for joining the Nova AI Alpha Waitlist.
+Thank you for joining the NovaBoard AI Alpha Program.
 
-Nova AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware engineering.
+NovaBoard AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
 
 Your application has been received successfully.
 
-As we expand access, selected users will receive invitations to participate in the Alpha program and provide valuable feedback on the platform.
+As we expand access, selected users will receive invitations to participate in the Alpha program and provide feedback on project generation, firmware creation, circuit design, and workflow experience.
 
 What happens next?
 
 • We review Alpha waitlist applications.
 • Selected users receive Alpha invitations.
 • Testers gain early access to upcoming features.
-• Feedback directly influences product development.
+• Feedback directly influences AI-assisted hardware development.
 
 We're excited to have you with us at this early stage.
 
-— Team Nova AI`
+— Team NovaBoard AI`
         const htmlBody = `
             <div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#111827">
               <p>Hi ${firstName},</p>
-              <p>Thank you for joining the Nova AI Alpha Waitlist.</p>
+              <p>Thank you for joining the NovaBoard AI Alpha Program.</p>
               <p>
-                Nova AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware engineering.
+                NovaBoard AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
               </p>
               <p>Your application has been received successfully.</p>
               <p>
-                As we expand access, selected users will receive invitations to participate in the Alpha program and provide valuable feedback on the platform.
+                As we expand access, selected users will receive invitations to participate in the Alpha program and provide feedback on project generation, firmware creation, circuit design, and workflow experience.
               </p>
               <p>What happens next?</p>
               <ul>
                 <li>We review Alpha waitlist applications.</li>
                 <li>Selected users receive Alpha invitations.</li>
                 <li>Testers gain early access to upcoming features.</li>
-                <li>Feedback directly influences product development.</li>
+                <li>Feedback directly influences AI-assisted hardware development.</li>
               </ul>
               <p>We're excited to have you with us at this early stage.</p>
-              <p>— Team Nova AI</p>
+              <p>— Team NovaBoard AI</p>
             </div>
           `
 
@@ -322,7 +322,7 @@ We're excited to have you with us at this early stage.
           body: JSON.stringify({
             from: senderEmail,
             to: [email],
-            subject: `Welcome to the Nova AI Alpha Waitlist`,
+            subject: `Welcome to NovaBoard AI Alpha`,
             text: textBody,
             html: htmlBody,
           }),
@@ -344,7 +344,7 @@ We're excited to have you with us at this early stage.
       console.warn('Email service is not configured. Skipping confirmation email.')
     }
 
-    const message = 'You are on the Nova AI Alpha waitlist. We have received your application and will contact selected users with Alpha invitations soon.'
+    const message = 'You are on the NovaBoard AI Alpha waitlist. We have received your application and will contact selected users with Alpha invitations soon.'
 
     // eslint-disable-next-line no-console
     console.log('Alpha signup stored successfully', {

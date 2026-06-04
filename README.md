@@ -1,16 +1,18 @@
 <div align="center">
 
-<img src="public/nova-logo-n.png" width="96" alt="Nova AI logo" />
+<img src="public/nova-logo-n.png" width="96" alt="NovaBoard AI logo" />
 
-## Nova AI
+## NovaBoard AI
 
-This repository contains a marketing landing page and private Alpha waitlist flow for Nova AI. It is intended as a lightweight, responsive site to capture Alpha waitlist applications and store them in Firestore.
+Cursor for Hardware.
+
+This repository contains a marketing landing page and private Alpha waitlist flow for NovaBoard AI. It is intended as a lightweight, responsive site to capture Alpha waitlist applications and store them in Firestore.
 
 </div>
 
 ## Overview
 
-A small, focused landing page built with Next.js. The project includes a signup flow that validates submissions, writes them directly to Firestore, and attempts to send confirmation messages when configured.
+NovaBoard AI is an AI-powered hardware development workspace for electronics engineers, makers, students, and embedded developers. The landing page positions the product around designing circuits, generating firmware, selecting components, creating BOMs and wiring diagrams, and building complete hardware projects with natural language.
 
 ## Key Features
 
@@ -18,6 +20,7 @@ A small, focused landing page built with Next.js. The project includes a signup 
 - Private Alpha waitlist form with direct Firestore writes
 - Alpha waitlist duplicate protection
 - Optional Resend integration for confirmation emails
+- Hardware-focused copy for circuits, ESP32 firmware, Arduino code, BOMs, wiring diagrams, and project documentation
 
 ## Tech Stack
 
@@ -56,7 +59,7 @@ Create a `.env.local` file with the values needed for email and Firestore writes
 
 ```env
 RESEND_API_KEY=your_resend_api_key
-RESEND_FROM_EMAIL=Your Name <onboarding@yourdomain.com>
+RESEND_FROM_EMAIL=NovaBoard AI <onboarding@yourdomain.com>
 FIREBASE_SERVICE_ACCOUNT={"project_id":"...","client_email":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"}
 
 # Public Firebase config for client-side Firestore writes
@@ -69,20 +72,22 @@ NEXT_PUBLIC_FIREBASE_APP_ID=...
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=...
 NEXT_PUBLIC_SITE_URL=...
 ```
+
 The active Firebase project is controlled by the `NEXT_PUBLIC_FIREBASE_*` values. In the current environment those values point at project `nova-ai-2c157`.
-If `FIREBASE_SERVICE_ACCOUNT` is not provided the app will attempt client-side Firestore writes (subject to your Firestore rules).
-`NEXT_PUBLIC_SITE_URL` is used to build absolute Open Graph and Twitter preview URLs so the Nova logo appears when the site link is shared.
+If `FIREBASE_SERVICE_ACCOUNT` is not provided, the signup API cannot write waitlist entries with Firebase Admin credentials.
+`NEXT_PUBLIC_SITE_URL` is used to build absolute Open Graph and Twitter preview URLs so the NovaBoard AI logo appears when the site link is shared.
 
 ## API
 
-The signup UI writes directly to the `alpha_users` collection with this document shape:
+The signup UI posts to `POST /api/signup`, which writes directly to the `alpha_users` collection with this document shape:
 
 ```json
 {
   "email": "user@example.com",
   "fullName": "Full Name",
-  "company": "Company",
-  "role": "Role",
+  "student": "yes",
+  "identity": "Student",
+  "useCase": "Describe the hardware project or firmware workflow",
   "signupDate": "server timestamp",
   "source": "website",
   "status": "pending",
@@ -90,18 +95,12 @@ The signup UI writes directly to the `alpha_users` collection with this document
 }
 ```
 
-The API route at `POST /api/signup` mirrors the same schema and messages as a fallback path.
-
-## Project structure
+## Project Structure
 
 - `pages/` — Next.js pages and API routes
 - `src/` — React components and client code
-- `public/` — Static assets (logo and images)
+- `public/` — Static assets, logos, and preview images
 
 ## License
 
 Private — all rights reserved.
-
----
-
-If you'd like a different tone or more detail (for example a developer quickstart or deployment steps), tell me what to include and I will update the file.

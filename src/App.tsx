@@ -14,10 +14,10 @@ const heroMotionProps = (delay: number, disabled: boolean) =>
     : fadeUp(delay);
 
 const alphaSuccessMessage =
-  "You're on the Nova AI Alpha waitlist. Thank you for your interest in Nova AI — we've received your application and will reach out with Alpha invitations to selected testers soon.";
+  "You're on the NovaBoard AI Alpha waitlist. Thank you for your interest in NovaBoard AI — we've received your application and will reach out with Alpha invitations to selected testers soon.";
 const alphaErrorMessage = "We couldn't process your request. Please try again.";
 const alphaBackendMessage =
-  "Nova AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.";
+  "NovaBoard AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
@@ -203,7 +203,7 @@ function App() {
       const payload = (await response.json().catch(() => ({}))) as { message?: string; emailed?: boolean }
 
       if (!response.ok) {
-        if (payload.message && /signup storage is not enabled|Nova AI signup storage is not enabled/i.test(payload.message)) {
+        if (payload.message && /signup storage is not enabled|NovaBoard AI signup storage is not enabled/i.test(payload.message)) {
           setAlphaStatus({ type: 'error', message: alphaBackendMessage })
           setIsSubmittingAlpha(false)
           return
@@ -473,9 +473,9 @@ function App() {
     <>
       <div className="hero-viewport" ref={heroViewportRef}>
         <nav className="nav-bar">
-          <a className="nav-brand" href="#" aria-label="Nova AI home">
+          <a className="nav-brand" href="#" aria-label="NovaBoard AI home">
             <img className="nav-logo" src="/nova-logo-n.png" alt="" />
-            <span>Nova AI</span>
+            <span>NovaBoard AI</span>
           </a>
           <div className={`nav-menu ${menuOpen ? "active" : ""}`}>
             <ul className="nav-links">
@@ -626,7 +626,7 @@ function App() {
                     <path d="M10 8h6l4 6 4-6h6l-7 10 7 10h-6l-4-6-4 6h-6l7-10z" />
                   </svg>
                 </div>
-                <span className="icon-caption center">Nova Neural Core</span>
+                <span className="icon-caption center">NovaBoard Core</span>
               </div>
 
               <div className="pipeline-line right" />
@@ -648,18 +648,18 @@ function App() {
 
             <div className="hero-content">
               <motion.span {...heroMotionProps(0.05, disableMobileMotion)} className="hero-kicker">
-                AI-NATIVE HARDWARE PLATFORM
+                CURSOR FOR HARDWARE
               </motion.span>
               <motion.h1 {...heroMotionProps(0.15, disableMobileMotion)} className="hero-heading">
-                Design, simulate, and deploy
+                Build Hardware
                 <br />
-                <span className="accent-serif">intelligent hardware</span> with
-                AI.
+                <span className="accent-serif">with AI</span>
               </motion.h1>
               <motion.p {...heroMotionProps(0.25, disableMobileMotion)} className="hero-sub">
-                Nova AI combines circuit generation, embedded code intelligence,
-                real-time simulation, and edge deployment into one seamless
-                workspace for modern hardware teams.
+                NovaBoard AI is the AI workspace for electronics engineers,
+                makers, students, and embedded developers. Design circuits,
+                generate firmware, select components, and build complete
+                hardware projects using natural language.
               </motion.p>
               <motion.div {...heroMotionProps(0.35, disableMobileMotion)} className="hero-actions">
                 <a
@@ -674,16 +674,16 @@ function App() {
                   className="btn-cta"
                   onClick={scrollToWhy}
                 >
-                  Learn More
+                  Watch Demo
                 </a>
               </motion.div>
               <p className="hero-note">
-                Nova AI is currently in private Alpha. Apply to the Alpha waitlist to be considered for early testing and help shape the platform before public launch.
+                NovaBoard AI is currently in private Alpha. Apply to the Alpha waitlist to be considered for early testing and help shape the future of AI-powered hardware development.
               </p>
               <motion.div {...heroMotionProps(0.45, disableMobileMotion)} className="hero-trust">
                 <span>Early builders are joining the Alpha waitlist</span>
                 <span>Private Alpha applications are now open</span>
-                <span>Selected testers help shape Nova AI's development</span>
+                <span>Selected testers help shape NovaBoard AI's development</span>
               </motion.div>
               <motion.div {...heroMotionProps(0.55, disableMobileMotion)} className="hero-pills">
                 <div className="hero-pills-track" aria-hidden="false">
@@ -782,8 +782,9 @@ function App() {
           <span className="section-label">Core Features</span>
           <h2>Everything you need to build intelligent hardware.</h2>
           <p>
-            Nova AI unifies circuit design, embedded development, simulation,
-            debugging, and deployment into one AI-native engineering workspace.
+            NovaBoard AI unifies circuit design, firmware generation, component
+            selection, BOM creation, wiring diagrams, documentation, simulation,
+            and deployment into one hardware-focused AI workspace.
           </p>
         </motion.div>
 
@@ -874,10 +875,10 @@ function App() {
       <section id="why" className="why-section" ref={whyRef}>
         <motion.div {...fadeUp(0.1)} className="why-card">
           <div>
-            <span className="section-label">Why Nova AI</span>
+            <span className="section-label">Why NovaBoard AI</span>
             <h2>Built for the next generation of hardware developers.</h2>
             <WordReveal
-              text="Modern electronics development is fragmented across simulators, IDEs, documentation, AI tools, and deployment systems. Nova AI brings everything into a single intelligent workflow designed for speed, experimentation, and real-world deployment."
+              text="Modern electronics development is fragmented across simulators, IDEs, component research, documentation, firmware tools, and deployment systems. NovaBoard AI brings everything into a single intelligent workflow designed for speed, experimentation, and real-world hardware development."
               progress={whyProgress}
               highlightWords={["intelligent", "speed", "deployment"]}
               rootClassName="why-reveal"
@@ -890,7 +891,7 @@ function App() {
               <p>Real-time AI-assisted hardware workflows</p>
             </motion.div>
             <motion.div {...fadeUp(0.3)} className="stat-card">
-              <h3>Arduino + ESP32 + Nova AI support</h3>
+              <h3>Arduino + ESP32 + NovaBoard AI support</h3>
               <p>Built for robotics, IoT, and embedded systems</p>
             </motion.div>
           </div>
@@ -933,10 +934,10 @@ function App() {
           <div className="beta-copy">
             <span className="beta-kicker">Alpha Waitlist</span>
             <h2 className="beta-heading">
-              Join the Alpha Waitlist.
+              Join the NovaBoard AI Alpha Program.
             </h2>
             <p className="beta-sub">
-              Nova AI is currently in private Alpha. Apply now to be considered for a small group of early testers and help us refine the platform before public release.
+              Help shape the future of AI-powered hardware development. We're inviting electronics enthusiasts, makers, students, ESP32 developers, Arduino users, and embedded engineers to test NovaBoard AI before public launch.
             </p>
             <div className="beta-highlights">
               <span className="beta-pill alpha-badge">Private Alpha</span>
@@ -951,9 +952,9 @@ function App() {
             onSubmit={handleAlphaSignup}
           >
               <div className="alpha-form-container">
-                <h3 className="beta-heading">Apply for the Nova AI Alpha</h3>
+                <h3 className="beta-heading">Apply for the NovaBoard AI Alpha</h3>
                 <p className="beta-sub">
-                  We're selecting a small group of early testers to help us validate and improve Nova AI before launch.
+                  We're selecting a small group of early testers to help us validate project generation, firmware creation, circuit design, and workflow experience before launch.
                 </p>
 
                 <div className="alpha-form-fields">
@@ -1012,12 +1013,12 @@ function App() {
 
                   <div className="beta-field-group">
                     <label className="beta-field-label" htmlFor="alpha-useCase">
-                      What will you use Nova AI for?
+                      What will you use NovaBoard AI for?
                     </label>
                     <textarea
                       id="alpha-useCase"
                       name="useCase"
-                      placeholder="Describe your intended use case for Nova AI"
+                      placeholder="Describe your hardware project, firmware workflow, or circuit design use case"
                       required
                       disabled={isSubmittingAlpha}
                       className="form-control"
@@ -1043,7 +1044,7 @@ function App() {
                   ) : null}
 
                   <p className="beta-footnote">
-                    We're selecting a limited group of testers to validate Nova AI before public launch. Selected users will receive Alpha invitations and help shape the platform.
+                    We're selecting a limited group of testers to validate NovaBoard AI before public launch. Selected users will receive Alpha invitations and help shape the platform.
                   </p>
                 </div>
               </div>
@@ -1052,7 +1053,7 @@ function App() {
       </section>
       <footer className="site-footer">
         <p className="site-footer-note">
-          <span className="site-footer-asterisk">*</span> Nova AI is currently in private Alpha and not yet publicly available. This form is for Alpha waitlist applications only; selected candidates will be invited to help test the platform.
+          <span className="site-footer-asterisk">*</span> NovaBoard AI is currently in private Alpha and not yet publicly available. Building the future of AI-powered hardware development.
         </p>
       </footer>
     </>

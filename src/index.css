@@ -134,9 +134,9 @@ button {
     /* title styling: use display font and uppercased modern look */
     font-family: var(--font-display);
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.08em;
     font-weight: 600;
-    font-size: 1.04rem;
+    font-size: 0.94rem;
 }
 
 .nav-logo {
@@ -1722,6 +1722,11 @@ textarea.form-control::-webkit-scrollbar {
         font-weight: 680;
         min-height: 38px;
         padding: 0 4px;
+    }
+
+    .nav-brand span {
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
     }
 
     .nav-logo {
