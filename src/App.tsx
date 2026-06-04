@@ -993,15 +993,17 @@ function App() {
                     </select>
                   </div>
 
-                  <input
-                    id="alpha-identity"
-                    type="text"
-                    name="identity"
-                    placeholder="Tell us who you are"
-                    required
-                    disabled={isSubmittingAlpha}
-                    className="form-control"
-                  />
+                  {isStudent === "no" ? (
+                    <input
+                      id="alpha-identity"
+                      type="text"
+                      name="identity"
+                      placeholder="Tell us who you are"
+                      required
+                      disabled={isSubmittingAlpha}
+                      className="form-control"
+                    />
+                  ) : null}
 
                   <div className="beta-field-group">
                     <label className="beta-field-label" htmlFor="alpha-useCase">
