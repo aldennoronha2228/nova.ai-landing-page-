@@ -23,7 +23,6 @@ const playfair = Playfair_Display({
 
 const siteUrlBase =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') ||
   'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
 const shareImage = `${siteUrl}/og-image.png`
