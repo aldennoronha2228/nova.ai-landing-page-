@@ -140,7 +140,7 @@ button {
 }
 
 .nav-logo {
-    width: 36px;
+    width: 30px;
     height: auto;
     display: block;
 }
@@ -1725,7 +1725,7 @@ textarea.form-control::-webkit-scrollbar {
     }
 
     .nav-logo {
-        width: 30px;
+        width: 26px;
     }
 
     .nav-menu {
