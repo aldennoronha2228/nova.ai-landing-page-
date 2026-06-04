@@ -21,10 +21,13 @@ const playfair = Playfair_Display({
   weight: ['400','600','700'],
 })
 
-const siteUrlBase = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
+const siteUrlBase =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') ||
+  'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
-const shareImage = siteUrl ? `${siteUrl}/nova-logo-n.png` : '/nova-logo-n.png'
-const pageUrl = siteUrl || undefined
+const shareImage = `${siteUrl}/nova-logo-n.png`
+const pageUrl = siteUrl
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -37,6 +40,10 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:title" content="NOVA AI — Private Alpha Waitlist" />
         <meta property="og:description" content="NOVA AI is currently in private Alpha. Apply to join the Alpha waitlist for early tester consideration before public launch." />
         <meta property="og:image" content={shareImage} />
+        <meta property="og:image:secure_url" content={shareImage} />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content="Nova AI logo" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="NOVA AI — Private Alpha Waitlist" />
