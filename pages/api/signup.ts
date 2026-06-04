@@ -10,6 +10,14 @@ const emailServiceConfigured = Boolean(resendApiKey && senderEmail)
 const duplicateSignupMessage = "You're already on the Nova AI Alpha waitlist."
 const storageDisabledMessage =
   'Nova AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.'
+const serviceAccountParseMessage =
+  'Server configuration error: FIREBASE_SERVICE_ACCOUNT could not be parsed. Paste the full Firebase service account JSON into Vercel, then redeploy.'
+const serviceAccountMissingFieldsMessage =
+  'Server configuration error: FIREBASE_SERVICE_ACCOUNT is missing project_id, client_email, or private_key.'
+const serviceAccountPrivateKeyMessage =
+  'Server configuration error: FIREBASE_SERVICE_ACCOUNT private_key is invalid. Generate a new Firebase Admin SDK private key, paste the full JSON into Vercel, then redeploy.'
+const serviceAccountPermissionMessage =
+  'Server configuration error: Firebase Admin credentials do not have permission to write to Firestore.'
 const isDev = process.env.NODE_ENV !== 'production'
 
 const logDebug = (...args: unknown[]) => {
@@ -230,7 +238,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   }
 
-  if (!fullName || !student || !email || !identity || !useCase) {
+  if (!fullName || !student || !email || !useCase || (student === 'no' && !identity)) {
     return res.status(400).json({ message: 'Please provide your full name, student status, identity, and intended use case.' })
   }
 
@@ -243,7 +251,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const firstName = fullName.split(/\s+/)[0] || 'there'
 
   try {
-    const signup = await rememberSignup({ fullName, email, student, identity, useCase })
+    const signup = await rememberSignup({
+      fullName,
+      email,
+      student,
+      identity: student === 'no' ? identity : 'Student',
+      useCase,
+    })
 
     if (signup.duplicate) {
       return res.status(409).json({
@@ -376,8 +390,33 @@ We're excited to have you with us at this early stage.
       console.error('Failure line:', failingLine)
     }
 
+    const combinedErrorText = `${errMsg} ${errCode} ${errDetails}`
+    const publicMessage = (() => {
+      if (/FIREBASE_SERVICE_ACCOUNT value could not be parsed/i.test(combinedErrorText)) {
+        return serviceAccountParseMessage
+      }
+
+      if (/FIREBASE_SERVICE_ACCOUNT is missing required fields/i.test(combinedErrorText)) {
+        return serviceAccountMissingFieldsMessage
+      }
+
+      if (/private key|PEM|DECODER routines|invalid_grant/i.test(combinedErrorText)) {
+        return serviceAccountPrivateKeyMessage
+      }
+
+      if (/permission|PERMISSION_DENIED|insufficient/i.test(combinedErrorText)) {
+        return serviceAccountPermissionMessage
+      }
+
+      if (/Firestore|database \(default\) does not exist|storage is not enabled|NOT_FOUND/i.test(combinedErrorText)) {
+        return storageDisabledMessage
+      }
+
+      return isDev ? errMsg : 'We could not process your request. Please try again.'
+    })()
+
     const responsePayload: Record<string, unknown> = {
-      message: isDev ? errMsg : 'We could not process your request. Please try again.',
+      message: publicMessage,
     }
 
     if (isDev) {
@@ -388,13 +427,9 @@ We're excited to have you with us at this early stage.
       responsePayload.line = failingLine
     }
 
-    const statusCode = /Firestore|database \(default\) does not exist|storage is not enabled|NOT_FOUND/i.test(errMsg + ' ' + errCode + ' ' + errDetails)
+    const statusCode = /Firestore|database \(default\) does not exist|storage is not enabled|NOT_FOUND|FIREBASE_SERVICE_ACCOUNT|private key|PEM|DECODER routines|invalid_grant|permission|PERMISSION_DENIED|insufficient/i.test(combinedErrorText)
       ? 503
       : 500
-
-    if (statusCode === 503) {
-      responsePayload.message = storageDisabledMessage
-    }
 
     return res.status(statusCode).json(responsePayload)
   }

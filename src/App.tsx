@@ -166,7 +166,7 @@ function App() {
     const email = String(formData.get("email") ?? "").trim();
     const useCase = String(formData.get("useCase") ?? "").trim();
 
-    if (!fullName || !student || !email || !identity || !useCase) {
+    if (!fullName || !student || !email || !useCase || (student === "no" && !identity)) {
       setAlphaStatus({
         type: "error",
         message: alphaErrorMessage,
@@ -209,7 +209,12 @@ function App() {
           return
         }
 
-        throw new Error(payload.message ?? alphaErrorMessage)
+        setAlphaStatus({
+          type: "error",
+          message: payload.message ?? alphaErrorMessage,
+        });
+        setIsSubmittingAlpha(false);
+        return;
       }
 
       // eslint-disable-next-line no-console
