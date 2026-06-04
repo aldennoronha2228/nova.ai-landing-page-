@@ -21,7 +21,8 @@ const playfair = Playfair_Display({
   weight: ['400','600','700'],
 })
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '')
+const siteUrlBase = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
+const siteUrl = siteUrlBase.replace(/\/$/, '')
 const shareImage = siteUrl ? `${siteUrl}/nova-logo-n.png` : '/nova-logo-n.png'
 const pageUrl = siteUrl || undefined
 
