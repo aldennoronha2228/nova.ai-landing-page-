@@ -6,6 +6,7 @@ import { resolve } from 'path'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
+const emailServiceConfigured = Boolean(resendApiKey && senderEmail)
 const duplicateSignupMessage = "You're already on the Nova AI Alpha waitlist."
 const storageDisabledMessage =
   'Nova AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.'
@@ -218,6 +219,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const student = getStringField(req.body, 'student')
   const identity = getStringField(req.body, 'identity')
 
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+    return res.status(503).json({
+      message:
+        'Server configuration error: FIREBASE_SERVICE_ACCOUNT is not configured. Please add the service account JSON to your deployment environment.',
+    })
+  }
+
   if (!fullName || !student || !email || (student === 'no' && !identity)) {
     return res.status(400).json({ message: 'Please provide your full name, student status, and a valid email address.' })
   }
@@ -226,7 +234,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: 'Please provide a valid email address.' })
   }
 
-  const emailConfigured = Boolean(resendApiKey && senderEmail)
+  let emailError = ''
   let emailSent = false
   const firstName = fullName.split(/\s+/)[0] || 'there'
 
@@ -242,7 +250,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     }
 
-    if (resendApiKey && senderEmail) {
+    if (emailServiceConfigured) {
       try {
         const textBody = `Hi ${firstName},
 
@@ -325,6 +333,7 @@ We're excited to have you with us at this early stage.
       docId: signup.docId,
       email: normalizeEmail(email),
       collection: 'alpha_users',
+      emailed: emailSent,
     })
 
     return res.status(200).json({
@@ -335,6 +344,7 @@ We're excited to have you with us at this early stage.
       identity: student === 'no' ? identity : '',
       saved: signup.saved,
       emailed: emailSent,
+      emailError: emailError || (!emailServiceConfigured ? 'Email service is not configured.' : undefined),
       duplicate: false,
       docId: signup.docId,
     })

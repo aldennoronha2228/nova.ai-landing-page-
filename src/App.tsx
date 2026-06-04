@@ -198,7 +198,7 @@ function App() {
         }),
       });
 
-      const payload = (await response.json().catch(() => ({}))) as { message?: string }
+      const payload = (await response.json().catch(() => ({}))) as { message?: string; emailed?: boolean }
 
       if (!response.ok) {
         if (payload.message && /signup storage is not enabled|Nova AI signup storage is not enabled/i.test(payload.message)) {
@@ -218,9 +218,14 @@ function App() {
 
       form.reset();
       setIsStudent("");
+      const successMessage = payload.message ?? alphaSuccessMessage
+      const emailStatusMessage =
+        payload.emailed === false
+          ? ' Confirmation email could not be sent. Please check your email configuration.'
+          : ''
       setAlphaStatus({
         type: "success",
-        message: payload.message ?? alphaSuccessMessage,
+        message: `${successMessage}${emailStatusMessage}`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "";
