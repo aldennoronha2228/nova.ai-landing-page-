@@ -1,4 +1,4 @@
-# NovaBoard AI Landing Page
+# <img src="./public/nova-logo-n.png" alt="Logo" width="40" align="center"/> NovaBoard AI Landing Page
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2.35-blue)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-Private-red)](#license)
