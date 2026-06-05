@@ -614,7 +614,7 @@ function App() {
                     <polyline points="2 12 12 17 22 12" />
                   </svg>
                 </div>
-                <span className="icon-caption">AI Circuit Design</span>
+                <span className="icon-caption">Design</span>
               </div>
 
               <div className="pipeline-line" />
@@ -642,24 +642,22 @@ function App() {
                     <polyline points="9 12 11 14 15 10" />
                   </svg>
                 </div>
-                <span className="icon-caption">Secure Edge Deployment</span>
+                <span className="icon-caption">Deployment</span>
               </div>
             </div>
 
             <div className="hero-content">
               <motion.span {...heroMotionProps(0.05, disableMobileMotion)} className="hero-kicker">
-                CURSOR FOR HARDWARE
+                AI-NATIVE HARDWARE PLATFORM
               </motion.span>
               <motion.h1 {...heroMotionProps(0.15, disableMobileMotion)} className="hero-heading">
-                Build Hardware
+                Design, simulate, and deploy
                 <br />
-                <span className="accent-serif">with AI</span>
+                <span className="accent-serif">intelligent hardware</span> with AI.
               </motion.h1>
               <motion.p {...heroMotionProps(0.25, disableMobileMotion)} className="hero-sub">
-                NovaBoard AI is the AI workspace for electronics engineers,
-                makers, students, and embedded developers. Design circuits,
-                generate firmware, select components, and build complete
-                hardware projects using natural language.
+                Nova AI combines circuit generation, embedded code intelligence, real-time simulation,
+                and edge deployment into one seamless workspace for modern hardware teams.
               </motion.p>
               <motion.div {...heroMotionProps(0.35, disableMobileMotion)} className="hero-actions">
                 <a
@@ -1044,18 +1042,13 @@ function App() {
                   ) : null}
 
                   <p className="beta-footnote">
-                    We're selecting a limited group of testers to validate NovaBoard AI before public launch. Selected users will receive Alpha invitations and help shape the platform.
+                    * We're selecting a limited group of testers to validate NovaBoard AI before public launch. Selected users will receive Alpha invitations and help shape the platform.
                   </p>
                 </div>
               </div>
           </form>
         </motion.div>
       </section>
-      <footer className="site-footer">
-        <p className="site-footer-note">
-          <span className="site-footer-asterisk">*</span> NovaBoard AI is currently in private Alpha and not yet publicly available. Building the future of AI-powered hardware development.
-        </p>
-      </footer>
     </>
   );
 }

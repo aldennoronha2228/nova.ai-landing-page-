@@ -367,11 +367,13 @@ button {
     top: calc(100% + 12px);
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.68rem;
-    color: rgba(255, 255, 255, 0.55);
-    letter-spacing: 0.08em;
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(238, 232, 240, 0.58);
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    max-width: 120px;
+    max-width: 132px;
     width: max-content;
     text-align: center;
     line-height: 1.2;
@@ -604,24 +606,33 @@ button {
 
 .hero-kicker {
     display: inline-flex;
-    padding: 5px 12px;
+    padding: 5px 15px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.75rem;
-    letter-spacing: 0.26em;
+    background: rgba(255, 255, 255, 0.075);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.65);
-    margin-bottom: clamp(10px, 1.8vh, 18px);
+    color: rgba(238, 232, 240, 0.66);
+    margin-bottom: clamp(12px, 2vh, 22px);
 }
 
 .hero-heading {
-    font-size: clamp(2.85rem, min(8.5vw, 7.8vh), 5.75rem);
-    font-weight: 300;
-    line-height: 1.08;
-    letter-spacing: -0.02em;
-    margin: 0 0 clamp(10px, 1.8vh, 18px);
+    font-family: var(--font-display);
+    font-size: clamp(3.15rem, min(8.9vw, 8.2vh), 5.95rem);
+    font-weight: 400;
+    line-height: 1.02;
+    letter-spacing: 0;
+    margin: 0 0 clamp(16px, 2.2vh, 24px);
     text-wrap: balance;
+}
+
+.hero-heading .accent-serif {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
 }
 
 .hero-heading strong {
@@ -634,10 +645,12 @@ button {
 }
 
 .hero-sub {
-    font-size: clamp(1.15rem, 2.6vh, 1.35rem);
-    line-height: 1.55;
-    color: rgba(255, 255, 255, 0.4);
-    max-width: min(720px, 90vw);
+    font-family: var(--font-display);
+    font-size: clamp(1.18rem, 2.65vh, 1.34rem);
+    font-weight: 600;
+    line-height: 1.58;
+    color: rgba(238, 232, 240, 0.46);
+    max-width: min(940px, 90vw);
     margin: 0 auto clamp(16px, 3vh, 36px);
     text-wrap: balance;
 }
