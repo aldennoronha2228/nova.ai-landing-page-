@@ -131,7 +131,16 @@ function AdminIcon({ name }: { name: IconName }) {
   }
 
   return (
-    <svg className="admin-icon" viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      className="admin-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       {paths[name]}
     </svg>
   )

@@ -35,12 +35,20 @@ export function AdminLogin() {
   return (
     <main className="admin-login-page">
       <section className="admin-login-card">
-        <span className="admin-login-kicker">NovaBoard AI</span>
-        <h1>Admin Login</h1>
+        <div className="admin-login-header">
+          <img src="/nova-app-icon.png" alt="NovaBoard AI" className="admin-login-logo" />
+          <h1>NovaBoard Admin Login</h1>
+        </div>
         <p>Secure access for approved internal operators.</p>
         <form onSubmit={submit}>
-          <label>Email<input type="email" name="email" autoComplete="email" required /></label>
-          <label>Password<input type="password" name="password" autoComplete="current-password" required /></label>
+          <div className="admin-login-field">
+            <label htmlFor="admin-email">Email</label>
+            <input id="admin-email" type="email" name="email" autoComplete="email" required placeholder="admin@example.com" />
+          </div>
+          <div className="admin-login-field">
+            <label htmlFor="admin-password">Password</label>
+            <input id="admin-password" type="password" name="password" autoComplete="current-password" required placeholder="••••••••••••" />
+          </div>
           <button type="submit" disabled={loading}>{loading ? 'Authenticating...' : 'Login'}</button>
           {error ? <p className="admin-login-error">{error}</p> : null}
         </form>

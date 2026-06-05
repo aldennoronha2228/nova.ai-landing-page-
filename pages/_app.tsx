@@ -1,27 +1,7 @@
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import { Inter, Instrument_Serif, Playfair_Display } from 'next/font/google'
 import '../src/index.css'
 import '../src/admin/admin.css'
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-})
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ['latin'],
-  variable: '--font-instrument-serif',
-  weight: ['400'],
-  style: ['normal', 'italic'],
-})
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-playfair',
-  weight: ['400','600','700'],
-  style: ['normal', 'italic'],
-})
 
 const siteUrlBase =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -64,7 +44,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <link rel="shortcut icon" href={appIconUrl} />
         <link rel="apple-touch-icon" href={appIconUrl} />
       </Head>
-      <div className={`app-shell ${inter.variable} ${instrumentSerif.variable} ${playfair.variable}`}>
+      <div className="app-shell">
         <Component {...pageProps} />
       </div>
     </>
