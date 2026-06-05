@@ -20,6 +20,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <title>{shareTitle}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content={shareDescription} />
         {pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
         {pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
