@@ -70,8 +70,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       useCase,
       projectLinks,
       projectImages,
+      projectMedia,
+      applicationId,
       willingFeedback,
     } = req.body
+
+    // Resolve media — prefer projectMedia (new), fall back to legacy projectImages flat array
+    const resolvedMedia: Array<{ url: string; type: 'image' | 'video' }> = Array.isArray(projectMedia)
+      ? projectMedia
+      : Array.isArray(projectImages)
+        ? projectImages.map((url: string) => ({ url, type: 'image' as const }))
+        : []
 
     // Basic required validation
     if (
@@ -112,6 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Save applicant details
     await usersCollection.doc(normalizedEmail).set({
+      applicationId: applicationId ? String(applicationId) : `app_${Date.now()}`,
       email: normalizedEmail,
       fullName: fullName.trim(),
       student, // 'yes' | 'no'
@@ -121,7 +131,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       bestProject: bestProject.trim(),
       useCase: useCase.trim(),
       projectLinks: projectLinks ? projectLinks.trim() : '',
-      projectImages: Array.isArray(projectImages) ? projectImages : [],
+      projectMedia: resolvedMedia,
+      // Legacy field for backward compatibility
+      projectImages: resolvedMedia.filter(m => m.type === 'image').map(m => m.url),
       willingFeedback: willingFeedback === 'yes' || willingFeedback === true,
       signupDate: FieldValue.serverTimestamp(),
       source: 'waitlist_apply',

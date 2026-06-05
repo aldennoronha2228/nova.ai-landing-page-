@@ -1,4 +1,4 @@
-import { useState, useRef, type DragEvent, type FormEvent, type ChangeEvent } from 'react'
+import { useState, useRef, useCallback, useEffect, type DragEvent, type FormEvent, type ChangeEvent } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 
@@ -7,11 +7,88 @@ type FormStatus = {
   message: string
 } | null
 
+type MediaType = 'image' | 'video'
+
+type UploadState = 'idle' | 'uploading' | 'done' | 'error'
+
+type MediaFile = {
+  id: string
+  file: File
+  mediaType: MediaType
+  /** Preview object URL for local display before/during upload */
+  previewUrl: string
+  /** 0–100 */
+  progress: number
+  uploadState: UploadState
+  /** URL from Firebase Storage after successful upload */
+  remoteUrl?: string
+  errorMessage?: string
+}
+
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
+const ALLOWED_VIDEO_TYPES = new Set(['video/mp4', 'video/quicktime'])
+const MAX_IMAGES = 5
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024  // 10MB
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024 // 100MB
+
+function generateId() {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+function uploadWithProgress(
+  payload: { name: string; type: string; base64: string; applicationId: string },
+  onProgress: (pct: number) => void
+): Promise<{ url: string; type: MediaType }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', '/api/upload')
+    xhr.setRequestHeader('Content-Type', 'application/json')
+
+    xhr.upload.addEventListener('progress', (evt) => {
+      if (evt.lengthComputable) {
+        onProgress(Math.round((evt.loaded / evt.total) * 100))
+      }
+    })
+
+    xhr.addEventListener('load', () => {
+      try {
+        const data = JSON.parse(xhr.responseText)
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve({ url: data.url, type: data.type as MediaType })
+        } else {
+          reject(new Error(data.message || 'Upload failed.'))
+        }
+      } catch {
+        reject(new Error('Invalid server response.'))
+      }
+    })
+
+    xhr.addEventListener('error', () => reject(new Error('Network error during upload.')))
+    xhr.addEventListener('abort', () => reject(new Error('Upload was cancelled.')))
+
+    xhr.send(JSON.stringify(payload))
+  })
+}
+
+function toBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = (err) => reject(err)
+  })
+}
+
 export default function AlphaApplyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState<FormStatus>(null)
-  
-  // Form values
+
+  // Stable application ID generated once on mount
+  const applicationId = useRef<string>(generateId())
+
+  // Form fields
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [country, setCountry] = useState('')
@@ -22,99 +99,157 @@ export default function AlphaApplyPage() {
   const [useCase, setUseCase] = useState('')
   const [projectLinks, setProjectLinks] = useState('')
   const [willingFeedback, setWillingFeedback] = useState('')
-  
-  // Image upload state
-  const [uploadedImages, setUploadedImages] = useState<string[]>([])
-  const [isUploading, setIsUploading] = useState(false)
+
+  // Media upload state
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
+  const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Revoke object URLs on unmount
+  useEffect(() => {
+    return () => {
+      mediaFiles.forEach((m) => URL.revokeObjectURL(m.previewUrl))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const hasVideo = mediaFiles.some((m) => m.mediaType === 'video')
+  const imageCount = mediaFiles.filter((m) => m.mediaType === 'image').length
+  const anyUploading = mediaFiles.some((m) => m.uploadState === 'uploading')
+
+  const addAndUpload = useCallback(
+    async (files: File[]) => {
+      const newEntries: MediaFile[] = []
+      const errors: string[] = []
+
+      for (const file of files) {
+        const isImg = ALLOWED_IMAGE_TYPES.has(file.type)
+        const isVid = ALLOWED_VIDEO_TYPES.has(file.type)
+
+        if (!isImg && !isVid) {
+          errors.push(`"${file.name}" is not a supported type. Use JPG, PNG, WEBP, MP4, or MOV.`)
+          continue
+        }
+
+        if (isVid) {
+          if (hasVideo || newEntries.some((e) => e.mediaType === 'video')) {
+            errors.push('You can only upload 1 video.')
+            continue
+          }
+          if (file.size > MAX_VIDEO_BYTES) {
+            errors.push(`"${file.name}" exceeds the 100MB video limit.`)
+            continue
+          }
+        }
+
+        if (isImg) {
+          const currentTotal = imageCount + newEntries.filter((e) => e.mediaType === 'image').length
+          if (currentTotal >= MAX_IMAGES) {
+            errors.push(`Maximum ${MAX_IMAGES} images allowed.`)
+            continue
+          }
+          if (file.size > MAX_IMAGE_BYTES) {
+            errors.push(`"${file.name}" exceeds the 10MB image limit.`)
+            continue
+          }
+        }
+
+        newEntries.push({
+          id: generateId(),
+          file,
+          mediaType: isVid ? 'video' : 'image',
+          previewUrl: URL.createObjectURL(file),
+          progress: 0,
+          uploadState: 'idle',
+        })
+      }
+
+      if (errors.length) {
+        setStatus({ type: 'error', message: errors.join(' ') })
+      }
+
+      if (newEntries.length === 0) return
+
+      setMediaFiles((prev) => [...prev, ...newEntries])
+
+      // Upload each file
+      for (const entry of newEntries) {
+        setMediaFiles((prev) =>
+          prev.map((m) => (m.id === entry.id ? { ...m, uploadState: 'uploading' } : m))
+        )
+
+        try {
+          const base64 = await toBase64(entry.file)
+          const result = await uploadWithProgress(
+            {
+              name: entry.file.name,
+              type: entry.file.type,
+              base64,
+              applicationId: applicationId.current,
+            },
+            (pct) => {
+              setMediaFiles((prev) =>
+                prev.map((m) => (m.id === entry.id ? { ...m, progress: pct } : m))
+              )
+            }
+          )
+
+          setMediaFiles((prev) =>
+            prev.map((m) =>
+              m.id === entry.id
+                ? { ...m, uploadState: 'done', progress: 100, remoteUrl: result.url }
+                : m
+            )
+          )
+        } catch (err) {
+          setMediaFiles((prev) =>
+            prev.map((m) =>
+              m.id === entry.id
+                ? {
+                    ...m,
+                    uploadState: 'error',
+                    errorMessage: err instanceof Error ? err.message : 'Upload failed.',
+                  }
+                : m
+            )
+          )
+        }
+      }
+    },
+    [hasVideo, imageCount]
+  )
+
+  const removeMedia = (id: string) => {
+    setMediaFiles((prev) => {
+      const target = prev.find((m) => m.id === id)
+      if (target) URL.revokeObjectURL(target.previewUrl)
+      return prev.filter((m) => m.id !== id)
+    })
+  }
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    setIsDragOver(true)
   }
+  const handleDragLeave = () => setIsDragOver(false)
 
-  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
-    if (isUploading) return
-    
+    setIsDragOver(false)
     const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0) {
-      await uploadFiles(files)
-    }
+    if (files.length > 0) void addAndUpload(files)
   }
 
-  const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : []
-    if (files.length > 0) {
-      await uploadFiles(files)
-    }
-  }
-
-  const uploadFiles = async (files: File[]) => {
-    setIsUploading(true)
-    setStatus(null)
-
-    for (const file of files) {
-      if (!file.type.startsWith('image/')) {
-        setStatus({ type: 'error', message: 'Only image files are allowed.' })
-        continue
-      }
-
-      // Max size: 3MB
-      if (file.size > 3 * 1024 * 1024) {
-        setStatus({ type: 'error', message: 'Images must be under 3MB.' })
-        continue
-      }
-
-      try {
-        const base64 = await toBase64(file)
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: file.name,
-            type: file.type,
-            base64,
-          }),
-        })
-
-        const data = await response.json()
-        if (!response.ok) {
-          throw new Error(data.message || 'Image upload failed.')
-        }
-
-        setUploadedImages((prev) => [...prev, data.url])
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('File upload failed:', err)
-        setStatus({
-          type: 'error',
-          message: err instanceof Error ? err.message : 'An error occurred during file upload.',
-        })
-      }
-    }
-
-    setIsUploading(false)
-  }
-
-  const toBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = (error) => reject(error)
-    })
-
-  const removeImage = (indexToRemove: number) => {
-    setUploadedImages((prev) => prev.filter((_, idx) => idx !== indexToRemove))
+    if (files.length > 0) void addAndUpload(files)
+    e.target.value = ''
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (isSubmitting) return
 
-    // Client-side validations
     if (
       !fullName.trim() ||
       !email.trim() ||
@@ -130,16 +265,30 @@ export default function AlphaApplyPage() {
       return
     }
 
+    if (anyUploading) {
+      setStatus({ type: 'error', message: 'Please wait for all uploads to finish.' })
+      return
+    }
+
+    const failedUploads = mediaFiles.filter((m) => m.uploadState === 'error')
+    if (failedUploads.length > 0) {
+      setStatus({ type: 'error', message: 'Some files failed to upload. Remove them or retry.' })
+      return
+    }
+
     setIsSubmitting(true)
     setStatus(null)
+
+    const projectMedia = mediaFiles
+      .filter((m) => m.uploadState === 'done' && m.remoteUrl)
+      .map((m) => ({ url: m.remoteUrl!, type: m.mediaType }))
 
     try {
       const response = await fetch('/api/alpha-apply', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          applicationId: applicationId.current,
           fullName,
           email,
           country,
@@ -149,20 +298,15 @@ export default function AlphaApplyPage() {
           bestProject,
           useCase,
           projectLinks,
-          projectImages: uploadedImages,
+          projectMedia,
           willingFeedback: willingFeedback === 'yes',
         }),
       })
 
       const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to submit application.')
-      }
+      if (!response.ok) throw new Error(data.message || 'Failed to submit application.')
 
-      setStatus({
-        type: 'success',
-        message: data.message || 'Application Received',
-      })
+      setStatus({ type: 'success', message: data.message || 'Application Received' })
     } catch (err) {
       setStatus({
         type: 'error',
@@ -206,27 +350,29 @@ export default function AlphaApplyPage() {
 
         <main className="alpha-main-content">
           <div className="alpha-columns">
-            
+
             {/* Left Column: Info & Benefits */}
             <section className="alpha-info-column">
               <span className="alpha-program-badge">ALPHA PROGRAM</span>
-              
+
               <h1 className="alpha-main-headline">
                 Join the NovaBoard AI <br />
                 <span className="accent-serif">Alpha Program</span>
               </h1>
-              
+
               <p className="alpha-subheadline">
                 Help shape the future of AI-powered hardware development.
               </p>
-              
+
               <p className="alpha-body-text">
                 We're selecting a small group of electronics enthusiasts, makers, students, Arduino developers, ESP32 builders, and embedded engineers to test NovaBoard AI before public launch.
-              </p>              {/* Benefits Grid */}
+              </p>
+
+              {/* Benefits Grid */}
               <div className="alpha-benefits-grid">
                 <div className="benefit-card">
                   <div className="benefit-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="benefit-svg">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                       <path d="m9 11 2 2 4-4"/>
                     </svg>
@@ -239,7 +385,7 @@ export default function AlphaApplyPage() {
 
                 <div className="benefit-card">
                   <div className="benefit-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="benefit-svg">
                       <line x1="6" x2="6" y1="3" y2="15"/>
                       <circle cx="18" cy="6" r="3"/>
                       <circle cx="6" cy="18" r="3"/>
@@ -254,7 +400,7 @@ export default function AlphaApplyPage() {
 
                 <div className="benefit-card">
                   <div className="benefit-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="benefit-svg">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                     </svg>
                   </div>
@@ -266,7 +412,7 @@ export default function AlphaApplyPage() {
 
                 <div className="benefit-card">
                   <div className="benefit-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="benefit-svg">
                       <line x1="7" x2="17" y1="17" y2="7"/>
                       <polyline points="7 7 17 7 17 17"/>
                     </svg>
@@ -279,7 +425,7 @@ export default function AlphaApplyPage() {
 
                 <div className="benefit-card">
                   <div className="benefit-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="benefit-svg">
                       <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
                     </svg>
                   </div>
@@ -291,7 +437,7 @@ export default function AlphaApplyPage() {
 
                 <div className="benefit-card">
                   <div className="benefit-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="benefit-svg">
                       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                       <circle cx="9" cy="7" r="4"/>
                       <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
@@ -361,7 +507,7 @@ export default function AlphaApplyPage() {
                   </div>
 
                   <form className="alpha-apply-form" onSubmit={handleSubmit}>
-                    
+
                     {/* Full Name */}
                     <div className="beta-field-group">
                       <label className="beta-field-label" htmlFor="fullName">
@@ -524,59 +670,116 @@ export default function AlphaApplyPage() {
                       />
                     </div>
 
-                    {/* Upload Project Images Drag and Drop */}
+                    {/* ── Project Media Upload ─────────────────── */}
                     <div className="beta-field-group">
                       <label className="beta-field-label">
-                        Upload Project Images (Optional)
+                        Project Images &amp; Videos (Optional)
                       </label>
+                      <p className="upload-description">
+                        Upload images or videos of projects you have built. This helps us better evaluate applicants for the NovaBoard AI Alpha Program.
+                      </p>
+
+                      {/* Drag-and-drop zone */}
                       <div
-                        className={`drag-drop-zone ${isUploading ? 'uploading' : ''}`}
+                        id="media-drop-zone"
+                        className={`drag-drop-zone${isDragOver ? ' drag-active' : ''}`}
                         onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                         onClick={() => fileInputRef.current?.click()}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Upload project images and videos"
+                        onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
                       >
                         <input
                           ref={fileInputRef}
                           type="file"
                           multiple
-                          accept="image/*"
+                          accept=".jpg,.jpeg,.png,.webp,.mp4,.mov,image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
                           onChange={handleFileSelect}
                           style={{ display: 'none' }}
-                          disabled={isUploading || isSubmitting}
+                          disabled={isSubmitting}
                         />
-                        {isUploading ? (
-                          <div className="upload-loader">
-                            <span className="spinner" />
-                            <p>Uploading images...</p>
+                        <div className="upload-placeholder">
+                          <div className="upload-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                              <polyline points="17 8 12 3 7 8"/>
+                              <line x1="12" x2="12" y1="3" y2="15"/>
+                            </svg>
                           </div>
-                        ) : (
-                          <div className="upload-placeholder">
-                            <div className="upload-icon">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                <circle cx="8.5" cy="8.5" r="1.5" />
-                                <polyline points="21 15 16 10 5 21" />
-                              </svg>
-                            </div>
-                            <p className="upload-title">Drag & drop files or click to browse</p>
-                            <p className="upload-subtitle">Supports JPG, PNG up to 3MB</p>
-                          </div>
-                        )}
+                          <p className="upload-title">Drag &amp; drop files or click to browse</p>
+                          <p className="upload-subtitle">
+                            Images: JPG, PNG, WEBP · up to 10MB each · max 5
+                            <br />
+                            Video: MP4, MOV · up to 100MB · max 1
+                          </p>
+                        </div>
                       </div>
 
-                      {/* Uploaded Previews */}
-                      {uploadedImages.length > 0 && (
-                        <div className="upload-previews">
-                          {uploadedImages.map((url, idx) => (
-                            <div key={idx} className="preview-thumbnail">
-                              <img src={url} alt={`Upload ${idx + 1}`} />
+                      {/* Per-file upload list */}
+                      {mediaFiles.length > 0 && (
+                        <div className="upload-file-list">
+                          {mediaFiles.map((item) => (
+                            <div key={item.id} className={`upload-file-item upload-state-${item.uploadState}`}>
+                              {/* Preview */}
+                              <div className="upload-preview-cell">
+                                {item.mediaType === 'image' ? (
+                                  <img
+                                    src={item.previewUrl}
+                                    alt="preview"
+                                    className="upload-thumb"
+                                  />
+                                ) : (
+                                  <video
+                                    src={item.previewUrl}
+                                    className="upload-thumb upload-thumb-video"
+                                    muted
+                                    preload="metadata"
+                                  />
+                                )}
+                                {item.mediaType === 'video' && (
+                                  <span className="upload-video-badge">VIDEO</span>
+                                )}
+                              </div>
+
+                              {/* Info + progress */}
+                              <div className="upload-file-info">
+                                <span className="upload-file-name">{item.file.name}</span>
+                                <span className="upload-file-size">
+                                  {(item.file.size / (1024 * 1024)).toFixed(1)} MB
+                                </span>
+
+                                {/* Progress bar */}
+                                <div className="upload-progress-track">
+                                  <div
+                                    className={`upload-progress-fill upload-progress-${item.uploadState}`}
+                                    style={{ width: `${item.progress}%` }}
+                                  />
+                                </div>
+
+                                {/* Status label */}
+                                <span className={`upload-status-label upload-status-${item.uploadState}`}>
+                                  {item.uploadState === 'idle' && 'Queued'}
+                                  {item.uploadState === 'uploading' && `Uploading… ${item.progress}%`}
+                                  {item.uploadState === 'done' && '✓ Uploaded'}
+                                  {item.uploadState === 'error' && `✗ ${item.errorMessage ?? 'Failed'}`}
+                                </span>
+                              </div>
+
+                              {/* Remove button */}
                               <button
                                 type="button"
-                                className="remove-preview-btn"
-                                onClick={() => removeImage(idx)}
-                                aria-label="Remove image"
+                                className="upload-remove-btn"
+                                onClick={() => removeMedia(item.id)}
+                                aria-label={`Remove ${item.file.name}`}
+                                disabled={item.uploadState === 'uploading'}
                               >
-                                &times;
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="18" x2="6" y1="6" y2="18"/>
+                                  <line x1="6" x2="18" y1="6" y2="18"/>
+                                </svg>
                               </button>
                             </div>
                           ))}
@@ -621,9 +824,9 @@ export default function AlphaApplyPage() {
                     <button
                       type="submit"
                       className="beta-submit"
-                      disabled={isSubmitting || isUploading}
+                      disabled={isSubmitting || anyUploading}
                     >
-                      {isSubmitting ? 'Submitting...' : 'Apply for Alpha Access'}
+                      {isSubmitting ? 'Submitting…' : anyUploading ? 'Waiting for uploads…' : 'Apply for Alpha Access'}
                     </button>
 
                     {/* Status Message */}

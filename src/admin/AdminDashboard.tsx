@@ -22,6 +22,8 @@ type Applicant = {
   bestProject?: string
   projectLinks?: string
   projectImages?: string[]
+  projectMedia?: Array<{ url: string; type: 'image' | 'video' }>
+  applicationId?: string
   willingFeedback?: string
 }
 
@@ -661,20 +663,65 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
                   </dd>
                 </div>
               )}
-              {drawer.projectImages && drawer.projectImages.length > 0 && (
-                <div>
-                  <dt>Project Images</dt>
-                  <dd>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
-                      {drawer.projectImages.map((url, i) => (
-                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                          <img src={url} alt={`Project ${i + 1}`} style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }} />
-                        </a>
-                      ))}
-                    </div>
-                  </dd>
-                </div>
-              )}
+              {/* Project Media: images + videos */}
+              {(() => {
+                // Build unified media list: prefer projectMedia, fall back to legacy projectImages
+                const mediaItems: Array<{ url: string; type: 'image' | 'video' }> =
+                  drawer.projectMedia && drawer.projectMedia.length > 0
+                    ? drawer.projectMedia
+                    : (drawer.projectImages ?? []).map(url => ({ url, type: 'image' as const }))
+
+                if (mediaItems.length === 0) return null
+
+                return (
+                  <div>
+                    <dt style={{ marginBottom: '10px' }}>Project Media</dt>
+                    <dd>
+                      <div className="admin-media-grid">
+                        {mediaItems.map((item, i) =>
+                          item.type === 'video' ? (
+                            <div key={i} className="admin-media-item">
+                              <video
+                                src={item.url}
+                                controls
+                                muted
+                                preload="metadata"
+                                className="admin-video-preview"
+                              />
+                              <a
+                                href={item.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="admin-media-open-link"
+                              >
+                                Open video ↗
+                              </a>
+                            </div>
+                          ) : (
+                            <div key={i} className="admin-media-item">
+                              <a href={item.url} target="_blank" rel="noopener noreferrer">
+                                <img
+                                  src={item.url}
+                                  alt={`Media ${i + 1}`}
+                                  className="admin-media-thumb"
+                                />
+                              </a>
+                              <a
+                                href={item.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="admin-media-open-link"
+                              >
+                                Open image ↗
+                              </a>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </dd>
+                  </div>
+                )
+              })()}
               {drawer.willingFeedback !== undefined && <div><dt>Willing to feedback?</dt><dd>{drawer.willingFeedback ? 'Yes' : 'No'}</dd></div>}
             </dl>
             <form onSubmit={saveApplicant}>
