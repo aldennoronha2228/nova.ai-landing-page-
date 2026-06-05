@@ -255,6 +255,49 @@
   gap: 10px;
 }
 
+.admin-date-picker-container {
+  position: relative;
+  display: inline-block;
+}
+
+.admin-date-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--admin-surface-strong);
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+  z-index: 50;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  backdrop-filter: blur(12px);
+}
+
+.admin-date-dropdown button {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--admin-muted) !important;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: auto !important;
+  justify-content: flex-start !important;
+  width: 100%;
+  box-shadow: none !important;
+}
+
+.admin-date-dropdown button:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--admin-text) !important;
+}
+
 .admin-toolbar button,
 .admin-panel-head button,
 .admin-panel-head a,
@@ -1255,17 +1298,73 @@
 
   .admin-toolbar {
     width: 100%;
-    justify-content: stretch;
+    display: flex;
+    gap: 10px;
   }
 
-  .admin-toolbar button {
+  .admin-toolbar button,
+  .admin-date-picker-container {
     flex: 1;
+    width: 100%;
+  }
+
+  .admin-date-picker-container button {
+    width: 100%;
   }
 
   .admin-page-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 14px;
+  }
+
+  /* Responsive Stacking Table */
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table, 
+  .admin-table tbody, 
+  .admin-table tr, 
+  .admin-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table tr {
+    margin-bottom: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+
+  .admin-table tr:hover td {
+    background: transparent;
+  }
+
+  .admin-table td {
+    text-align: right;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .admin-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .admin-table td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: 700;
+    color: var(--admin-muted);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    margin-right: 12px;
   }
 }
 

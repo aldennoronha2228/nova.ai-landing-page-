@@ -314,7 +314,28 @@ function PageHeader({ title, eyebrow, actions }: { title: string; eyebrow: strin
   )
 }
 
-function DashboardHome({ overview }: { overview: Overview }) {
+const dateRangeLabels: Record<string, string> = {
+  all: 'All Time',
+  '7d': 'Last 7 Days',
+  '14d': 'Last 14 Days',
+  '30d': 'Last 30 Days',
+}
+
+function DashboardHome({
+  overview,
+  dateRange,
+  dateMenuOpen,
+  onToggleDateMenu,
+  onSelectDateRange,
+  onExport,
+}: {
+  overview: Overview
+  dateRange: 'all' | '7d' | '14d' | '30d'
+  dateMenuOpen: boolean
+  onToggleDateMenu: () => void
+  onSelectDateRange: (range: 'all' | '7d' | '14d' | '30d') => void
+  onExport: () => void
+}) {
   const chartData = getDailyBuckets(overview.applicants)
   const spark = chartData.map((item) => item.value + 1)
   const latestApplicants = overview.applicants.slice(0, 5)
@@ -330,8 +351,21 @@ function DashboardHome({ overview }: { overview: Overview }) {
         eyebrow="Welcome back, Alden!"
         actions={
           <div className="admin-toolbar">
-            <button type="button"><AdminIcon name="calendar" />Jun 5, 2026 - Jun 5, 2026</button>
-            <button type="button"><AdminIcon name="download" />Export</button>
+            <div className="admin-date-picker-container">
+              <button type="button" className="admin-date-picker-button" onClick={onToggleDateMenu}>
+                <AdminIcon name="calendar" />
+                {dateRangeLabels[dateRange]}
+              </button>
+              {dateMenuOpen && (
+                <div className="admin-date-dropdown">
+                  <button type="button" onClick={() => onSelectDateRange('all')}>All Time</button>
+                  <button type="button" onClick={() => onSelectDateRange('7d')}>Last 7 Days</button>
+                  <button type="button" onClick={() => onSelectDateRange('14d')}>Last 14 Days</button>
+                  <button type="button" onClick={() => onSelectDateRange('30d')}>Last 30 Days</button>
+                </div>
+              )}
+            </div>
+            <button type="button" onClick={onExport}><AdminIcon name="download" />Export</button>
           </div>
         }
       />
@@ -814,6 +848,8 @@ export function AdminDashboard({ activePage, adminEmail }: { activePage: AdminPa
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(!overviewCache)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [dateRange, setDateRange] = useState<'all' | '7d' | '14d' | '30d'>('all')
+  const [dateMenuOpen, setDateMenuOpen] = useState(false)
 
   const refresh = async () => {
     try {
@@ -834,13 +870,86 @@ export function AdminDashboard({ activePage, adminEmail }: { activePage: AdminPa
     return () => window.clearInterval(interval)
   }, [])
 
+  const filteredOverview = useMemo(() => {
+    if (dateRange === 'all') return overview
+
+    const days = dateRange === '7d' ? 7 : dateRange === '14d' ? 14 : 30
+    const baseDate = new Date('2026-06-05T23:59:59Z')
+    const limitTime = baseDate.getTime() - days * 24 * 60 * 60 * 1000
+
+    const filteredApplicants = overview.applicants.filter(
+      (app) => new Date(app.dateApplied).getTime() >= limitTime
+    )
+    const filteredCampaigns = overview.campaigns.filter(
+      (camp) => new Date(camp.createdAt).getTime() >= limitTime
+    )
+    const filteredActivity = overview.activity.filter(
+      (act) => new Date(act.createdAt).getTime() >= limitTime
+    )
+
+    const total = filteredApplicants.length
+    const pending = filteredApplicants.filter((a) => a.status === 'pending').length
+    const approved = filteredApplicants.filter((a) => a.status === 'approved').length
+    const rejected = filteredApplicants.filter((a) => a.status === 'rejected').length
+
+    return {
+      kpis: {
+        total,
+        pending,
+        approved,
+        rejected,
+        emailsSent: filteredCampaigns.length * 45,
+        openRate: overview.kpis.openRate,
+      },
+      applicants: filteredApplicants,
+      campaigns: filteredCampaigns,
+      activity: filteredActivity,
+    }
+  }, [overview, dateRange])
+
+  const handleExport = () => {
+    if (!filteredOverview.applicants || filteredOverview.applicants.length === 0) return
+    const headers = ['ID', 'Name', 'Email', 'Date Applied', 'Status', 'Source', 'Notes', 'Use Case']
+    const rows = filteredOverview.applicants.map((app) => [
+      `"${app.id}"`,
+      `"${app.name.replace(/"/g, '""')}"`,
+      `"${app.email.replace(/"/g, '""')}"`,
+      `"${app.dateApplied}"`,
+      `"${app.status}"`,
+      `"${app.source.replace(/"/g, '""')}"`,
+      `"${(app.notes || '').replace(/"/g, '""')}"`,
+      `"${(app.useCase || '').replace(/"/g, '""')}"`,
+    ])
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `novaboard_applicants_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const content = (() => {
     if (loading) return <div className="admin-loading">Loading NovaBoard operations...</div>
-    if (activePage === 'applicants') return <ApplicantsPage applicants={overview.applicants} refresh={refresh} />
+    if (activePage === 'applicants') return <ApplicantsPage applicants={filteredOverview.applicants} refresh={refresh} />
     if (activePage === 'campaigns' || activePage === 'emails') return <CampaignsPage campaigns={overview.campaigns} refresh={refresh} />
-    if (activePage === 'analytics') return <AnalyticsPage overview={overview} />
+    if (activePage === 'analytics') return <AnalyticsPage overview={filteredOverview} />
     if (activePage === 'settings') return <SettingsPage adminEmail={adminEmail} />
-    return <DashboardHome overview={overview} />
+    return (
+      <DashboardHome
+        overview={filteredOverview}
+        dateRange={dateRange}
+        dateMenuOpen={dateMenuOpen}
+        onToggleDateMenu={() => setDateMenuOpen((prev) => !prev)}
+        onSelectDateRange={(range) => {
+          setDateRange(range)
+          setDateMenuOpen(false)
+        }}
+        onExport={handleExport}
+      />
+    )
   })()
 
   return (
