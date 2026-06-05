@@ -987,6 +987,7 @@
 .admin-login-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   margin-bottom: 8px;
 }
@@ -997,6 +998,9 @@
   object-fit: contain;
   border-radius: 8px;
   flex-shrink: 0;
+  background: #090910;
+  padding: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .admin-login-card h1 {
