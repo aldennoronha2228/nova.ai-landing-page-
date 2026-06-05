@@ -15,6 +15,14 @@ type Applicant = {
   source: string
   notes: string
   useCase: string
+  country?: string
+  student?: string
+  experienceLevel?: string
+  projectsCompleted?: string
+  bestProject?: string
+  projectLinks?: string
+  projectImages?: string[]
+  willingFeedback?: string
 }
 
 type Campaign = {
@@ -637,7 +645,37 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
             <dl>
               <div><dt>Application Date</dt><dd>{formatDate(drawer.dateApplied)}</dd></div>
               <div><dt>Source</dt><dd>{drawer.source}</dd></div>
+              {drawer.country && <div><dt>Country</dt><dd>{drawer.country}</dd></div>}
+              {drawer.student && <div><dt>Is Student?</dt><dd>{drawer.student}</dd></div>}
+              {drawer.experienceLevel && <div><dt>Experience Level</dt><dd>{drawer.experienceLevel}</dd></div>}
+              {drawer.projectsCompleted && <div><dt>Projects Completed</dt><dd>{drawer.projectsCompleted}</dd></div>}
+              {drawer.bestProject && <div><dt>Best Project</dt><dd>{drawer.bestProject}</dd></div>}
               <div><dt>Use Case</dt><dd>{drawer.useCase || 'Not provided'}</dd></div>
+              {drawer.projectLinks && (
+                <div>
+                  <dt>Project Links</dt>
+                  <dd>
+                    <a href={drawer.projectLinks.startsWith('http') ? drawer.projectLinks : `https://${drawer.projectLinks}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--admin-purple)', textDecoration: 'underline' }}>
+                      {drawer.projectLinks}
+                    </a>
+                  </dd>
+                </div>
+              )}
+              {drawer.projectImages && drawer.projectImages.length > 0 && (
+                <div>
+                  <dt>Project Images</dt>
+                  <dd>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+                      {drawer.projectImages.map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                          <img src={url} alt={`Project ${i + 1}`} style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }} />
+                        </a>
+                      ))}
+                    </div>
+                  </dd>
+                </div>
+              )}
+              {drawer.willingFeedback !== undefined && <div><dt>Willing to feedback?</dt><dd>{drawer.willingFeedback ? 'Yes' : 'No'}</dd></div>}
             </dl>
             <form onSubmit={saveApplicant}>
               <label>Status<select name="status" defaultValue={drawer.status}>{Object.keys(statusLabels).map((key) => <option key={key} value={key}>{statusLabels[key as ApplicantStatus]}</option>)}</select></label>

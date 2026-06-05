@@ -12,6 +12,14 @@ export type AdminApplicant = {
   source: string
   notes: string
   useCase: string
+  country?: string
+  student?: string
+  experienceLevel?: string
+  projectsCompleted?: string
+  bestProject?: string
+  projectLinks?: string
+  projectImages?: string[]
+  willingFeedback?: string
 }
 
 export type AdminEmailLog = {
@@ -50,6 +58,14 @@ export const listApplicants = async (): Promise<AdminApplicant[]> => {
       source: String(data.source || 'website'),
       notes: String(data.notes || ''),
       useCase: String(data.useCase || data.identity || ''),
+      country: data.country ? String(data.country) : undefined,
+      student: data.student ? String(data.student) : undefined,
+      experienceLevel: data.experienceLevel ? String(data.experienceLevel) : undefined,
+      projectsCompleted: data.projectsCompleted ? String(data.projectsCompleted) : undefined,
+      bestProject: data.bestProject ? String(data.bestProject) : undefined,
+      projectLinks: data.projectLinks ? String(data.projectLinks) : undefined,
+      projectImages: Array.isArray(data.projectImages) ? data.projectImages.map(String) : undefined,
+      willingFeedback: data.willingFeedback !== undefined ? String(data.willingFeedback) : undefined,
     }
   })
 }

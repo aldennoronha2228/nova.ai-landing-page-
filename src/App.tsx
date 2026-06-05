@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
+import Link from "next/link";
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 20 },
@@ -63,12 +64,6 @@ const WordReveal = ({
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isSubmittingAlpha, setIsSubmittingAlpha] = useState(false);
-  const [isStudent, setIsStudent] = useState<string>("");
-  const [alphaStatus, setAlphaStatus] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
   const pipelineRef = useRef<HTMLDivElement | null>(null);
   const nodeStackRef = useRef<HTMLDivElement | null>(null);
   const nodeXRef = useRef<HTMLDivElement | null>(null);
@@ -85,7 +80,6 @@ function App() {
   const heroViewportRef = useRef<HTMLDivElement | null>(null);
   const heroCardRef = useRef<HTMLElement | null>(null);
   const heroInnerRef = useRef<HTMLDivElement | null>(null);
-  const alphaFormRef = useRef<HTMLFormElement | null>(null);
   const whyRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress: whyProgress } = useScroll({
     target: whyRef,
@@ -153,121 +147,6 @@ function App() {
       window.clearTimeout(delayedFit);
     };
   }, []);
-
-  const handleAlphaSignup = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (isSubmittingAlpha) return;
-
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const fullName = String(formData.get("fullName") ?? "").trim();
-    const student = String(formData.get("student") ?? "").trim();
-    const identity = String(formData.get("identity") ?? "").trim();
-    const email = String(formData.get("email") ?? "").trim();
-    const useCase = String(formData.get("useCase") ?? "").trim();
-
-    if (!fullName || !student || !email || !useCase || (student === "no" && !identity)) {
-      setAlphaStatus({
-        type: "error",
-        message: alphaErrorMessage,
-      });
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      setAlphaStatus({
-        type: "error",
-        message: alphaErrorMessage,
-      });
-      return;
-    }
-
-    try {
-      setIsSubmittingAlpha(true);
-      setAlphaStatus(null);
-
-      const response = await fetch("/api/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fullName,
-          email,
-          student,
-          identity,
-          useCase,
-        }),
-      });
-
-      const payload = (await response.json().catch(() => ({}))) as { message?: string; emailed?: boolean }
-
-      if (!response.ok) {
-        if (payload.message && /signup storage is not enabled|NovaBoard AI signup storage is not enabled/i.test(payload.message)) {
-          setAlphaStatus({ type: 'error', message: alphaBackendMessage })
-          setIsSubmittingAlpha(false)
-          return
-        }
-
-        setAlphaStatus({
-          type: "error",
-          message: payload.message ?? alphaErrorMessage,
-        });
-        setIsSubmittingAlpha(false);
-        return;
-      }
-
-      // eslint-disable-next-line no-console
-      console.log("Alpha signup submitted successfully", {
-        email: normalizeEmail(email),
-        student,
-      });
-
-      form.reset();
-      setIsStudent("");
-      const successMessage = payload.message ?? alphaSuccessMessage
-      const emailStatusMessage =
-        payload.emailed === false
-          ? ' Confirmation email could not be sent. Please check your email configuration.'
-          : ''
-      setAlphaStatus({
-        type: "success",
-        message: `${successMessage}${emailStatusMessage}`,
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "";
-      if (/database \(default\) does not exist|Firestore|client is not configured/i.test(errorMessage)) {
-        setAlphaStatus({
-          type: "error",
-          message: alphaBackendMessage,
-        });
-        return;
-      }
-
-      // eslint-disable-next-line no-console
-      console.error("Alpha signup failed:", error);
-
-      setAlphaStatus({
-        type: "error",
-        message: alphaErrorMessage,
-      });
-    } finally {
-      setIsSubmittingAlpha(false);
-    }
-  };
-
-  const scrollToAlpha = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    setMenuOpen(false);
-    try {
-      alphaFormRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    } catch (err) {
-      window.location.hash = "#alpha";
-    }
-  };
 
   const scrollToWhy = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -499,9 +378,9 @@ function App() {
               <a href="/admin/login" className="mobile-menu-secondary" onClick={() => setMenuOpen(false)}>
                 Sign In
               </a>
-              <a href="#alpha" className="mobile-menu-primary" onClick={scrollToAlpha}>
+              <Link href="/alpha" className="mobile-menu-primary" onClick={() => setMenuOpen(false)}>
                 Alpha Waitlist
-              </a>
+              </Link>
             </div>
           </div>
           <button
@@ -660,13 +539,12 @@ function App() {
                 and edge deployment into one seamless workspace for modern hardware teams.
               </motion.p>
               <motion.div {...heroMotionProps(0.35, disableMobileMotion)} className="hero-actions">
-                <a
-                  href="#alpha"
+                <Link
+                  href="/alpha"
                   className="btn-cta"
-                  onClick={scrollToAlpha}
                 >
                   Join Alpha Waitlist
-                </a>
+                </Link>
               </motion.div>
               <motion.div {...heroMotionProps(0.45, disableMobileMotion)} className="hero-trust">
                 <span>Early builders are joining the Alpha waitlist</span>
@@ -933,110 +811,15 @@ function App() {
               <span className="beta-pill">Influence Product Development</span>
             </div>
           </div>
-          <form
-            ref={alphaFormRef}
-            id="alpha"
-            className="beta-form"
-            onSubmit={handleAlphaSignup}
-          >
-              <div className="alpha-form-container">
-                <h3 className="beta-heading">Apply for the NovaBoard AI Alpha</h3>
-                <p className="beta-sub">
-                  We're selecting a small group of early testers to help us validate project generation, firmware creation, circuit design, and workflow experience before launch.
-                </p>
-
-                <div className="alpha-form-fields">
-                  <input
-                    id="alpha-fullName"
-                    type="text"
-                    name="fullName"
-                    placeholder="Full name"
-                    required
-                    disabled={isSubmittingAlpha}
-                    className="form-control"
-                  />
-
-                  <input
-                    id="alpha-email"
-                    type="email"
-                    name="email"
-                    placeholder="you@example.com"
-                    required
-                    disabled={isSubmittingAlpha}
-                    className="form-control"
-                  />
-
-                  <div className="beta-field-group">
-                    <label className="beta-field-label" htmlFor="alpha-student">
-                      Are you a student?
-                    </label>
-                    <select
-                      id="alpha-student"
-                      name="student"
-                      required
-                      disabled={isSubmittingAlpha}
-                      value={isStudent}
-                      onChange={(event) => setIsStudent(event.target.value)}
-                      className="form-control"
-                    >
-                      <option value="" disabled>
-                        Select yes or no
-                      </option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </select>
-                  </div>
-
-                  {isStudent === "no" ? (
-                    <input
-                      id="alpha-identity"
-                      type="text"
-                      name="identity"
-                      placeholder="Tell us who you are"
-                      required
-                      disabled={isSubmittingAlpha}
-                      className="form-control"
-                    />
-                  ) : null}
-
-                  <div className="beta-field-group">
-                    <label className="beta-field-label" htmlFor="alpha-useCase">
-                      What will you use NovaBoard AI for?
-                    </label>
-                    <textarea
-                      id="alpha-useCase"
-                      name="useCase"
-                      placeholder="Describe your hardware project, firmware workflow, or circuit design use case"
-                      required
-                      disabled={isSubmittingAlpha}
-                      className="form-control"
-                      rows={4}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="beta-submit"
-                    disabled={isSubmittingAlpha}
-                  >
-                    {isSubmittingAlpha ? "Sending..." : "Join Alpha Waitlist"}
-                  </button>
-
-                  {alphaStatus ? (
-                    <p
-                      className={`beta-message beta-message-${alphaStatus.type}`}
-                      role={alphaStatus.type === "error" ? "alert" : "status"}
-                    >
-                      {alphaStatus.message}
-                    </p>
-                  ) : null}
-
-                  <p className="beta-footnote">
-                    * We're selecting a limited group of testers to validate NovaBoard AI before public launch. Selected users will receive Alpha invitations and help shape the platform.
-                  </p>
-                </div>
-              </div>
-          </form>
+          <div className="beta-form" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', minWidth: '320px', zIndex: 1 }}>
+            <h3 className="beta-heading">Apply for Alpha Access</h3>
+            <p className="beta-sub" style={{ marginBottom: '24px' }}>
+              We're selecting highly engaged builders and developers to test NovaBoard AI and provide feedback.
+            </p>
+            <Link href="/alpha" className="beta-submit" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              Apply for Alpha Access
+            </Link>
+          </div>
         </motion.div>
       </section>
 
