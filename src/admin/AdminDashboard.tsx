@@ -452,15 +452,25 @@ function DashboardHome({
             {(latestCampaigns.length ? latestCampaigns : [
               { id: 'empty-campaign', name: 'No campaigns yet', subject: 'Create your first campaign', previewText: '', content: '', type: 'Alpha', status: 'draft', createdAt: new Date().toISOString() },
             ]).map((campaign, index) => (
-              <div key={campaign.id}>
-                <span>{campaign.name}</span>
-                <b>{campaign.status}</b>
-                <strong>{index === 0 ? Math.max(overview.kpis.emailsSent, 0) : Math.max(0, Math.round(overview.kpis.emailsSent / (index + 2)))}</strong>
-                <small>Recipients</small>
-                <strong>{Math.max(0, emailOpenRate - index * 4.2).toFixed(1)}%</strong>
-                <small>Opens</small>
-                <strong>{Math.max(0, clickRate - index * 1.3).toFixed(1)}%</strong>
-                <small>Clicks</small>
+              <div key={campaign.id} className="admin-campaign-row">
+                <div className="admin-campaign-info">
+                  <span className="admin-campaign-name">{campaign.name}</span>
+                  <b className="admin-campaign-status">{campaign.status}</b>
+                </div>
+                <div className="admin-campaign-stats">
+                  <div className="admin-campaign-stat">
+                    <strong>{index === 0 ? Math.max(overview.kpis.emailsSent, 0) : Math.max(0, Math.round(overview.kpis.emailsSent / (index + 2)))}</strong>
+                    <small>Recipients</small>
+                  </div>
+                  <div className="admin-campaign-stat">
+                    <strong>{Math.max(0, emailOpenRate - index * 4.2).toFixed(1)}%</strong>
+                    <small>Opens</small>
+                  </div>
+                  <div className="admin-campaign-stat">
+                    <strong>{Math.max(0, clickRate - index * 1.3).toFixed(1)}%</strong>
+                    <small>Clicks</small>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
