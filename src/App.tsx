@@ -667,17 +667,7 @@ function App() {
                 >
                   Join Alpha Waitlist
                 </a>
-                <a
-                  href="#why"
-                  className="btn-cta"
-                  onClick={scrollToWhy}
-                >
-                  Watch Demo
-                </a>
               </motion.div>
-              <p className="hero-note">
-                NovaBoard AI is currently in private Alpha. Apply to the Alpha waitlist to be considered for early testing and help shape the future of AI-powered hardware development.
-              </p>
               <motion.div {...heroMotionProps(0.45, disableMobileMotion)} className="hero-trust">
                 <span>Early builders are joining the Alpha waitlist</span>
                 <span>Private Alpha applications are now open</span>
