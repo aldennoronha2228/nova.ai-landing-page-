@@ -2519,7 +2519,7 @@ textarea.form-control::-webkit-scrollbar {
     position: relative;
     z-index: 2;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .alpha-columns {

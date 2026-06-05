@@ -178,10 +178,6 @@ export default function AlphaApplyPage() {
       <Head>
         <title>Apply for Alpha Access — NovaBoard AI</title>
         <meta name="description" content="Join the private NovaBoard AI Alpha Program and shape the future of hardware engineering." />
-        <style>{`
-          html::-webkit-scrollbar { display: none !important; }
-          html { scrollbar-width: none !important; -ms-overflow-style: none !important; }
-        `}</style>
       </Head>
 
       <div className="alpha-page-viewport">
