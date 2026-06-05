@@ -231,6 +231,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const identity = getStringField(req.body, 'identity')
   const useCase = getStringField(req.body, 'useCase')
 
+  const writableDb = getWritableDb()
+
   if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
     return res.status(503).json({
       message:
@@ -270,7 +272,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (emailServiceConfigured) {
       try {
-        const textBody = `Hi ${firstName},
+        let subject = 'Welcome to NovaBoard AI Alpha'
+        let textBody = `Hi ${firstName},
 
 Thank you for joining the NovaBoard AI Alpha Program.
 
@@ -290,7 +293,7 @@ What happens next?
 We're excited to have you with us at this early stage.
 
 — Team NovaBoard AI`
-        const htmlBody = `
+        let htmlBody = `
             <div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#111827">
               <p>Hi ${firstName},</p>
               <p>Thank you for joining the NovaBoard AI Alpha Program.</p>
@@ -313,6 +316,19 @@ We're excited to have you with us at this early stage.
             </div>
           `
 
+        try {
+          const doc = await writableDb.collection('settings').doc('signup_email').get()
+          if (doc.exists) {
+            const data = doc.data()
+            if (data?.subject) subject = String(data.subject)
+            if (data?.bodyText) textBody = String(data.bodyText).replace(/{{name}}/g, firstName)
+            if (data?.bodyHtml) htmlBody = String(data.bodyHtml).replace(/{{name}}/g, firstName)
+          }
+        } catch (dbErr) {
+          // eslint-disable-next-line no-console
+          console.warn('Failed to load dynamic email template settings:', dbErr)
+        }
+
         const resendResponse = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -322,7 +338,7 @@ We're excited to have you with us at this early stage.
           body: JSON.stringify({
             from: senderEmail,
             to: [email],
-            subject: `Welcome to NovaBoard AI Alpha`,
+            subject: subject,
             text: textBody,
             html: htmlBody,
           }),

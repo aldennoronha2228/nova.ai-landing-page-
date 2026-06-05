@@ -780,11 +780,60 @@ function AnalyticsPage({ overview }: { overview: Overview }) {
   )
 }
 
+const defaultTextBody = `Hi {{name}},
+
+Thank you for joining the NovaBoard AI Alpha Program.
+
+NovaBoard AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
+
+Your application has been received successfully.
+
+As we expand access, selected users will receive invitations to participate in the Alpha program and provide feedback on project generation, firmware creation, circuit design, and workflow experience.
+
+What happens next?
+
+• We review Alpha waitlist applications.
+• Selected users receive Alpha invitations.
+• Testers gain early access to upcoming features.
+• Feedback directly influences AI-assisted hardware development.
+
+We're excited to have you with us at this early stage.
+
+— Team NovaBoard AI`
+
+const defaultHtmlBody = `<div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#111827">
+  <p>Hi {{name}},</p>
+  <p>Thank you for joining the NovaBoard AI Alpha Program.</p>
+  <p>
+    NovaBoard AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
+  </p>
+  <p>Your application has been received successfully.</p>
+  <p>
+    As we expand access, selected users will receive invitations to participate in the Alpha program and provide feedback on project generation, firmware creation, circuit design, and workflow experience.
+  </p>
+  <p>What happens next?</p>
+  <ul>
+    <li>We review Alpha waitlist applications.</li>
+    <li>Selected users receive Alpha invitations.</li>
+    <li>Testers gain early access to upcoming features.</li>
+    <li>Feedback directly influences AI-assisted hardware development.</li>
+  </ul>
+  <p>We're excited to have you with us at this early stage.</p>
+  <p>— Team NovaBoard AI</p>
+</div>`
+
 function SettingsPage({ adminEmail }: { adminEmail: string }) {
   const [adminEmails, setAdminEmails] = useState<string[]>([])
   const [newEmail, setNewEmail] = useState('')
   const [status, setStatus] = useState('')
   const [loadingEmails, setLoadingEmails] = useState(true)
+
+  // Template settings
+  const [templateSubject, setTemplateSubject] = useState('')
+  const [templateBodyText, setTemplateBodyText] = useState('')
+  const [templateBodyHtml, setTemplateBodyHtml] = useState('')
+  const [loadingTemplate, setLoadingTemplate] = useState(true)
+  const [templateStatus, setTemplateStatus] = useState('')
 
   const loadEmails = async () => {
     try {
@@ -798,8 +847,23 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
     }
   }
 
+  const loadTemplate = async () => {
+    try {
+      setLoadingTemplate(true)
+      const data = await requestJson<{ subject: string; bodyText: string; bodyHtml: string }>('/api/admin/email-template')
+      setTemplateSubject(data.subject || 'Welcome to NovaBoard AI Alpha')
+      setTemplateBodyText(data.bodyText || defaultTextBody)
+      setTemplateBodyHtml(data.bodyHtml || defaultHtmlBody)
+    } catch (err) {
+      setTemplateStatus('Unable to load email template.')
+    } finally {
+      setLoadingTemplate(false)
+    }
+  }
+
   useEffect(() => {
     void loadEmails()
+    void loadTemplate()
   }, [])
 
   const addEmail = async () => {
@@ -832,6 +896,23 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
       void loadEmails()
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Unable to remove admin email.')
+    }
+  }
+
+  const saveTemplate = async () => {
+    try {
+      setTemplateStatus('Saving template…')
+      await requestJson('/api/admin/email-template', {
+        method: 'POST',
+        body: JSON.stringify({
+          subject: templateSubject,
+          bodyText: templateBodyText,
+          bodyHtml: templateBodyHtml,
+        }),
+      })
+      setTemplateStatus('Template saved successfully.')
+    } catch (err) {
+      setTemplateStatus(err instanceof Error ? err.message : 'Unable to save email template.')
     }
   }
 
@@ -876,6 +957,27 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
         <article className="admin-panel">
           <h2>Security Settings</h2>
           <p>Approved email allowlist, password authentication, signed HTTP-only session cookies, protected routes, and explicit logout are enabled.</p>
+        </article>
+        <article className="admin-panel template-editor-panel">
+          <h2>Alpha Waitlist Signup Email Template</h2>
+          <p>Customize the automated welcome email sent when a user signs up. Use <code>{"{{name}}"}</code> to insert the applicant's name dynamically.</p>
+          {loadingTemplate ? (
+            <p>Loading email template settings…</p>
+          ) : (
+            <div className="admin-template-form">
+              <label>Email Subject
+                <input value={templateSubject} onChange={(e) => setTemplateSubject(e.target.value)} placeholder="Welcome to NovaBoard AI Alpha" />
+              </label>
+              <label>Plain Text Version
+                <textarea value={templateBodyText} onChange={(e) => setTemplateBodyText(e.target.value)} rows={8} />
+              </label>
+              <label>HTML Version
+                <textarea value={templateBodyHtml} onChange={(e) => setTemplateBodyHtml(e.target.value)} rows={12} className="code-font" />
+              </label>
+              <button type="button" className="admin-primary" onClick={saveTemplate}>Save Email Template</button>
+              {templateStatus ? <p className="admin-form-status">{templateStatus}</p> : null}
+            </div>
+          )}
         </article>
       </section>
       {status ? <p className="admin-form-status">{status}</p> : null}

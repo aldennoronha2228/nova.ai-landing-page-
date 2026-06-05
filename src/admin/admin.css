@@ -1230,6 +1230,50 @@
   display: block;
 }
 
+.template-editor-panel {
+  grid-column: 1 / -1;
+}
+
+.admin-template-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.admin-template-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.admin-template-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(7, 7, 11, 0.62);
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  color: var(--admin-text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.admin-template-form textarea:focus {
+  border-color: var(--admin-purple);
+  box-shadow: 0 0 0 2px rgba(109, 76, 255, 0.15);
+}
+
+.admin-template-form textarea.code-font {
+  font-family: Consolas, Monaco, monospace;
+  font-size: 0.84rem;
+  background: #050508 !important;
+  color: #a78bfa !important;
+}
+
 .admin-login-card input {
   width: 100%;
   min-height: 44px;

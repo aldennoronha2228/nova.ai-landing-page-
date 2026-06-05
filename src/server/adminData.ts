@@ -160,3 +160,29 @@ export const removeAdminEmail = async (email: string) => {
   if (!normalized) throw new Error('Admin email is required.')
   await getAdminDb().collection('admin_emails').doc(normalized).delete()
 }
+
+export type EmailTemplate = {
+  subject: string
+  bodyText: string
+  bodyHtml: string
+}
+
+export const getSignupTemplate = async (): Promise<EmailTemplate | null> => {
+  const doc = await getAdminDb().collection('settings').doc('signup_email').get()
+  if (!doc.exists) return null
+  const data = doc.data()
+  return {
+    subject: String(data?.subject || ''),
+    bodyText: String(data?.bodyText || ''),
+    bodyHtml: String(data?.bodyHtml || ''),
+  }
+}
+
+export const saveSignupTemplate = async (template: EmailTemplate) => {
+  await getAdminDb().collection('settings').doc('signup_email').set({
+    subject: template.subject,
+    bodyText: template.bodyText,
+    bodyHtml: template.bodyHtml,
+    updated_at: FieldValue.serverTimestamp(),
+  }, { merge: true })
+}
