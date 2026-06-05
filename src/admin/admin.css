@@ -662,6 +662,20 @@
   font-weight: 600;
 }
 
+.admin-table-val {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-table-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .admin-table tr:hover td {
   background: rgba(255, 255, 255, 0.02);
 }
@@ -1442,6 +1456,27 @@
     font-size: 0.76rem;
     text-transform: uppercase;
     margin-right: 12px;
+  }
+
+  .admin-table-val {
+    max-width: 60%;
+    text-align: right;
+    justify-content: flex-end;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .admin-table-val.name-val {
+    display: inline-flex;
+  }
+
+  .admin-table-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
   }
 
   /* Campaigns responsive tweaks */

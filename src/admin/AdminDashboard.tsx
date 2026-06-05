@@ -423,11 +423,20 @@ function DashboardHome({
                   { id: 'empty-1', name: 'No applicants yet', email: 'Waiting for signups', source: 'Website', dateApplied: new Date().toISOString(), status: 'pending' as ApplicantStatus, notes: '', useCase: '' },
                 ]).map((applicant) => (
                   <tr key={applicant.id}>
-                    <td data-label="Name"><span className="admin-avatar">{getInitials(applicant.name)}</span>{applicant.name}</td>
-                    <td data-label="Email">{applicant.email}</td>
-                    <td data-label="Source">{applicant.source}</td>
-                    <td data-label="Date Applied">{formatDate(applicant.dateApplied)}</td>
-                    <td data-label="Status"><span className={`admin-status ${applicant.status}`}>{statusLabels[applicant.status]}</span></td>
+                    <td data-label="Name">
+                      <span className="admin-table-val name-val">
+                        <span className="admin-avatar">{getInitials(applicant.name)}</span>
+                        <span className="admin-table-text">{applicant.name}</span>
+                      </span>
+                    </td>
+                    <td data-label="Email"><span className="admin-table-val">{applicant.email}</span></td>
+                    <td data-label="Source"><span className="admin-table-val">{applicant.source}</span></td>
+                    <td data-label="Date Applied"><span className="admin-table-val">{formatDate(applicant.dateApplied)}</span></td>
+                    <td data-label="Status">
+                      <span className="admin-table-val">
+                        <span className={`admin-status ${applicant.status}`}>{statusLabels[applicant.status]}</span>
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -575,15 +584,27 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
               </tr>
             </thead>
             <tbody>
-              {paged.map((applicant) => (
+               {paged.map((applicant) => (
                 <tr key={applicant.id} onClick={() => setDrawer(applicant)}>
-                  <td data-label="Select" onClick={(event) => event.stopPropagation()}><input type="checkbox" checked={selected.includes(applicant.id)} onChange={() => toggle(applicant.id)} /></td>
-                  <td data-label="Name">{applicant.name}</td>
-                  <td data-label="Email">{applicant.email}</td>
-                  <td data-label="Date Applied">{formatDate(applicant.dateApplied)}</td>
-                  <td data-label="Status"><span className={`admin-status ${applicant.status}`}>{statusLabels[applicant.status]}</span></td>
-                  <td data-label="Source">{applicant.source}</td>
-                  <td data-label="Notes">{applicant.notes || 'Open details'}</td>
+                  <td data-label="Select" onClick={(event) => event.stopPropagation()}>
+                    <span className="admin-table-val">
+                      <input type="checkbox" checked={selected.includes(applicant.id)} onChange={() => toggle(applicant.id)} />
+                    </span>
+                  </td>
+                  <td data-label="Name">
+                    <span className="admin-table-val name-val">
+                      <span className="admin-table-text">{applicant.name}</span>
+                    </span>
+                  </td>
+                  <td data-label="Email"><span className="admin-table-val">{applicant.email}</span></td>
+                  <td data-label="Date Applied"><span className="admin-table-val">{formatDate(applicant.dateApplied)}</span></td>
+                  <td data-label="Status">
+                    <span className="admin-table-val">
+                      <span className={`admin-status ${applicant.status}`}>{statusLabels[applicant.status]}</span>
+                    </span>
+                  </td>
+                  <td data-label="Source"><span className="admin-table-val">{applicant.source}</span></td>
+                  <td data-label="Notes"><span className="admin-table-val">{applicant.notes || 'Open details'}</span></td>
                 </tr>
               ))}
             </tbody>
