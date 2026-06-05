@@ -26,7 +26,7 @@ const resolveServiceAccount = (rawServiceAccount: string): ServiceAccount | null
   }
 }
 
-export const getAdminDb = () => {
+const initAdminApp = () => {
   const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
   if (!rawServiceAccount) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT is not configured.')
@@ -38,15 +38,22 @@ export const getAdminDb = () => {
   }
 
   const existingApp = getApps()[0]
-  const app =
-    existingApp ??
-    initializeApp({
-      credential: cert({
-        projectId: serviceAccount.project_id,
-        clientEmail: serviceAccount.client_email,
-        privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'),
-      }),
-    })
+  if (existingApp) return existingApp
 
+  return initializeApp({
+    credential: cert({
+      projectId: serviceAccount.project_id,
+      clientEmail: serviceAccount.client_email,
+      privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'),
+    }),
+    // Include storageBucket so Admin SDK knows the default bucket
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  })
+}
+
+export const getAdminDb = () => {
+  const app = initAdminApp()
   return getFirestore(app)
 }
+
+export const getAdminApp = () => initAdminApp()

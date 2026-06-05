@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getApps } from 'firebase-admin/app'
 import { getStorage } from 'firebase-admin/storage'
-import { getAdminDb } from '../../src/server/firebaseAdmin'
+import { getAdminApp } from '../../src/server/firebaseAdmin'
 
-// 110MB limit to support video uploads
+// 110MB limit to support video uploads as base64
 export const config = {
   api: {
     bodyParser: {
@@ -12,22 +11,23 @@ export const config = {
   },
 }
 
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime'] // quicktime = .mov
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
+const ALLOWED_VIDEO_TYPES = new Set(['video/mp4', 'video/quicktime']) // quicktime = .mov
 const IMAGE_MAX_BYTES = 10 * 1024 * 1024  // 10MB
 const VIDEO_MAX_BYTES = 100 * 1024 * 1024 // 100MB
 
 const resolveStorageBucket = () => {
   const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
   if (!bucketName) {
-    throw new Error('Firebase storage bucket is not configured.')
+    throw new Error(
+      'Firebase Storage is not configured. Set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET in your .env file.'
+    )
   }
-  // Ensure Firebase Admin is initialized
-  getAdminDb()
-  const adminApp = getApps()[0]
-  if (!adminApp) {
-    throw new Error('Firebase Admin App failed to initialize.')
-  }
+
+  // This ensures the Admin app is initialized with the storageBucket option
+  const adminApp = getAdminApp()
+
+  // Use the bucket from env — works for both *.appspot.com and *.firebasestorage.app
   return getStorage(adminApp).bucket(bucketName)
 }
 
@@ -43,8 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Missing file details: name, type, and base64 are required.' })
     }
 
-    const isImage = ALLOWED_IMAGE_TYPES.includes(type)
-    const isVideo = ALLOWED_VIDEO_TYPES.includes(type)
+    const isImage = ALLOWED_IMAGE_TYPES.has(type)
+    const isVideo = ALLOWED_VIDEO_TYPES.has(type)
 
     if (!isImage && !isVideo) {
       return res.status(400).json({
@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const bucket = resolveStorageBucket()
 
-    // Build storage path
+    // Build storage path: alpha-projects/{applicationId}/{timestamp}_{filename}
     const safeAppId = applicationId
       ? String(applicationId).replace(/[^a-zA-Z0-9_-]/g, '')
       : `app_${Date.now()}`
@@ -78,6 +78,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await file.save(buffer, {
       metadata: { contentType: type },
     })
+
+    // Make the file publicly readable
+    await file.makePublic()
 
     // Construct public Firebase Storage read URL
     const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(file.name)}?alt=media`
@@ -90,6 +93,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('File upload API error:', error)
-    return res.status(500).json({ message: error instanceof Error ? error.message : 'Upload failed.' })
+
+    const msg = error instanceof Error ? error.message : 'Upload failed.'
+
+    // Friendlier message for common Firebase Storage errors
+    if (msg.includes('does not exist') || msg.includes('Not Found') || msg.includes('404')) {
+      return res.status(500).json({
+        message:
+          'Firebase Storage bucket not found. Please enable Firebase Storage in your Firebase Console (Firestore → Storage → Get Started), then restart the dev server.',
+      })
+    }
+
+    return res.status(500).json({ message: msg })
   }
 }
