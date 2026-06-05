@@ -1,68 +1,110 @@
-<div align="center">
+# NovaBoard AI Landing Page
 
-<img src="public/nova-logo-n.png" width="96" alt="NovaBoard AI logo" />
-
-## NovaBoard AI
-
-Cursor for Hardware.
-
-This repository contains a marketing landing page and private Alpha waitlist flow for NovaBoard AI. It is intended as a lightweight, responsive site to capture Alpha waitlist applications and store them in Firestore.
-
-</div>
+[![Next.js](https://img.shields.io/badge/Next.js-14.2.35-blue)](https://nextjs.org/)
+[![License](https://img.shields.io/badge/License-Private-red)](#license)
 
 ## Overview
 
-NovaBoard AI is an AI-powered hardware development workspace for electronics engineers, makers, students, and embedded developers. The landing page positions the product around designing circuits, generating firmware, selecting components, creating BOMs and wiring diagrams, and building complete hardware projects with natural language.
+**NovaBoard AI** is an AI‑powered hardware development workspace that helps engineers, makers, and students design circuits, generate firmware, create BOMs, and prototype complete hardware projects—all through natural‑language prompts. This repository hosts the **marketing landing page** and the **private Alpha waitlist flow** for NovaBoard AI.
+
+The site showcases the product’s value proposition, captures early‑access sign‑ups, and stores them in Firebase Firestore. It also provides a sleek, responsive UI for both public users and the admin dashboard.
+
+---
+
+## Live Demo
+
+Visit the live deployment at: https://nova-board.vercel.app (or your custom domain).
+
+---
 
 ## Key Features
 
-- Animated hero and responsive layout
-- Private Alpha waitlist form with direct Firestore writes
-- Alpha waitlist duplicate protection
-- Optional Resend integration for confirmation emails
-- Hardware-focused copy for circuits, ESP32 firmware, Arduino code, BOMs, wiring diagrams, and project documentation
+- **Animated hero section** with smooth Framer Motion transitions.
+- **Responsive design** – looks great on any screen size.
+- **Alpha waitlist** – a simple form that writes directly to Firestore.
+- **Duplicate‑submission protection** and optional **Resend** email confirmation.
+- **Dark‑mode ready admin UI** (`src/admin/`).
+
+---
 
 ## Tech Stack
 
-- Next.js
-- React
-- TypeScript
-- Framer Motion
-- Firebase (client + optional admin)
+| Layer | Technology |
+|-------|------------|
+| Framework | **Next.js 14** (React, TypeScript) |
+| Styling | Vanilla CSS with design tokens (no Tailwind) |
+| Animations | **Framer Motion** |
+| Backend | **Firebase** (Firestore, optional Admin SDK) |
+| Email | **Resend** (optional) |
+| CI/CD | Vercel (auto‑deploy on push) |
+
+---
 
 ## Getting Started
 
-1. Clone the repository
-
 ```bash
+# 1. Clone the repo
 git clone https://github.com/aldennoronha2228/nova.ai-landing-page-.git
 cd nova.ai-landing-page-
-```
 
-2. Install dependencies
-
-```bash
+# 2. Install dependencies
 npm install
-```
 
-3. Run the development server
+# 3. Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your Firebase and Resend credentials
 
-```bash
+# 4. Run the development server
 npm run dev
 ```
 
-Open http://localhost:3000 in your browser.
+Open `http://localhost:3000` in your browser.
 
-## Environment
+---
 
-Create a `.env.local` file with the values needed for email and Firestore writes:
+## Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `dev`   | Starts the Next.js development server with hot‑reloading. |
+| `build` | Compiles the app for production (`next build`). |
+| `start` | Runs the compiled app (`next start`). |
+| `lint`  | Runs ESLint to check code quality. |
+
+---
+
+## Project Structure
+
+```
+.
+├─ .github/                # GitHub Actions, issue templates
+├─ api/                    # Serverless API routes (e.g., /api/signup)
+├─ pages/                  # Next.js pages
+│   ├─ admin/              # Admin UI (dashboard, login, etc.)
+│   └─ _app.tsx            # Global app wrapper & meta tags
+├─ public/                 # Static assets (logos, OG images)
+├─ src/                    # Core React components & CSS
+│   ├─ admin/              # Admin UI components & styles
+│   └─ index.css           # Global design tokens & utilities
+├─ .env.example            # Example environment variables
+├─ README.md               # This file
+└─ package.json            # Project metadata & scripts
+```
+
+See the dedicated `PROJECT_STRUCTURE.md` for a deeper dive.
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file based on `.env.example`. Required variables include:
 
 ```env
 RESEND_API_KEY=your_resend_api_key
 RESEND_FROM_EMAIL=NovaBoard AI <onboarding@yourdomain.com>
-FIREBASE_SERVICE_ACCOUNT={"project_id":"...","client_email":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"}
+FIREBASE_SERVICE_ACCOUNT={"project_id":"...","client_email":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"}
 
-# Public Firebase config for client-side Firestore writes
+# Public Firebase config for client‑side Firestore writes
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
@@ -73,13 +115,13 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=...
 NEXT_PUBLIC_SITE_URL=...
 ```
 
-The active Firebase project is controlled by the `NEXT_PUBLIC_FIREBASE_*` values. In the current environment those values point at project `nova-ai-2c157`.
-If `FIREBASE_SERVICE_ACCOUNT` is not provided, the signup API cannot write waitlist entries with Firebase Admin credentials.
-`NEXT_PUBLIC_SITE_URL` is used to build absolute Open Graph and Twitter preview URLs so the NovaBoard AI logo appears when the site link is shared.
+If `FIREBASE_SERVICE_ACCOUNT` is omitted, the signup API cannot write waitlist entries with admin credentials.
+
+---
 
 ## API
 
-The signup UI posts to `POST /api/signup`, which writes directly to the `alpha_users` collection with this document shape:
+The signup UI posts to `POST /api/signup`, which writes a document to the `alpha_users` collection:
 
 ```json
 {
@@ -95,12 +137,18 @@ The signup UI posts to `POST /api/signup`, which writes directly to the `alpha_u
 }
 ```
 
-## Project Structure
+---
 
-- `pages/` — Next.js pages and API routes
-- `src/` — React components and client code
-- `public/` — Static assets, logos, and preview images
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+1. Fork the repository.
+2. Create a feature branch.
+3. Ensure the app builds (`npm run build`).
+4. Submit a pull request.
+
+---
 
 ## License
 
-Private — all rights reserved.
+**Private – all rights reserved**. The code is proprietary and not open‑source.
