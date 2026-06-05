@@ -1035,7 +1035,7 @@
   color: var(--admin-text);
 }
 
-.admin-login-card button {
+.admin-login-submit {
   width: 100%;
   min-height: 46px;
   border-radius: 8px;
@@ -1045,17 +1045,59 @@
   font-size: 0.95rem;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px rgba(109, 76, 255, 0.15);
+  border: 1px solid transparent;
+  cursor: pointer;
 }
 
-.admin-login-card button:hover:not(:disabled) {
+.admin-login-submit:hover:not(:disabled) {
   transform: translateY(-1px);
   background: #5b3be6;
   box-shadow: 0 6px 16px rgba(109, 76, 255, 0.25);
 }
 
-.admin-login-card button:disabled {
+.admin-login-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.admin-password-input-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.admin-password-input-wrapper input {
+  padding-right: 46px !important;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  padding: 0;
+  margin: 0;
+}
+
+.password-toggle:hover {
+  color: #0f172a;
+  background-color: rgba(15, 23, 42, 0.06);
+}
+
+.password-toggle svg {
+  display: block;
 }
 
 .admin-login-card input {
