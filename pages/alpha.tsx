@@ -222,12 +222,15 @@ export default function AlphaApplyPage() {
               
               <p className="alpha-body-text">
                 We're selecting a small group of electronics enthusiasts, makers, students, Arduino developers, ESP32 builders, and embedded engineers to test NovaBoard AI before public launch.
-              </p>
-
-              {/* Benefits Grid */}
+              </p>              {/* Benefits Grid */}
               <div className="alpha-benefits-grid">
                 <div className="benefit-card">
-                  <div className="benefit-icon">🔒</div>
+                  <div className="benefit-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      <path d="m9 11 2 2 4-4"/>
+                    </svg>
+                  </div>
                   <div>
                     <h4>Private Alpha Access</h4>
                     <p>Get early access before public release.</p>
@@ -235,7 +238,14 @@ export default function AlphaApplyPage() {
                 </div>
 
                 <div className="benefit-card">
-                  <div className="benefit-icon">🛠️</div>
+                  <div className="benefit-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                      <line x1="6" x2="6" y1="3" y2="15"/>
+                      <circle cx="18" cy="6" r="3"/>
+                      <circle cx="6" cy="18" r="3"/>
+                      <path d="M18 9a9 9 0 0 1-9 9"/>
+                    </svg>
+                  </div>
                   <div>
                     <h4>Influence Product Development</h4>
                     <p>Your feedback directly shapes the roadmap.</p>
@@ -243,7 +253,11 @@ export default function AlphaApplyPage() {
                 </div>
 
                 <div className="benefit-card">
-                  <div className="benefit-icon">💬</div>
+                  <div className="benefit-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </div>
                   <div>
                     <h4>Direct Feedback Channel</h4>
                     <p>Work closely with the NovaBoard AI team.</p>
@@ -251,7 +265,12 @@ export default function AlphaApplyPage() {
                 </div>
 
                 <div className="benefit-card">
-                  <div className="benefit-icon">🚀</div>
+                  <div className="benefit-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                      <line x1="7" x2="17" y1="17" y2="7"/>
+                      <polyline points="7 7 17 7 17 17"/>
+                    </svg>
+                  </div>
                   <div>
                     <h4>Priority Launch Access</h4>
                     <p>Receive priority access at launch.</p>
@@ -259,7 +278,11 @@ export default function AlphaApplyPage() {
                 </div>
 
                 <div className="benefit-card">
-                  <div className="benefit-icon">💡</div>
+                  <div className="benefit-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                      <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
+                    </svg>
+                  </div>
                   <div>
                     <h4>Feature Requests</h4>
                     <p>Suggest features and workflows.</p>
@@ -267,7 +290,14 @@ export default function AlphaApplyPage() {
                 </div>
 
                 <div className="benefit-card">
-                  <div className="benefit-icon">👥</div>
+                  <div className="benefit-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" className="benefit-svg">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
                   <div>
                     <h4>Community Access</h4>
                     <p>Join our early builder community.</p>
@@ -521,7 +551,13 @@ export default function AlphaApplyPage() {
                           </div>
                         ) : (
                           <div className="upload-placeholder">
-                            <div className="upload-icon">📷</div>
+                            <div className="upload-icon">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
+                              </svg>
+                            </div>
                             <p className="upload-title">Drag & drop files or click to browse</p>
                             <p className="upload-subtitle">Supports JPG, PNG up to 3MB</p>
                           </div>
