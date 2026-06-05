@@ -2,6 +2,7 @@ import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import { Inter, Instrument_Serif, Playfair_Display } from 'next/font/google'
 import '../src/index.css'
+import '../src/admin/admin.css'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -63,7 +64,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <link rel="shortcut icon" href={appIconUrl} />
         <link rel="apple-touch-icon" href={appIconUrl} />
       </Head>
-      <div className={`${inter.variable} ${instrumentSerif.variable} ${playfair.variable}`}>
+      <div className={`app-shell ${inter.variable} ${instrumentSerif.variable} ${playfair.variable}`}>
         <Component {...pageProps} />
       </div>
     </>
