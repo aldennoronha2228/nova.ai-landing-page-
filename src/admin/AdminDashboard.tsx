@@ -321,8 +321,16 @@ const dateRangeLabels: Record<string, string> = {
   '30d': 'Last 30 Days',
 }
 
+const getAdminName = (email: string) => {
+  const normalized = (email || '').trim().toLowerCase()
+  if (normalized === 'mksubbu007@gmail.com') return 'Subhramanya'
+  if (normalized === 'sha786rukhm@gmail.com') return 'Sharuk'
+  return 'Alden'
+}
+
 function DashboardHome({
   overview,
+  adminEmail,
   dateRange,
   dateMenuOpen,
   onToggleDateMenu,
@@ -330,6 +338,7 @@ function DashboardHome({
   onExport,
 }: {
   overview: Overview
+  adminEmail: string
   dateRange: 'all' | '7d' | '14d' | '30d'
   dateMenuOpen: boolean
   onToggleDateMenu: () => void
@@ -348,7 +357,7 @@ function DashboardHome({
     <>
       <PageHeader
         title="Dashboard"
-        eyebrow="Welcome back, Alden!"
+        eyebrow={`Welcome back, ${getAdminName(adminEmail)}!`}
         actions={
           <div className="admin-toolbar">
             <div className="admin-date-picker-container">
@@ -971,6 +980,7 @@ export function AdminDashboard({ activePage, adminEmail }: { activePage: AdminPa
     return (
       <DashboardHome
         overview={filteredOverview}
+        adminEmail={adminEmail}
         dateRange={dateRange}
         dateMenuOpen={dateMenuOpen}
         onToggleDateMenu={() => setDateMenuOpen((prev) => !prev)}
