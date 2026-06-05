@@ -180,13 +180,13 @@ export default function AlphaApplyPage() {
         <meta name="description" content="Join the private NovaBoard AI Alpha Program and shape the future of hardware engineering." />
         <style>{`
           html, body {
-            overflow: hidden !important;
-            height: 100% !important;
+            overflow: visible !important;
+            height: auto !important;
           }
           .alpha-page-viewport {
-            height: 100vh !important;
-            height: 100dvh !important;
-            overflow-y: auto !important;
+            overflow: visible !important;
+            height: auto !important;
+            min-height: 100vh !important;
           }
         `}</style>
       </Head>
