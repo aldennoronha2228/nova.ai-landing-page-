@@ -490,13 +490,13 @@ function App() {
                 </a>
               </li>
               <li>
-                <a href="#why" onClick={scrollToWhy}>
-                  Use cases
+                <a href="#" onClick={() => setMenuOpen(false)}>
+                  Docs
                 </a>
               </li>
             </ul>
             <div className="mobile-menu-actions">
-              <a href="#" className="mobile-menu-secondary" onClick={() => setMenuOpen(false)}>
+              <a href="/admin/login" className="mobile-menu-secondary" onClick={() => setMenuOpen(false)}>
                 Sign In
               </a>
               <a href="#alpha" className="mobile-menu-primary" onClick={scrollToAlpha}>
@@ -656,9 +656,8 @@ function App() {
                 <span className="accent-serif">intelligent hardware</span> with AI.
               </motion.h1>
               <motion.p {...heroMotionProps(0.25, disableMobileMotion)} className="hero-sub">
-                A focused workspace for electronics teams to generate circuits, write firmware,
-                validate behavior, and prepare deployable hardware projects without stitching
-                together separate tools.
+                Nova AI combines circuit generation, embedded code intelligence, real-time simulation,
+                and edge deployment into one seamless workspace for modern hardware teams.
               </motion.p>
               <motion.div {...heroMotionProps(0.35, disableMobileMotion)} className="hero-actions">
                 <a
@@ -670,9 +669,9 @@ function App() {
                 </a>
               </motion.div>
               <motion.div {...heroMotionProps(0.45, disableMobileMotion)} className="hero-trust">
-                <span>Private alpha access</span>
-                <span>Arduino, ESP32, and edge workflows</span>
-                <span>Built for students, makers, and embedded teams</span>
+                <span>Early builders are joining the Alpha waitlist</span>
+                <span>Private Alpha applications are now open</span>
+                <span>Selected testers help shape NovaBoard AI's development</span>
               </motion.div>
               <motion.div {...heroMotionProps(0.55, disableMobileMotion)} className="hero-pills">
                 <div className="hero-pills-track" aria-hidden="false">
@@ -695,23 +694,76 @@ function App() {
         </section>
       </div>
 
-      <section className="proof-strip" aria-label="NovaBoard AI platform focus">
-        <div className="proof-item">
-          <span>01</span>
-          <strong>Generate</strong>
-          <p>Circuits, wiring plans, component choices, and starter firmware from one project brief.</p>
+      <div className="brands">
+        <div className="brand-item">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" fill="currentColor" />
+            <path fill="var(--bg)" d="M8 9h8v2H8zm0 4h6v2H8z" />
+          </svg>
+          <span>Expedia</span>
         </div>
-        <div className="proof-item">
-          <span>02</span>
-          <strong>Validate</strong>
-          <p>Review generated logic, simulate behavior, and iterate before touching physical hardware.</p>
+        <div className="brand-item">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="7" r="4" fill="currentColor" />
+            <circle cx="5" cy="16" r="3.5" fill="currentColor" />
+            <circle cx="19" cy="16" r="3.5" fill="currentColor" />
+          </svg>
+          <span>asana</span>
         </div>
-        <div className="proof-item">
-          <span>03</span>
-          <strong>Deploy</strong>
-          <p>Prepare board-ready code and documentation for Arduino, ESP32, and edge prototypes.</p>
+        <div className="brand-item">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="4 8 20 8" fill="none" />
+            <polyline points="8 12 16 12" fill="none" />
+            <polyline points="4 16 20 16" fill="none" />
+          </svg>
+          <span>zenefits</span>
         </div>
-      </section>
+        <div className="brand-item">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="15.5" cy="8.5" r="2.5" fill="currentColor" />
+            <circle
+              cx="8.5"
+              cy="8.5"
+              r="2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M10.2 9.8l3.2 2.6m0 0H18m-4.6 0v4.2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>
+            HubSp
+            <span className="hubspot-dot" />t
+          </span>
+        </div>
+        <div className="brand-item">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span>loom</span>
+        </div>
+      </div>
 
       <section className="features-section" id="core-features">
         <motion.div {...fadeUp(0.1)} className="features-header">
@@ -987,10 +1039,14 @@ function App() {
           </form>
         </motion.div>
       </section>
+
       <footer className="site-footer">
-        <a className="site-footer-admin-link" href="/admin/login">
-          Admin Login
+        <a href="/admin/login" className="nav-login-button">
+          Admin login
         </a>
+        <p className="site-footer-note">
+          Secure admin access for internal team management and campaign analytics.
+        </p>
       </footer>
     </>
   );
