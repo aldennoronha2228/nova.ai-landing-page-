@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { requireAdminApi } from '../../../src/server/adminAuth'
-import { addAdminEmail, listAdminEmails, removeAdminEmail } from '../../../src/server/adminData'
+import { addAdminEmail, listAdminEmails, removeAdminEmail, setAdminEmailNotifications } from '../../../src/server/adminData'
 
 const normalizeEmail = (value: unknown) => String(value ?? '').trim().toLowerCase()
 
@@ -11,7 +11,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     if (req.method === 'GET') {
       const emails = await listAdminEmails()
-      return res.status(200).json({ emails: emails.map((entry) => entry.email) })
+      return res.status(200).json({
+        emails: emails.map((entry) => entry.email),
+        entries: emails,
+      })
     }
 
     if (req.method === 'POST') {
@@ -26,6 +29,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!email) return res.status(400).json({ message: 'Email is required.' })
       await removeAdminEmail(email)
       return res.status(200).json({ email })
+    }
+
+    if (req.method === 'PUT') {
+      const email = normalizeEmail(req.body?.email)
+      if (!email) return res.status(400).json({ message: 'Email is required.' })
+
+      const enabled = Boolean(req.body?.notificationsEnabled)
+      await setAdminEmailNotifications(email, enabled)
+      return res.status(200).json({ email, notificationsEnabled: enabled })
     }
 
     return res.status(405).json({ message: 'Method not allowed' })

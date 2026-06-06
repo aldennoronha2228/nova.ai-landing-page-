@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminDb } from '../../src/server/firebaseAdmin'
+import { sendAdminEmail } from '../../src/server/adminEmail'
+import { listAdminEmails } from '../../src/server/adminData'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
@@ -53,6 +55,8 @@ const defaultHtmlBody = `<div style="font-family:Inter,Segoe UI,Arial,sans-serif
 
 const isValidEmail = (value: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+
+const toDisplayBoolean = (value: boolean) => (value ? 'Yes' : 'No')
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -143,6 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
 
     let emailSent = false
+    let adminNotificationsSent = 0
     const firstName = fullName.trim().split(/\s+/)[0] || 'there'
 
     if (emailServiceConfigured) {
@@ -196,10 +201,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
+    if (emailServiceConfigured) {
+      try {
+        const adminEntries = await listAdminEmails()
+        const recipients = adminEntries
+          .filter((entry) => entry.notificationsEnabled)
+          .map((entry) => entry.email)
+
+        if (recipients.length > 0) {
+          const mediaSummary = resolvedMedia.length
+            ? `${resolvedMedia.filter((item) => item.type === 'image').length} image(s), ${resolvedMedia.filter((item) => item.type === 'video').length} video(s)`
+            : 'No media uploaded'
+
+          const notificationBody = [
+            'A new alpha application was submitted.',
+            '',
+            `Name: ${fullName.trim()}`,
+            `Email: ${normalizedEmail}`,
+            `Country: ${country.trim()}`,
+            `Student: ${student}`,
+            `Experience Level: ${experienceLevel}`,
+            `Projects Completed: ${projectsCompleted}`,
+            `Willing to provide feedback: ${toDisplayBoolean(willingFeedback === 'yes' || willingFeedback === true)}`,
+            `Project Links: ${projectLinks ? projectLinks.trim() : 'None provided'}`,
+            `Media: ${mediaSummary}`,
+            '',
+            'Best Project:',
+            bestProject.trim(),
+            '',
+            'Planned Use Case:',
+            useCase.trim(),
+          ].join('\n')
+
+          const results = await Promise.allSettled(
+            recipients.map((recipient) =>
+              sendAdminEmail({
+                to: recipient,
+                subject: `New Alpha Applicant: ${fullName.trim()}`,
+                previewText: `${fullName.trim()} just submitted an alpha application.`,
+                content: notificationBody,
+              }),
+            ),
+          )
+
+          adminNotificationsSent = results.filter((result) => result.status === 'fulfilled').length
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to send admin application notifications:', err)
+      }
+    }
+
     return res.status(200).json({
       message: 'Application Received',
       saved: true,
       emailed: emailSent,
+      adminNotificationsSent,
       duplicate: false,
     })
   } catch (error) {

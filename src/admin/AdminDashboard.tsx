@@ -54,7 +54,30 @@ type Overview = {
     rejected: number
     emailsSent: number
     openRate: number
+    clickRate: number
+    bounceRate: number
   }
+  trends: {
+    total: number
+    pending: number
+    approved: number
+    rejected: number
+    emailsSent: number
+    openRate: number
+  }
+  series: {
+    applicants: Array<{ date: string; value: number }>
+    pending: Array<{ date: string; value: number }>
+    approved: Array<{ date: string; value: number }>
+  }
+  campaignStats: Array<{
+    campaignId: string
+    recipients: number
+    opens: number
+    clicks: number
+    openRate: number
+    clickRate: number
+  }>
   applicants: Applicant[]
   campaigns: Campaign[]
   activity: Activity[]
@@ -76,7 +99,10 @@ const statusLabels: Record<ApplicantStatus, string> = {
 }
 
 const emptyOverview: Overview = {
-  kpis: { total: 0, pending: 0, approved: 0, rejected: 0, emailsSent: 0, openRate: 0 },
+  kpis: { total: 0, pending: 0, approved: 0, rejected: 0, emailsSent: 0, openRate: 0, clickRate: 0, bounceRate: 0 },
+  trends: { total: 0, pending: 0, approved: 0, rejected: 0, emailsSent: 0, openRate: 0 },
+  series: { applicants: [], pending: [], approved: [] },
+  campaignStats: [],
   applicants: [],
   campaigns: [],
   activity: [],
@@ -206,30 +232,42 @@ function StatCard({
 }
 
 function ChartLine({ data }: { data: Array<{ label: string; value: number }> }) {
-  const max = Math.max(1, ...data.map((item) => item.value))
+  const values = data.map((item) => item.value)
+  const maxVal = Math.max(1, ...values)
+  
+  // Calculate sensible integer ticks
+  const tickCount = maxVal < 5 ? maxVal + 1 : 5
+  const ticks = []
+  for (let i = 0; i < tickCount; i++) {
+    ticks.push(Math.round((maxVal / (tickCount - 1)) * i))
+  }
+  const uniqueTicks = Array.from(new Set(ticks)).sort((a, b) => a - b)
+
   const chartWidth = 760
   const chartHeight = 220
   const left = 44
   const top = 10
   const plotWidth = chartWidth - left - 20
   const plotHeight = chartHeight - top - 34
+  
   const points = data.map((item, index) => {
     const x = left + index * (plotWidth / Math.max(1, data.length - 1))
-    const y = top + plotHeight - (item.value / max) * plotHeight
+    const y = top + plotHeight - (item.value / maxVal) * plotHeight
     return { x, y, ...item }
   })
+  
   const path = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
   const area = `${path} L ${points.at(-1)?.x ?? left} ${top + plotHeight} L ${left} ${top + plotHeight} Z`
 
   return (
     <div className="admin-line-chart">
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label="Applications over time">
-        {[0, 0.25, 0.5, 0.75, 1].map((tick) => {
-          const y = top + plotHeight - plotHeight * tick
+        {uniqueTicks.map((tickValue) => {
+          const y = top + plotHeight - (tickValue / maxVal) * plotHeight
           return (
-            <g key={tick}>
+            <g key={tickValue}>
               <line x1={left} x2={chartWidth - 12} y1={y} y2={y} />
-              <text x="0" y={y + 4}>{Math.round(max * tick)}</text>
+              <text x="0" y={y + 4}>{tickValue}</text>
             </g>
           )
         })}
@@ -237,7 +275,14 @@ function ChartLine({ data }: { data: Array<{ label: string; value: number }> }) 
         <path className="admin-line-path" d={path} />
         {points.map((point) => <circle key={`${point.label}-${point.x}`} cx={point.x} cy={point.y} r="3.5" />)}
         {points.map((point, index) => (
-          <text className="admin-line-label" key={point.label} x={point.x} y={chartHeight - 6} textAnchor={index === 0 ? 'start' : index === points.length - 1 ? 'end' : 'middle'}>
+          <text 
+            className="admin-line-label" 
+            key={point.label} 
+            x={point.x} 
+            y={chartHeight - 6} 
+            textAnchor={index === 0 ? 'start' : index === points.length - 1 ? 'end' : 'middle'}
+            style={{ fontSize: '10px' }}
+          >
             {point.label}
           </text>
         ))}
@@ -356,13 +401,14 @@ function DashboardHome({
   onSelectDateRange: (range: 'all' | '7d' | '14d' | '30d') => void
   onExport: () => void
 }) {
-  const chartData = getDailyBuckets(overview.applicants)
+  const chartData = overview.series.applicants.map(item => ({ label: item.date.slice(5), value: item.value }))
   const spark = chartData.map((item) => item.value + 1)
-  const latestApplicants = overview.applicants.slice(0, 5)
-  const latestCampaigns = overview.campaigns.slice(0, 3)
   const emailOpenRate = overview.kpis.openRate || 0
-  const clickRate = Math.max(0, Math.round(emailOpenRate * 0.34 * 10) / 10)
-  const bounceRate = overview.kpis.emailsSent ? 2.3 : 0
+  const clickRate = overview.kpis.clickRate || 0
+  const bounceRate = overview.kpis.bounceRate || 0
+  const latestCampaigns = overview.campaigns.slice(0, 3)
+
+  const formatTrend = (val: number) => `${val >= 0 ? '+' : ''}${val}% vs last 14d`
 
   return (
     <>
@@ -390,25 +436,25 @@ function DashboardHome({
         }
       />
       <section className="admin-stat-grid">
-        <StatCard label="Total Applicants" value={overview.kpis.total} trend="+18.2% vs last 14 days" icon="users" tone="purple" data={spark} />
-        <StatCard label="Pending Review" value={overview.kpis.pending} trend="+8.7% vs last 14 days" icon="clock" tone="orange" data={spark.slice().reverse()} />
-        <StatCard label="Approved Users" value={overview.kpis.approved} trend="+24.5% vs last 14 days" icon="check" tone="green" data={spark.map((item, index) => item + index)} />
-        <StatCard label="Rejected Users" value={overview.kpis.rejected} trend="+6.2% vs last 14 days" icon="x" tone="red" data={spark.map((item) => Math.max(1, item - 1))} />
-        <StatCard label="Emails Sent" value={overview.kpis.emailsSent} trend="+32.1% vs last 14 days" icon="send" tone="purple" data={spark.map((item, index) => item + (index % 3))} />
-        <StatCard label="Email Open Rate" value={`${overview.kpis.openRate}%`} trend="+7.3% vs last 14 days" icon="mail" tone="purple" data={spark} />
+        <StatCard label="Total Applicants" value={overview.kpis.total} trend={formatTrend(overview.trends.total)} icon="users" tone="purple" data={spark} />
+        <StatCard label="Pending Review" value={overview.kpis.pending} trend={formatTrend(overview.trends.pending)} icon="clock" tone="orange" data={overview.series.pending.map(i => i.value)} />
+        <StatCard label="Approved Users" value={overview.kpis.approved} trend={formatTrend(overview.trends.approved)} icon="check" tone="green" data={overview.series.approved.map(i => i.value)} />
+        <StatCard label="Rejected Users" value={overview.kpis.rejected} trend={formatTrend(overview.trends.rejected)} icon="x" tone="red" data={spark.map((item) => Math.max(1, item - 1))} />
+        <StatCard label="Emails Sent" value={overview.kpis.emailsSent} trend={formatTrend(overview.trends.emailsSent)} icon="send" tone="purple" data={spark.map((item, index) => item + (index % 3))} />
+        <StatCard label="Email Open Rate" value={`${overview.kpis.openRate}%`} trend={formatTrend(overview.trends.openRate)} icon="mail" tone="purple" data={spark} />
       </section>
       <section className="admin-two-column">
         <article className="admin-panel admin-chart-panel">
           <div className="admin-panel-head">
             <h2>Applications Over Time</h2>
-            <button type="button">Last 14 days</button>
+            <button type="button">Real-time</button>
           </div>
           <ChartLine data={chartData.map((item) => ({ ...item, label: formatShortDate(`2026-${item.label}`) }))} />
         </article>
         <article className="admin-panel admin-activity-panel">
           <div className="admin-panel-head">
             <h2>Real-time Activity</h2>
-            <button type="button">View all</button>
+            <button type="button" onClick={() => window.location.href='/admin/applicants'}>View all</button>
           </div>
           <div className="admin-feed">
             {(overview.activity.length ? overview.activity : [{ id: 'empty', message: 'No activity yet', type: 'activity', actor: 'system', createdAt: new Date().toISOString() }]).map((item) => (
@@ -520,30 +566,31 @@ function DashboardHome({
             <Link href="/admin/campaigns">View all</Link>
           </div>
           <div className="admin-campaign-table">
-            {(latestCampaigns.length ? latestCampaigns : [
-              { id: 'empty-campaign', name: 'No campaigns yet', subject: 'Create your first campaign', previewText: '', content: '', type: 'Alpha', status: 'draft', createdAt: new Date().toISOString() },
-            ]).map((campaign, index) => (
-              <div key={campaign.id} className="admin-campaign-row">
-                <div className="admin-campaign-info">
-                  <span className="admin-campaign-name">{campaign.name}</span>
-                  <b className="admin-campaign-status">{campaign.status}</b>
+            {(latestCampaigns.length && latestCampaigns[0].id !== 'empty-campaign' ? latestCampaigns : []).map((campaign) => {
+              const stats = overview.campaignStats.find(s => s.campaignId === campaign.id) || { recipients: 0, opens: 0, clicks: 0, openRate: 0, clickRate: 0 }
+              return (
+                <div key={campaign.id} className="admin-campaign-row">
+                  <div className="admin-campaign-info">
+                    <span className="admin-campaign-name">{campaign.name}</span>
+                    <b className="admin-campaign-status">{campaign.status}</b>
+                  </div>
+                  <div className="admin-campaign-stats">
+                    <div className="admin-campaign-stat">
+                      <strong>{stats.recipients}</strong>
+                      <small>Recipients</small>
+                    </div>
+                    <div className="admin-campaign-stat">
+                      <strong>{stats.openRate.toFixed(1)}%</strong>
+                      <small>Opens</small>
+                    </div>
+                    <div className="admin-campaign-stat">
+                      <strong>{stats.clickRate.toFixed(1)}%</strong>
+                      <small>Clicks</small>
+                    </div>
+                  </div>
                 </div>
-                <div className="admin-campaign-stats">
-                  <div className="admin-campaign-stat">
-                    <strong>{index === 0 ? Math.max(overview.kpis.emailsSent, 0) : Math.max(0, Math.round(overview.kpis.emailsSent / (index + 2)))}</strong>
-                    <small>Recipients</small>
-                  </div>
-                  <div className="admin-campaign-stat">
-                    <strong>{Math.max(0, emailOpenRate - index * 4.2).toFixed(1)}%</strong>
-                    <small>Opens</small>
-                  </div>
-                  <div className="admin-campaign-stat">
-                    <strong>{Math.max(0, clickRate - index * 1.3).toFixed(1)}%</strong>
-                    <small>Clicks</small>
-                  </div>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </article>
       </section>
@@ -558,7 +605,8 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<string[]>([])
   const [drawer, setDrawer] = useState<Applicant | null>(null)
-  const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | 'email' | null>(null)
+  const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | 'email' | 'delete' | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const pageSize = 8
 
   const filtered = useMemo(() => {
@@ -581,12 +629,33 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
 
   const runBulk = async () => {
     if (!confirmAction) return
-    await requestJson('/api/admin/bulk', {
-      method: 'POST',
-      body: JSON.stringify({ action: confirmAction, ids: selected }),
-    })
+    
+    if (confirmAction === 'delete') {
+      await Promise.all(
+        selected.map((id) =>
+          requestJson(`/api/admin/applicants?id=${id}`, {
+            method: 'DELETE',
+          })
+        )
+      )
+    } else {
+      await requestJson('/api/admin/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ action: confirmAction, ids: selected }),
+      })
+    }
+    
     setConfirmAction(null)
     setSelected([])
+    refresh()
+  }
+
+  const handleDelete = async (id: string) => {
+    await requestJson(`/api/admin/applicants?id=${id}`, {
+      method: 'DELETE',
+    })
+    setDeletingId(null)
+    setDrawer(null)
     refresh()
   }
 
@@ -616,6 +685,7 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
             <button disabled={!selected.length} onClick={() => setConfirmAction('approve')}>Approve Selected</button>
             <button disabled={!selected.length} onClick={() => setConfirmAction('reject')}>Reject Selected</button>
             <button disabled={!selected.length} onClick={() => setConfirmAction('email')}>Send Email</button>
+            <button disabled={!selected.length} className="admin-danger" onClick={() => setConfirmAction('delete')}>Delete Selected</button>
           </div>
         }
       />
@@ -726,7 +796,10 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
       {drawer ? (
         <div className="admin-drawer-backdrop" onClick={() => setDrawer(null)}>
           <aside className="admin-drawer" onClick={(event) => event.stopPropagation()}>
-            <button className="admin-close" type="button" onClick={() => setDrawer(null)}>Close</button>
+            <div className="admin-drawer-header-actions">
+              <button className="admin-danger-text" type="button" onClick={() => setDeletingId(drawer.id)}>Delete</button>
+              <button className="admin-close" type="button" onClick={() => setDrawer(null)}>Close</button>
+            </div>
             <h2>{drawer.name}</h2>
             <p>{drawer.email}</p>
             {(() => {
@@ -795,7 +868,7 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
                                 rel="noopener noreferrer"
                                 className="admin-media-open-link"
                               >
-                                Open video ↗
+                                View full video ↗
                               </a>
                             </div>
                           ) : (
@@ -813,7 +886,7 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
                                 rel="noopener noreferrer"
                                 className="admin-media-open-link"
                               >
-                                Open image ↗
+                                View full image ↗
                               </a>
                             </div>
                           )
@@ -836,11 +909,23 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
       {confirmAction ? (
         <div className="admin-modal-backdrop">
           <div className="admin-modal">
-            <h2>Confirm bulk action</h2>
+            <h2>Confirm {confirmAction} action</h2>
             <p>This will {confirmAction} {selected.length} selected applicant{selected.length === 1 ? '' : 's'} and trigger the related email workflow when applicable.</p>
             <div>
               <button onClick={() => setConfirmAction(null)}>Cancel</button>
-              <button onClick={runBulk}>Confirm</button>
+              <button className={confirmAction === 'delete' ? 'admin-danger' : ''} onClick={runBulk}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {deletingId ? (
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal">
+            <h2>Delete Applicant?</h2>
+            <p>This will permanently remove this applicant from the database. This action cannot be undone.</p>
+            <div>
+              <button onClick={() => setDeletingId(null)}>Cancel</button>
+              <button className="admin-danger" onClick={() => void handleDelete(deletingId)}>Delete Permanently</button>
             </div>
           </div>
         </div>
@@ -1009,7 +1094,7 @@ const defaultHtmlBody = `<div style="font-family:Inter,Segoe UI,Arial,sans-serif
 </div>`
 
 function SettingsPage({ adminEmail }: { adminEmail: string }) {
-  const [adminEmails, setAdminEmails] = useState<string[]>([])
+  const [adminEmails, setAdminEmails] = useState<Array<{ email: string; notificationsEnabled: boolean }>>([])
   const [newEmail, setNewEmail] = useState('')
   const [status, setStatus] = useState('')
   const [loadingEmails, setLoadingEmails] = useState(true)
@@ -1024,8 +1109,15 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
   const loadEmails = async () => {
     try {
       setLoadingEmails(true)
-      const data = await requestJson<{ emails: string[] }>('/api/admin/admin-emails')
-      setAdminEmails(data.emails)
+      const data = await requestJson<{ entries?: Array<{ email: string; notificationsEnabled: boolean }>; emails?: string[] }>('/api/admin/admin-emails')
+      setAdminEmails(
+        Array.isArray(data.entries)
+          ? data.entries.map((entry) => ({
+              email: entry.email,
+              notificationsEnabled: entry.notificationsEnabled !== false,
+            }))
+          : (data.emails ?? []).map((email) => ({ email, notificationsEnabled: true })),
+      )
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Unable to load admin emails.')
     } finally {
@@ -1085,6 +1177,22 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
     }
   }
 
+  const toggleNotifications = async (email: string, enabled: boolean) => {
+    try {
+      setStatus('')
+      await requestJson('/api/admin/admin-emails', {
+        method: 'PUT',
+        body: JSON.stringify({ email, notificationsEnabled: enabled }),
+      })
+      setStatus(`${enabled ? 'Enabled' : 'Disabled'} notifications for ${email}`)
+      setAdminEmails((prev) =>
+        prev.map((entry) => (entry.email === email ? { ...entry, notificationsEnabled: enabled } : entry)),
+      )
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : 'Unable to update notifications.')
+    }
+  }
+
   const saveTemplate = async () => {
     try {
       setTemplateStatus('Saving template…')
@@ -1125,14 +1233,23 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
             {loadingEmails ? (
               <p>Loading admin emails…</p>
             ) : adminEmails.length ? (
-              adminEmails.map((email) => (
-                <div key={email} className="admin-admin-item">
-                  <span>{email}</span>
-                  {email !== adminEmail ? (
-                    <button type="button" onClick={() => void removeEmail(email)}>Remove</button>
-                  ) : (
-                    <small>Current</small>
-                  )}
+              adminEmails.map((entry) => (
+                <div key={entry.email} className="admin-admin-item">
+                  <span>{entry.email}</span>
+                  <div className="admin-admin-actions">
+                    <button
+                      type="button"
+                      className={entry.notificationsEnabled ? 'admin-secondary' : 'admin-primary'}
+                      onClick={() => void toggleNotifications(entry.email, !entry.notificationsEnabled)}
+                    >
+                      {entry.notificationsEnabled ? 'Notifications On' : 'Notifications Off'}
+                    </button>
+                    {entry.email !== adminEmail ? (
+                      <button type="button" onClick={() => void removeEmail(entry.email)}>Remove</button>
+                    ) : (
+                      <small>Current</small>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (

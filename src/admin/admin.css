@@ -799,29 +799,25 @@
 }
 
 .admin-campaign-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1.2fr 2fr;
   align-items: center;
   padding: 14px 18px;
   border-bottom: 1px solid var(--admin-border);
   background: rgba(255, 255, 255, 0.01);
-  gap: 16px;
-}
-
-.admin-campaign-row:last-child {
-  border-bottom: 0;
+  gap: 20px;
 }
 
 .admin-campaign-info {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   min-width: 0;
 }
 
 .admin-campaign-name {
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   color: var(--admin-text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -829,40 +825,82 @@
 }
 
 .admin-campaign-status {
-  padding: 4px 10px;
+  padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(22, 185, 120, 0.15);
+  background: rgba(22, 185, 120, 0.12);
   color: var(--admin-green);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   text-transform: capitalize;
-  font-weight: 700;
+  font-weight: 800;
   flex-shrink: 0;
 }
 
 .admin-campaign-stats {
-  display: flex;
-  align-items: center;
-  gap: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   flex-shrink: 0;
+  text-align: right;
 }
 
 .admin-campaign-stat {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
 }
 
 .admin-campaign-stat strong {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   color: var(--admin-text);
+  line-height: 1.1;
 }
 
 .admin-campaign-stat small {
-  font-size: 0.72rem;
+  font-size: 0.6rem;
   color: var(--admin-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.admin-danger {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+  color: #ef4444 !important;
+}
+
+.admin-danger:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+.admin-danger-text {
+  color: #ef4444 !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem !important;
+}
+
+.admin-danger-text:hover {
+  text-decoration: underline;
+}
+
+.admin-drawer-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-drawer-header-actions .admin-close {
+  float: none;
+}
+
+.admin-line-label {
+  font-size: 9px;
+  fill: var(--admin-muted);
+  font-weight: 600;
 }
 
 .admin-campaign-lanes {
@@ -1080,6 +1118,36 @@
 .admin-admin-item button {
   min-height: 34px;
   padding: 0 12px;
+}
+
+.admin-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-secondary {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid rgba(22, 185, 120, 0.3);
+  border-radius: 6px;
+  background: rgba(22, 185, 120, 0.12);
+  color: #9af0cc;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-secondary:hover {
+  background: rgba(22, 185, 120, 0.18);
+  border-color: rgba(22, 185, 120, 0.4);
 }
 
 .admin-error {

@@ -92,6 +92,10 @@ export const updateApplicant = async ({
   await getAdminDb().collection('alpha_users').doc(id).set(payload, { merge: true })
 }
 
+export const deleteApplicant = async (id: string) => {
+  await getAdminDb().collection('alpha_users').doc(id).delete()
+}
+
 export const createActivity = async (message: string, type: string, actor: string) => {
   await getAdminDb().collection('admin_activity').add({
     message,
@@ -152,6 +156,7 @@ export type AdminEmailEntry = {
   id: string
   email: string
   createdAt: string
+  notificationsEnabled: boolean
 }
 
 const normalizeAdminEmail = (value: unknown) =>
@@ -165,6 +170,7 @@ export const listAdminEmails = async (): Promise<AdminEmailEntry[]> => {
       id: doc.id,
       email: normalizeAdminEmail(data.email),
       createdAt: toIsoDate(data.created_at),
+      notificationsEnabled: data.notificationsEnabled !== false,
     }
   })
 }
@@ -174,8 +180,19 @@ export const addAdminEmail = async (email: string) => {
   if (!normalized) throw new Error('Admin email is required.')
   await getAdminDb().collection('admin_emails').doc(normalized).set({
     email: normalized,
+    notificationsEnabled: true,
     created_at: FieldValue.serverTimestamp(),
   })
+}
+
+export const setAdminEmailNotifications = async (email: string, enabled: boolean) => {
+  const normalized = normalizeAdminEmail(email)
+  if (!normalized) throw new Error('Admin email is required.')
+  await getAdminDb().collection('admin_emails').doc(normalized).set({
+    email: normalized,
+    notificationsEnabled: enabled,
+    updated_at: FieldValue.serverTimestamp(),
+  }, { merge: true })
 }
 
 export const removeAdminEmail = async (email: string) => {

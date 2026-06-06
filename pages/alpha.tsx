@@ -53,15 +53,18 @@ function uploadWithProgress(
     })
 
     xhr.addEventListener('load', () => {
+      let data: any = {}
       try {
-        const data = JSON.parse(xhr.responseText)
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve({ url: data.url, type: data.type as MediaType })
-        } else {
-          reject(new Error(data.message || 'Upload failed.'))
-        }
+        data = JSON.parse(xhr.responseText)
       } catch {
-        reject(new Error('Invalid server response.'))
+        // Fallback for non-JSON responses
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve({ url: data.url, type: data.type as MediaType })
+      } else {
+        const errorMsg = data.message || `Upload failed with status ${xhr.status}`
+        reject(new Error(errorMsg))
       }
     })
 
@@ -84,9 +87,18 @@ function toBase64(file: File): Promise<string> {
 export default function AlphaApplyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState<FormStatus>(null)
+  const [isCloudinaryConfigured, setIsCloudinaryConfigured] = useState<boolean | null>(null)
 
   // Stable application ID generated once on mount
   const applicationId = useRef<string>(generateId())
+
+  // Check Cloudinary config on mount
+  useEffect(() => {
+    fetch('/api/upload')
+      .then((res) => res.json())
+      .then((data) => setIsCloudinaryConfigured(data.configured))
+      .catch(() => setIsCloudinaryConfigured(false))
+  }, [])
 
   // Form fields
   const [fullName, setFullName] = useState('')
@@ -202,6 +214,7 @@ export default function AlphaApplyPage() {
             )
           )
         } catch (err) {
+          console.error('Upload error for file:', entry.file.name, err)
           setMediaFiles((prev) =>
             prev.map((m) =>
               m.id === entry.id
@@ -683,6 +696,12 @@ export default function AlphaApplyPage() {
                       <p className="upload-description">
                         Upload images or videos of projects you have built. This helps us better evaluate applicants for the NovaBoard AI Alpha Program.
                       </p>
+
+                      {isCloudinaryConfigured === false && (
+                        <div className="beta-message beta-message-error" style={{ marginBottom: '12px', padding: '12px', background: 'rgba(255, 158, 177, 0.1)', borderRadius: '8px', fontSize: '0.8rem' }}>
+                          <strong>Note:</strong> Cloudinary is not configured. Uploads will fail. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your .env file.
+                        </div>
+                      )}
 
                       {/* Drag-and-drop zone */}
                       <div

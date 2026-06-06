@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { requireAdminApi } from '../../../src/server/adminAuth'
-import { createActivity, listApplicants, updateApplicant, type ApplicantStatus } from '../../../src/server/adminData'
+import { createActivity, listApplicants, updateApplicant, deleteApplicant, type ApplicantStatus } from '../../../src/server/adminData'
 
 const statuses: ApplicantStatus[] = ['pending', 'approved', 'rejected', 'active']
 
@@ -24,6 +24,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await updateApplicant({ id, status, notes })
       await createActivity(`Applicant ${status ? `marked ${status}` : 'updated'}`, 'applicant', session.email)
       return res.status(200).json({ message: 'Applicant updated' })
+    }
+
+    if (req.method === 'DELETE') {
+      const id = String(req.query.id ?? '')
+      if (!id) return res.status(400).json({ message: 'Applicant id is required.' })
+
+      await deleteApplicant(id)
+      await createActivity(`Applicant deleted`, 'applicant', session.email)
+      return res.status(200).json({ message: 'Applicant deleted' })
     }
 
     return res.status(405).json({ message: 'Method not allowed' })
