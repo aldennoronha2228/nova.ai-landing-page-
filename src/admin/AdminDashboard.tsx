@@ -1393,7 +1393,7 @@ export function AdminDashboard({ activePage, adminEmail }: { activePage: AdminPa
     return () => window.clearInterval(interval)
   }, [])
 
-  const filteredOverview = useMemo(() => {
+  const filteredOverview = useMemo<Overview>(() => {
     if (dateRange === 'all') return overview
 
     const days = dateRange === '7d' ? 7 : dateRange === '14d' ? 14 : 30
@@ -1416,14 +1416,23 @@ export function AdminDashboard({ activePage, adminEmail }: { activePage: AdminPa
     const rejected = filteredApplicants.filter((a) => a.status === 'rejected').length
 
     return {
+      ...overview,
       kpis: {
+        ...overview.kpis,
         total,
         pending,
         approved,
         rejected,
         emailsSent: filteredCampaigns.length * 45,
-        openRate: overview.kpis.openRate,
       },
+      series: {
+        applicants: getDailyBuckets(filteredApplicants).map(({ label, value }) => ({ date: `2026-${label}`, value })),
+        pending: getDailyBuckets(filteredApplicants.filter((applicant) => applicant.status === 'pending')).map(({ label, value }) => ({ date: `2026-${label}`, value })),
+        approved: getDailyBuckets(filteredApplicants.filter((applicant) => applicant.status === 'approved')).map(({ label, value }) => ({ date: `2026-${label}`, value })),
+      },
+      campaignStats: overview.campaignStats.filter((stats) =>
+        filteredCampaigns.some((campaign) => campaign.id === stats.campaignId)
+      ),
       applicants: filteredApplicants,
       campaigns: filteredCampaigns,
       activity: filteredActivity,
