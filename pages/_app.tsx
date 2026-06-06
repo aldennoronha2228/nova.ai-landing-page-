@@ -7,7 +7,7 @@ const siteUrlBase =
   process.env.NEXT_PUBLIC_SITE_URL ||
   'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
-const shareImage = `${siteUrl}/og-image-small.png?v=3`
+const shareImage = `${siteUrl}/og-image-small.png?v=5`
 const appIconUrl = '/nova-app-icon.png?v=1'
 const pageUrl = siteUrl
 const shareTitle = 'WireUp | AI Copilot for Hardware'
@@ -19,38 +19,36 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>{shareTitle}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         
-        {/* Core OG Tags */}
-        <meta property="og:title" content={shareTitle} />
+        {/* Absolute Top Priority for WhatsApp/Social */}
         <meta property="og:image" content={shareImage} />
         <meta property="og:image:secure_url" content={shareImage} />
-        <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="600" />
         <meta property="og:image:height" content="600" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:title" content={shareTitle} />
         <meta property="og:description" content={ogDescription} />
         <meta property="og:url" content={pageUrl} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="WireUp" />
         
-        {/* WhatsApp / Schema.org */}
+        {/* WhatsApp / Schema.org Fallbacks */}
         <meta itemProp="name" content={shareTitle} />
         <meta itemProp="description" content={ogDescription} />
         <meta itemProp="image" content={shareImage} />
 
+        <title>{shareTitle}</title>
         <meta name="description" content={shareDescription} />
-        {pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
-        
+        <meta property="og:site_name" content="WireUp" />
         <meta property="og:locale" content="en_US" />
-        <meta property="og:image:alt" content="NovaBoard AI logo" />
+        
+        {pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
         <link rel="image_src" href={shareImage} />
         
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={shareTitle} />
         <meta name="twitter:description" content={twitterDescription} />
         <meta name="twitter:image" content={shareImage} />
-        <meta name="twitter:image:alt" content="NovaBoard AI logo" />
         
         <link rel="icon" type="image/png" href={appIconUrl} />
         <link rel="shortcut icon" href={appIconUrl} />
