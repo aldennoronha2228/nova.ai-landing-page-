@@ -5,6 +5,8 @@ import type { AdminApplicant } from './adminData'
 const senderEmail = process.env.RESEND_FROM_EMAIL?.trim()
 const resendApiKey = process.env.RESEND_API_KEY?.trim()
 
+const usesResendTestSender = Boolean(senderEmail && /@resend\.dev/i.test(senderEmail))
+
 const escapeHtml = (value: string) =>
   value
     .replace(/&/g, '&amp;')
@@ -86,13 +88,16 @@ export const sendAdminEmail = async ({
 
   if (!response.ok) {
     const errorText = await response.text()
+    const deliveryHint = usesResendTestSender
+      ? ' Resend is currently using the test sender. Verify your domain in Resend and update RESEND_FROM_EMAIL to use that domain before sending to real applicants.'
+      : ''
     console.error('[Resend Error]', {
       status: response.status,
       error: errorText,
       to,
       from: senderEmail,
     })
-    throw new Error(`Email failed: ${errorText}`)
+    throw new Error(`Email failed: ${errorText}${deliveryHint}`)
   }
 
   const data = (await response.json()) as { id?: string }
@@ -141,13 +146,27 @@ export const sendTrackedEmail = async ({
   previewText?: string
   campaignId?: string
 }) => {
-  const logId = await logEmail({ campaignId, email: to, status: 'sending' })
+  let logId: string | undefined
+
+  try {
+    logId = await logEmail({ campaignId, email: to, status: 'sending' })
+  } catch (err) {
+    console.warn('[Email Log Warning] Sending email without tracking log:', err)
+  }
+
   try {
     const result = await sendAdminEmail({ to, subject, content, html, previewText, logId })
-    await getAdminDb().collection('email_logs').doc(logId).update({ status: 'sent' })
+    if (logId) {
+      await getAdminDb().collection('email_logs').doc(logId).update({ status: 'sent' })
+    }
     return result
   } catch (err) {
-    await getAdminDb().collection('email_logs').doc(logId).update({ status: 'failed' })
+    if (logId) {
+      await getAdminDb().collection('email_logs').doc(logId).update({
+        status: 'failed',
+        error_message: err instanceof Error ? err.message : 'Email delivery failed.',
+      })
+    }
     throw err
   }
 }

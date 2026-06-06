@@ -319,7 +319,11 @@ export default function AlphaApplyPage() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.message || 'Failed to submit application.')
 
-      setStatus({ type: 'success', message: data.message || 'Application Received' })
+      const successMessage = !data.emailed && data.emailError
+        ? `${data.message || 'Application Received'} We could not send the confirmation email yet: ${data.emailError}`
+        : (data.message || 'Application Received')
+
+      setStatus({ type: 'success', message: successMessage })
     } catch (err) {
       setStatus({
         type: 'error',

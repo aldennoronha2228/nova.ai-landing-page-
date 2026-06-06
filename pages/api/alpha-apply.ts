@@ -146,6 +146,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
 
     let emailSent = false
+    let emailError: string | null = null
     let adminNotificationsSent = 0
     const firstName = fullName.trim().split(/\s+/)[0] || 'there'
 
@@ -185,6 +186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } catch (err) {
         // eslint-disable-next-line no-console
         console.warn('Failed to send alpha signup welcome email:', err)
+        emailError = err instanceof Error ? err.message : 'Failed to send alpha signup welcome email.'
       }
     }
 
@@ -244,6 +246,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: 'Application Received',
       saved: true,
       emailed: emailSent,
+      emailError,
       adminNotificationsSent,
       duplicate: false,
     })

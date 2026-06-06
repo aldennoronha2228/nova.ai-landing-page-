@@ -104,6 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
 
     let emailSent = false
+    let emailError: string | null = null
     const firstName = finalName.split(/\s+/)[0] || 'there'
 
     if (emailServiceConfigured) {
@@ -141,6 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } catch (err) {
         // eslint-disable-next-line no-console
         console.warn('Failed to send confirmation email:', err)
+        emailError = err instanceof Error ? err.message : 'Failed to send confirmation email.'
       }
     }
 
@@ -148,6 +150,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: 'You are on the NovaBoard AI Alpha waitlist. We have received your application and will contact selected users with Alpha invitations soon.',
       saved: true,
       emailed: emailSent,
+      emailError,
       duplicate: false,
     })
   } catch (error) {

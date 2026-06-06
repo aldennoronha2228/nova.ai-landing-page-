@@ -808,11 +808,27 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
           </table>
         </div>
         <div className="admin-pagination">
-          <span>{filtered.length} applicants</span>
-          <div>
-            <button disabled={page === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</button>
-            <span>{page} / {totalPages}</span>
-            <button disabled={page === totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>Next</button>
+          <span className="admin-pagination-count">{filtered.length} applicants</span>
+          <div className="admin-pagination-controls">
+            <button
+              type="button"
+              className="admin-pagination-button"
+              disabled={page === 1}
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+            >
+              <span aria-hidden="true">←</span>
+              Previous
+            </button>
+            <span className="admin-pagination-current">Page {page} of {totalPages}</span>
+            <button
+              type="button"
+              className="admin-pagination-button"
+              disabled={page === totalPages}
+              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+            >
+              Next
+              <span aria-hidden="true">→</span>
+            </button>
           </div>
         </div>
       </section>
