@@ -909,11 +909,174 @@
   gap: 16px;
 }
 
+.admin-campaigns-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.admin-composer-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.admin-composer-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-composer-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+}
+
+.admin-composer-editor label {
+  height: 100%;
+}
+
+.admin-composer-editor textarea {
+  flex: 1;
+  min-height: 380px !important;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.admin-lane-panel {
+  height: 480px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-campaign-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.2s ease;
+}
+
+.admin-campaign-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(109, 76, 255, 0.3);
+}
+
+.admin-campaign-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  border: 1px dashed var(--admin-border);
+  border-radius: 8px;
+  color: var(--admin-muted);
+  text-align: center;
+}
+
+.admin-campaign-empty i {
+  font-size: 1.5rem;
+  opacity: 0.4;
+}
+
+.admin-campaign-empty p {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.admin-variable-row {
+  display: flex;
+  gap: 8px;
+  margin-top: -4px;
+}
+
+.admin-variable-row span {
+  font-family: monospace;
+  font-size: 0.74rem;
+  background: rgba(109, 76, 255, 0.12);
+  color: var(--admin-purple);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.admin-email-preview {
+  padding: 20px;
+  background: white;
+  color: #111;
+  border-radius: 6px;
+  min-height: 380px;
+  overflow-y: auto;
+}
+
+.admin-email-preview h3 {
+  margin-top: 0;
+  color: #000;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 12px;
+}
+
+.admin-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: admin-spin 0.6s linear infinite;
+}
+
+@keyframes admin-spin {
+  to { transform: rotate(360deg); }
+}
+
+.admin-btn-loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.admin-form-status.error {
+  color: var(--admin-red);
+}
+
+.admin-form-status.success {
+  color: var(--admin-green);
+}
+
 .admin-campaign-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-top: 14px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 6px;
+  margin-right: -6px;
+}
+
+/* Custom scrollbar for campaign lanes */
+.admin-campaign-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.admin-campaign-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-campaign-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.admin-campaign-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .admin-campaign-list > div {

@@ -558,9 +558,9 @@ function DashboardHome({
             <button type="button">Last 14 days</button>
           </div>
           <div className="admin-email-metrics">
-            <div><span>Open Rate</span><strong>{emailOpenRate}%</strong><small>+7.3%</small><i style={{ '--metric': `${Math.min(100, emailOpenRate)}%` } as CSSProperties} /></div>
-            <div><span>Click Rate</span><strong>{clickRate}%</strong><small>+4.1%</small><i style={{ '--metric': `${Math.min(100, clickRate * 3)}%` } as CSSProperties} /></div>
-            <div><span>Bounce Rate</span><strong>{bounceRate}%</strong><small>-0.8%</small><i style={{ '--metric': `${Math.min(100, bounceRate * 12)}%` } as CSSProperties} /></div>
+            <div><span>Open Rate</span><strong>{emailOpenRate}%</strong><small>{formatTrend(overview.trends.openRate)}</small><i style={{ '--metric': `${Math.min(100, emailOpenRate)}%` } as CSSProperties} /></div>
+            <div><span>Click Rate</span><strong>{clickRate}%</strong><small>+4.1%</small><i style={{ '--metric': `${Math.min(100, clickRate)}%` } as CSSProperties} /></div>
+            <div><span>Bounce Rate</span><strong>{bounceRate}%</strong><small>-0.8%</small><i style={{ '--metric': `${Math.min(100, bounceRate)}%` } as CSSProperties} /></div>
           </div>
           <div className="admin-panel-head admin-campaign-head">
             <h2>Recent Campaigns</h2>
@@ -608,6 +608,7 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
   const [drawer, setDrawer] = useState<Applicant | null>(null)
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | 'email' | 'delete' | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const pageSize = 8
 
   const filtered = useMemo(() => {
@@ -631,49 +632,70 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
   const runBulk = async () => {
     if (!confirmAction) return
     
-    if (confirmAction === 'delete') {
-      await Promise.all(
-        selected.map((id) =>
-          requestJson(`/api/admin/applicants?id=${id}`, {
-            method: 'DELETE',
-          })
+    try {
+      setIsSubmitting(true)
+      if (confirmAction === 'delete') {
+        await Promise.all(
+          selected.map((id) =>
+            requestJson(`/api/admin/applicants?id=${id}`, {
+              method: 'DELETE',
+            })
+          )
         )
-      )
-    } else {
-      await requestJson('/api/admin/bulk', {
-        method: 'POST',
-        body: JSON.stringify({ action: confirmAction, ids: selected }),
-      })
+      } else {
+        await requestJson('/api/admin/bulk', {
+          method: 'POST',
+          body: JSON.stringify({ action: confirmAction, ids: selected }),
+        })
+      }
+      
+      setConfirmAction(null)
+      setSelected([])
+      refresh()
+    } catch (err) {
+      console.error('Bulk action failed:', err)
+    } finally {
+      setIsSubmitting(false)
     }
-    
-    setConfirmAction(null)
-    setSelected([])
-    refresh()
   }
 
   const handleDelete = async (id: string) => {
-    await requestJson(`/api/admin/applicants?id=${id}`, {
-      method: 'DELETE',
-    })
-    setDeletingId(null)
-    setDrawer(null)
-    refresh()
+    try {
+      setIsSubmitting(true)
+      await requestJson(`/api/admin/applicants?id=${id}`, {
+        method: 'DELETE',
+      })
+      setDeletingId(null)
+      setDrawer(null)
+      refresh()
+    } catch (err) {
+      console.error('Delete failed:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const saveApplicant = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!drawer) return
     const form = new FormData(event.currentTarget)
-    await requestJson('/api/admin/applicants', {
-      method: 'PATCH',
-      body: JSON.stringify({
-        id: drawer.id,
-        status: form.get('status'),
-        notes: form.get('notes'),
-      }),
-    })
-    setDrawer(null)
-    refresh()
+    try {
+      setIsSubmitting(true)
+      await requestJson('/api/admin/applicants', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          id: drawer.id,
+          status: form.get('status'),
+          notes: form.get('notes'),
+        }),
+      })
+      setDrawer(null)
+      refresh()
+    } catch (err) {
+      console.error('Save failed:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -798,7 +820,7 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
         <div className="admin-drawer-backdrop" onClick={() => setDrawer(null)}>
           <aside className="admin-drawer" onClick={(event) => event.stopPropagation()}>
             <div className="admin-drawer-header-actions">
-              <button className="admin-danger-text" type="button" onClick={() => setDeletingId(drawer.id)}>Delete</button>
+              <button className="admin-danger-text" type="button" disabled={isSubmitting} onClick={() => setDeletingId(drawer.id)}>Delete</button>
               <button className="admin-close" type="button" onClick={() => setDrawer(null)}>Close</button>
             </div>
             <h2>{drawer.name}</h2>
@@ -900,9 +922,12 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
               {drawer.willingFeedback !== undefined && <div><dt>Willing to feedback?</dt><dd>{drawer.willingFeedback ? 'Yes' : 'No'}</dd></div>}
             </dl>
             <form onSubmit={saveApplicant}>
-              <label>Status<select name="status" defaultValue={drawer.status}>{Object.keys(statusLabels).map((key) => <option key={key} value={key}>{statusLabels[key as ApplicantStatus]}</option>)}</select></label>
-              <label>Admin notes<textarea name="notes" defaultValue={drawer.notes} rows={8} /></label>
-              <button type="submit">Save Applicant</button>
+              <label>Status<select name="status" disabled={isSubmitting} defaultValue={drawer.status}>{Object.keys(statusLabels).map((key) => <option key={key} value={key}>{statusLabels[key as ApplicantStatus]}</option>)}</select></label>
+              <label>Admin notes<textarea name="notes" disabled={isSubmitting} defaultValue={drawer.notes} rows={8} /></label>
+              <button type="submit" className={isSubmitting ? 'admin-btn-loading' : ''} disabled={isSubmitting}>
+                {isSubmitting ? <span className="admin-spinner" /> : null}
+                {isSubmitting ? 'Saving...' : 'Save Applicant'}
+              </button>
             </form>
           </aside>
         </div>
@@ -913,8 +938,11 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
             <h2>Confirm {confirmAction} action</h2>
             <p>This will {confirmAction} {selected.length} selected applicant{selected.length === 1 ? '' : 's'} and trigger the related email workflow when applicable.</p>
             <div>
-              <button onClick={() => setConfirmAction(null)}>Cancel</button>
-              <button className={confirmAction === 'delete' ? 'admin-danger' : ''} onClick={runBulk}>Confirm</button>
+              <button disabled={isSubmitting} onClick={() => setConfirmAction(null)}>Cancel</button>
+              <button className={`${confirmAction === 'delete' ? 'admin-danger' : ''} ${isSubmitting ? 'admin-btn-loading' : ''}`} disabled={isSubmitting} onClick={runBulk}>
+                {isSubmitting ? <span className="admin-spinner" /> : null}
+                {isSubmitting ? 'Processing...' : 'Confirm'}
+              </button>
             </div>
           </div>
         </div>
@@ -925,8 +953,11 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
             <h2>Delete Applicant?</h2>
             <p>This will permanently remove this applicant from the database. This action cannot be undone.</p>
             <div>
-              <button onClick={() => setDeletingId(null)}>Cancel</button>
-              <button className="admin-danger" onClick={() => void handleDelete(deletingId)}>Delete Permanently</button>
+              <button disabled={isSubmitting} onClick={() => setDeletingId(null)}>Cancel</button>
+              <button className={`admin-danger ${isSubmitting ? 'admin-btn-loading' : ''}`} disabled={isSubmitting} onClick={() => void handleDelete(deletingId)}>
+                {isSubmitting ? <span className="admin-spinner" /> : null}
+                {isSubmitting ? 'Deleting...' : 'Delete Permanently'}
+              </button>
             </div>
           </div>
         </div>
@@ -938,6 +969,7 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
 function CampaignsPage({ campaigns, refresh }: { campaigns: Campaign[]; refresh: () => void }) {
   const [preview, setPreview] = useState(false)
   const [status, setStatus] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState<string | null>(null)
   const [content, setContent] = useState('Hi {{name}},\n\nHere is an update from NovaBoard AI.')
   const [subject, setSubject] = useState('NovaBoard AI Alpha update')
   const composerRef = useRef<HTMLFormElement | null>(null)
@@ -945,6 +977,8 @@ function CampaignsPage({ campaigns, refresh }: { campaigns: Campaign[]; refresh:
   const submitForm = async (formElement: HTMLFormElement, mode: 'draft' | 'send' | 'test') => {
     const form = new FormData(formElement)
     try {
+      setIsSubmitting(mode)
+      setStatus('')
       const result = await requestJson<{ sent: number; failures: number }>('/api/admin/campaigns', {
         method: 'POST',
         body: JSON.stringify({
@@ -958,10 +992,19 @@ function CampaignsPage({ campaigns, refresh }: { campaigns: Campaign[]; refresh:
           mode,
         }),
       })
-      setStatus(mode === 'draft' ? 'Draft saved.' : `Sent ${result.sent}. Failures ${result.failures}.`)
+      
+      if (mode === 'draft') {
+        setStatus('Draft saved.')
+      } else if (result.failures > 0) {
+        setStatus(`Warning: Sent ${result.sent}, but ${result.failures} failed. Check terminal for [Resend Error].`)
+      } else {
+        setStatus(`Success: Sent ${result.sent} email(s) successfully.`)
+      }
       refresh()
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Campaign action failed.')
+    } finally {
+      setIsSubmitting(null)
     }
   }
 
@@ -980,7 +1023,7 @@ function CampaignsPage({ campaigns, refresh }: { campaigns: Campaign[]; refresh:
   return (
     <>
       <PageHeader title="Email campaigns" eyebrow="Resend command center" actions={<button type="button" className="admin-primary" onClick={openComposer}>Create Campaign</button>} />
-      <section className="admin-two-column">
+      <section className="admin-campaigns-grid">
         <form
           ref={composerRef}
           className="admin-panel admin-composer"
@@ -993,33 +1036,67 @@ function CampaignsPage({ campaigns, refresh }: { campaigns: Campaign[]; refresh:
             <h2>Composer</h2>
             <button type="button" onClick={() => setPreview((value) => !value)}>{preview ? 'Editor' : 'Preview Mode'}</button>
           </div>
-          <label>Campaign Name<input name="name" defaultValue="Alpha Update" required /></label>
-          <label>Campaign Type<select name="type"><option>Alpha Acceptance</option><option>Alpha Rejection</option><option>Product Updates</option><option>Launch Announcements</option><option>Custom Campaign</option></select></label>
-          <label>Subject<input value={subject} onChange={(event) => setSubject(event.target.value)} required /></label>
-          <label>Preview Text<input name="previewText" placeholder="Short inbox preview" /></label>
-          <label>Segment<select name="segment"><option value="approved">Approved Users</option><option value="pending">Pending Users</option><option value="all">Custom Segment</option></select></label>
-          <label>Test Email<input name="testEmail" placeholder="founder@example.com" /></label>
-          {preview ? (
-            <div className="admin-email-preview"><h3>{subject}</h3>{content.split('\n').map((line, index) => <p key={`${line}-${index}`}>{line.replace(/{{name}}/g, 'Alden').replace(/{{email}}/g, 'alden@example.com')}</p>)}</div>
-          ) : (
-            <label>Rich Text Editor<textarea value={content} onChange={(event) => setContent(event.target.value)} rows={10} /></label>
-          )}
-          <div className="admin-variable-row"><span>{'{{name}}'}</span><span>{'{{email}}'}</span></div>
+          <div className="admin-composer-form-grid">
+            <div className="admin-composer-main">
+              <label>Campaign Name<input name="name" defaultValue="Alpha Update" required /></label>
+              <label>Campaign Type<select name="type"><option>Alpha Acceptance</option><option>Alpha Rejection</option><option>Product Updates</option><option>Launch Announcements</option><option>Custom Campaign</option></select></label>
+              <label>Subject<input value={subject} onChange={(event) => setSubject(event.target.value)} required /></label>
+              <label>Preview Text<input name="previewText" placeholder="Short inbox preview" /></label>
+              <label>Segment<select name="segment"><option value="approved">Approved Users</option><option value="pending">Pending Users</option><option value="all">Custom Segment</option></select></label>
+              <label>Test Email<input name="testEmail" placeholder="founder@example.com" /></label>
+            </div>
+            <div className="admin-composer-editor">
+              {preview ? (
+                <div className="admin-email-preview"><h3>{subject}</h3>{content.split('\n').map((line, index) => <p key={`${line}-${index}`}>{line.replace(/{{name}}/g, 'Alden').replace(/{{email}}/g, 'alden@example.com')}</p>)}</div>
+              ) : (
+                <label>Rich Text Editor<textarea value={content} onChange={(event) => setContent(event.target.value)} rows={14} /></label>
+              )}
+              <div className="admin-variable-row"><span>{'{{name}}'}</span><span>{'{{email}}'}</span></div>
+            </div>
+          </div>
           <div className="admin-actions">
-            <button type="submit">Save Draft</button>
-            <button type="button" onClick={(event) => event.currentTarget.form && void submitForm(event.currentTarget.form, 'test')}>Send Test Email</button>
-            <button type="button" onClick={(event) => event.currentTarget.form && void submitForm(event.currentTarget.form, 'send')}>Send Campaign</button>
+            <button type="submit" className={isSubmitting === 'draft' ? 'admin-btn-loading' : ''}>
+              {isSubmitting === 'draft' ? <span className="admin-spinner" /> : null}
+              {isSubmitting === 'draft' ? 'Saving...' : 'Save Draft'}
+            </button>
+            <button
+              type="button"
+              className={isSubmitting === 'test' ? 'admin-btn-loading' : ''}
+              onClick={(event) => event.currentTarget.form && void submitForm(event.currentTarget.form, 'test')}
+            >
+              {isSubmitting === 'test' ? <span className="admin-spinner" /> : null}
+              {isSubmitting === 'test' ? 'Sending...' : 'Send Test Email'}
+            </button>
+            <button
+              type="button"
+              className={`admin-primary ${isSubmitting === 'send' ? 'admin-btn-loading' : ''}`}
+              onClick={(event) => event.currentTarget.form && void submitForm(event.currentTarget.form, 'send')}
+            >
+              {isSubmitting === 'send' ? <span className="admin-spinner" /> : null}
+              {isSubmitting === 'send' ? 'Sending...' : 'Send Campaign'}
+            </button>
           </div>
           {status ? <p className="admin-form-status">{status}</p> : null}
         </form>
         <div className="admin-campaign-lanes">
           {Object.entries(grouped).map(([label, items]) => (
-            <article className="admin-panel" key={label}>
+            <article className="admin-panel admin-lane-panel" key={label}>
               <div className="admin-panel-head"><h2>{label}</h2><span>{items.length}</span></div>
               <div className="admin-campaign-list">
-                {(items.length ? items : [{ id: label, name: 'No campaigns yet', subject: 'Create one from the composer', type: 'Custom', status: label.toLowerCase(), createdAt: new Date().toISOString(), previewText: '', content: '' }]).map((campaign) => (
-                  <div key={campaign.id}><strong>{campaign.name}</strong><span>{campaign.subject}</span><small>{campaign.type} - {formatDate(campaign.createdAt)}</small></div>
-                ))}
+                {items.length ? (
+                  items.map((campaign) => (
+                    <div key={campaign.id} className="admin-campaign-card">
+                      <strong>{campaign.name}</strong>
+                      <span>{campaign.subject}</span>
+                      <small>{campaign.type} - {formatDate(campaign.createdAt)}</small>
+                    </div>
+                  ))
+                ) : (
+                  <div className="admin-campaign-empty">
+                    <AdminIcon name="mail" />
+                    <p>No {label.toLowerCase()} yet</p>
+                  </div>
+                )}
               </div>
             </article>
           ))}

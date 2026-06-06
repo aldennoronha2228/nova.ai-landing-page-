@@ -6,12 +6,25 @@ const dayMs = 24 * 60 * 60 * 1000
 
 const roundRate = (value: number) => Math.round(value * 10) / 10
 
-const getDateKey = (value: string) => new Date(value).toISOString().slice(0, 10)
+const getDateKey = (value: string) => {
+  try {
+    const d = new Date(value)
+    if (isNaN(d.getTime())) return null
+    return d.toISOString().slice(0, 10)
+  } catch {
+    return null
+  }
+}
 
 const countInRange = <T,>(items: T[], getDate: (item: T) => string, from: number, to: number) =>
   items.filter((item) => {
-    const time = new Date(getDate(item)).getTime()
-    return time >= from && time < to
+    try {
+      const time = new Date(getDate(item)).getTime()
+      if (isNaN(time)) return false
+      return time >= from && time < to
+    } catch {
+      return false
+    }
   }).length
 
 const getTrend = <T,>(items: T[], getDate: (item: T) => string, now = Date.now()) => {
@@ -31,7 +44,7 @@ const getDailySeries = <T,>(items: T[], getDate: (item: T) => string, now = Date
   }
   items.forEach((item) => {
     const key = getDateKey(getDate(item))
-    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1)
+    if (key && buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1)
   })
   return [...buckets.entries()].map(([date, value]) => ({ date, value }))
 }

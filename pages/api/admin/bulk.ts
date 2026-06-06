@@ -51,17 +51,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
 
       for (const applicant of applicants) {
+        let logId: string | undefined
         try {
+          logId = await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'sending' })
           await sendAdminEmail({
             to: applicant.email,
             subject: action === 'reject' ? 'NovaBoard AI Alpha application update' : 'NovaBoard AI Alpha update',
             content: renderTemplate(action === 'reject' ? defaultRejection : defaultAcceptance, applicant),
+            logId,
           })
           emailsSent += 1
-          await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'sent' })
-        } catch {
+          if (logId) {
+            await getAdminDb().collection('email_logs').doc(logId).update({ status: 'sent' })
+          }
+        } catch (err) {
+          console.error('[Bulk Email Error]', { email: applicant.email, error: err })
           failures += 1
-          await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'failed' })
+          if (logId) {
+            await getAdminDb().collection('email_logs').doc(logId).update({ status: 'failed' })
+          } else {
+            await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'failed' })
+          }
         }
       }
     }

@@ -41,13 +41,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let failures = 0
 
       if (mode === 'test' && testEmail) {
+        let logId: string | undefined
         try {
-          await sendAdminEmail({ to: testEmail, subject, previewText, content })
+          logId = await logEmail({ campaignId: campaignRef.id, email: testEmail, status: 'sending' })
+          await sendAdminEmail({ to: testEmail, subject, previewText, content, logId })
           sent += 1
-          await logEmail({ campaignId: campaignRef.id, email: testEmail, status: 'sent' })
-        } catch {
+          if (logId) {
+            await getAdminDb().collection('email_logs').doc(logId).update({ status: 'sent' })
+          }
+        } catch (err) {
+          console.error('[Campaign Test Error]', err)
           failures += 1
-          await logEmail({ campaignId: campaignRef.id, email: testEmail, status: 'failed' })
+          if (logId) {
+            await getAdminDb().collection('email_logs').doc(logId).update({ status: 'failed' })
+          } else {
+            await logEmail({ campaignId: campaignRef.id, email: testEmail, status: 'failed' })
+          }
         }
       }
 
@@ -60,18 +69,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })
 
         for (const applicant of recipients) {
+          let logId: string | undefined
           try {
+            logId = await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'sending' })
             await sendAdminEmail({
               to: applicant.email,
               subject: renderTemplate(subject, applicant),
               previewText,
               content: renderTemplate(content, applicant),
+              logId,
             })
             sent += 1
-            await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'sent' })
-          } catch {
+            if (logId) {
+              await getAdminDb().collection('email_logs').doc(logId).update({ status: 'sent' })
+            }
+          } catch (err) {
+            console.error('[Campaign Send Error]', { email: applicant.email, error: err })
             failures += 1
-            await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'failed' })
+            if (logId) {
+              await getAdminDb().collection('email_logs').doc(logId).update({ status: 'failed' })
+            } else {
+              await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'failed' })
+            }
           }
         }
       }

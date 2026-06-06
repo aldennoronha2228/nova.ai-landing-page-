@@ -34,9 +34,16 @@ export type AdminEmailLog = {
 }
 
 const toIsoDate = (value: unknown) => {
-  if (value instanceof Timestamp) return value.toDate().toISOString()
-  if (value instanceof Date) return value.toISOString()
-  if (typeof value === 'string') return value
+  try {
+    if (value instanceof Timestamp) return value.toDate().toISOString()
+    if (value instanceof Date) return value.toISOString()
+    if (typeof value === 'string') {
+      const d = new Date(value)
+      return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString()
+    }
+  } catch {
+    // Fallback
+  }
   return new Date().toISOString()
 }
 

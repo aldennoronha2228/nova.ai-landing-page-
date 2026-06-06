@@ -1,20 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminDb } from '../../src/server/firebaseAdmin'
-import { sendAdminEmail } from '../../src/server/adminEmail'
+import { sendAdminEmail, sendTrackedEmail } from '../../src/server/adminEmail'
 import { listAdminEmails } from '../../src/server/adminData'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
 const emailServiceConfigured = Boolean(resendApiKey && senderEmail)
 
-const duplicateSignupMessage = "You're already on the WireUp Alpha waitlist."
+const duplicateSignupMessage = "You're already on the NovaBoard AI Alpha waitlist."
 
 const defaultTextBody = `Hi {{name}},
 
-Thank you for joining the WireUp Alpha Program.
+Thank you for joining the NovaBoard AI Alpha Program.
 
-WireUp is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
+NovaBoard AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
 
 Your application has been received successfully.
 
@@ -29,14 +29,13 @@ What happens next?
 
 We're excited to have you with us at this early stage.
 
-— Team WireUp
-Built by NovaBoard AI`
+— Team NovaBoard AI`
 
 const defaultHtmlBody = `<div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#111827">
   <p>Hi {{name}},</p>
-  <p>Thank you for joining the WireUp Alpha Program.</p>
+  <p>Thank you for joining the NovaBoard AI Alpha Program.</p>
   <p>
-    WireUp is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
+    NovaBoard AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
   </p>
   <p>Your application has been received successfully.</p>
   <p>
@@ -50,7 +49,7 @@ const defaultHtmlBody = `<div style="font-family:Inter,Segoe UI,Arial,sans-serif
     <li>Feedback directly influences AI-assisted hardware development.</li>
   </ul>
   <p>We're excited to have you with us at this early stage.</p>
-  <p>— Team WireUp<br>Built by NovaBoard AI</p>
+  <p>— Team NovaBoard AI</p>
 </div>`
 
 const isValidEmail = (value: string): boolean =>
@@ -174,25 +173,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         textBody = textBody.replace(/{{name}}/g, firstName)
         htmlBody = htmlBody.replace(/{{name}}/g, firstName)
 
-        const resendResponse = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${resendApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: senderEmail,
-            to: [normalizedEmail],
-            subject: subject,
-            text: textBody,
-            html: htmlBody,
-          }),
+        await sendTrackedEmail({
+          to: normalizedEmail,
+          subject,
+          content: textBody,
+          html: htmlBody,
+          campaignId: 'alpha_welcome',
         })
-
-        if (!resendResponse.ok) {
-          const resendError = await resendResponse.text()
-          throw new Error(`Resend API error: ${resendError}`)
-        }
 
         emailSent = true
       } catch (err) {
@@ -235,11 +222,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           const results = await Promise.allSettled(
             recipients.map((recipient) =>
-              sendAdminEmail({
+              sendTrackedEmail({
                 to: recipient,
                 subject: `New Alpha Applicant: ${fullName.trim()}`,
                 previewText: `${fullName.trim()} just submitted an alpha application.`,
                 content: notificationBody,
+                campaignId: 'admin_notification',
               }),
             ),
           )
