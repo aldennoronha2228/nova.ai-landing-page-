@@ -13,9 +13,12 @@ const cookieName = 'novaboard_admin_session'
 const maxAgeSeconds = 60 * 60 * 12
 const RATE_LIMIT_COLLECTION = 'admin_rate_limits'
 const MAX_FAILED_ATTEMPTS = 5
+const MAX_IP_FAILED_ATTEMPTS = 10
 const LOCKOUT_MINUTES = 15
+const IP_LOCKOUT_MINUTES = 30
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase()
+const sanitizeIp = (ip: string) => ip.replace(/[^a-zA-Z0-9]/g, '_')
 
 const getEnvAdminEmails = () =>
   new Set(
@@ -86,24 +89,42 @@ export const clearAdminSessionCookie = () => {
 
 export const checkRateLimit = async (email: string, ip: string) => {
   const db = getAdminDb()
-  const key = `${normalizeEmail(email)}_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`
-  const doc = await db.collection(RATE_LIMIT_COLLECTION).doc(key).get()
+  const sIp = sanitizeIp(ip)
+  const emailKey = `${normalizeEmail(email)}_${sIp}`
+  const ipKey = `ip_${sIp}`
 
-  if (doc.exists) {
-    const data = doc.data()
+  const [emailDoc, ipDoc] = await Promise.all([
+    db.collection(RATE_LIMIT_COLLECTION).doc(emailKey).get(),
+    db.collection(RATE_LIMIT_COLLECTION).doc(ipKey).get(),
+  ])
+
+  // Check IP-wide lockout first
+  if (ipDoc.exists) {
+    const data = ipDoc.data()
     const failedAttempts = data?.failedAttempts ?? 0
     const lastAttempt = data?.lastAttempt?.toDate?.()?.getTime() ?? 0
+    if (failedAttempts >= MAX_IP_FAILED_ATTEMPTS) {
+      const lockoutTime = IP_LOCKOUT_MINUTES * 60 * 1000
+      if (Date.now() - lastAttempt < lockoutTime) {
+        const remainingMinutes = Math.ceil((lockoutTime - (Date.now() - lastAttempt)) / 60000)
+        return { blocked: true, remainingMinutes, type: 'ip' }
+      }
+      await db.collection(RATE_LIMIT_COLLECTION).doc(ipKey).update({ failedAttempts: 0 })
+    }
+  }
 
+  // Check Email+IP lockout
+  if (emailDoc.exists) {
+    const data = emailDoc.data()
+    const failedAttempts = data?.failedAttempts ?? 0
+    const lastAttempt = data?.lastAttempt?.toDate?.()?.getTime() ?? 0
     if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
       const lockoutTime = LOCKOUT_MINUTES * 60 * 1000
       if (Date.now() - lastAttempt < lockoutTime) {
         const remainingMinutes = Math.ceil((lockoutTime - (Date.now() - lastAttempt)) / 60000)
-        return { blocked: true, remainingMinutes }
+        return { blocked: true, remainingMinutes, type: 'account' }
       }
-      // Lockout expired, reset counter
-      await db.collection(RATE_LIMIT_COLLECTION).doc(key).update({
-        failedAttempts: 0,
-      })
+      await db.collection(RATE_LIMIT_COLLECTION).doc(emailKey).update({ failedAttempts: 0 })
     }
   }
 
@@ -112,26 +133,37 @@ export const checkRateLimit = async (email: string, ip: string) => {
 
 export const recordFailedLogin = async (email: string, ip: string) => {
   const db = getAdminDb()
-  const key = `${normalizeEmail(email)}_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`
-  const doc = await db.collection(RATE_LIMIT_COLLECTION).doc(key).get()
+  const sIp = sanitizeIp(ip)
+  const emailKey = `${normalizeEmail(email)}_${sIp}`
+  const ipKey = `ip_${sIp}`
 
-  if (doc.exists) {
-    await db.collection(RATE_LIMIT_COLLECTION).doc(key).update({
-      failedAttempts: FieldValue.increment(1),
-      lastAttempt: FieldValue.serverTimestamp(),
-    })
-  } else {
-    await db.collection(RATE_LIMIT_COLLECTION).doc(key).set({
-      failedAttempts: 1,
-      lastAttempt: FieldValue.serverTimestamp(),
-    })
-  }
+  const batch = db.batch()
+
+  // Update email+ip record
+  batch.set(db.collection(RATE_LIMIT_COLLECTION).doc(emailKey), {
+    failedAttempts: FieldValue.increment(1),
+    lastAttempt: FieldValue.serverTimestamp(),
+  }, { merge: true })
+
+  // Update ip-only record
+  batch.set(db.collection(RATE_LIMIT_COLLECTION).doc(ipKey), {
+    failedAttempts: FieldValue.increment(1),
+    lastAttempt: FieldValue.serverTimestamp(),
+  }, { merge: true })
+
+  await batch.commit()
 }
 
 export const recordSuccessfulLogin = async (email: string, ip: string) => {
   const db = getAdminDb()
-  const key = `${normalizeEmail(email)}_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`
-  await db.collection(RATE_LIMIT_COLLECTION).doc(key).delete().catch(() => {})
+  const sIp = sanitizeIp(ip)
+  const emailKey = `${normalizeEmail(email)}_${sIp}`
+  const ipKey = `ip_${sIp}`
+  
+  const batch = db.batch()
+  batch.delete(db.collection(RATE_LIMIT_COLLECTION).doc(emailKey))
+  batch.delete(db.collection(RATE_LIMIT_COLLECTION).doc(ipKey))
+  await batch.commit().catch(() => {})
 }
 
 export const readAdminSessionFromCookie = async (cookieHeader?: string): Promise<AdminSession | null> => {

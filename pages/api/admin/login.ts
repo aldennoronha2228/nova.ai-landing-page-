@@ -29,9 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const rateLimit = await checkRateLimit(email, ip)
     if (rateLimit.blocked) {
-      return res.status(429).json({
-        message: `Too many failed attempts. Please try again in ${rateLimit.remainingMinutes} minutes.`,
-      })
+      const message = rateLimit.type === 'ip' 
+        ? `Too many failed attempts from this IP. Please try again in ${rateLimit.remainingMinutes} minutes.`
+        : `Too many failed attempts for this account. Please try again in ${rateLimit.remainingMinutes} minutes.`
+      
+      return res.status(429).json({ message })
     }
 
     const isApproved = await isApprovedAdminEmail(email)
