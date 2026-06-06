@@ -1826,6 +1826,17 @@ textarea.form-control::-webkit-scrollbar {
     gap: 20px;
 }
 
+.footer-logo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.footer-logo-img {
+    height: 32px;
+    width: auto;
+}
+
 .footer-logo-text {
     font-size: 1.8rem;
     font-weight: 800;

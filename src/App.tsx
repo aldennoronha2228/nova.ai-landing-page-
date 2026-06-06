@@ -855,7 +855,10 @@ function App() {
         <div className="footer-top">
           <div className="footer-brand-section">
             <div className="brand-stack">
-              <span className="footer-logo-text">WireUp</span>
+              <div className="footer-logo-row">
+                <img src="/nova-logo-n.png" alt="NovaBoard Logo" className="footer-logo-img" />
+                <span className="footer-logo-text">WireUp</span>
+              </div>
               <small className="brand-byline">by NovaBoard AI</small>
             </div>
             <p className="footer-desc">
