@@ -5,9 +5,9 @@ import '../src/admin/admin.css'
 
 const siteUrlBase =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://novaboard-ai.vercel.app'
+  'https://nova-board.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
-const shareImage = `${siteUrl}/og-image-small.png`
+const shareImage = `${siteUrl}/og-image.png`
 const appIconUrl = '/nova-app-icon.png?v=1'
 const pageUrl = siteUrl
 const shareTitle = 'WireUp by NovaBoard AI | AI Copilot for Hardware Development'
@@ -32,11 +32,11 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:image" content={shareImage} />
         <meta property="og:image:secure_url" content={shareImage} />
         <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="512" />
+        <meta property="og:image:width" content="1024" />
         <meta property="og:image:height" content="512" />
         <meta property="og:image:alt" content="NovaBoard AI logo on a dark preview background" />
         <link rel="image_src" href={shareImage} />
-        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={shareTitle} />
         <meta name="twitter:description" content={twitterDescription} />
         <meta name="twitter:image" content={shareImage} />
