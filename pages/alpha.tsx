@@ -511,12 +511,12 @@ export default function AlphaApplyPage() {
                       Return to Home
                     </Link>
                     <a
-                      href="https://twitter.com/novaboardai"
+                      href="https://www.instagram.com/wireups.dev"
                       target="_blank"
                       rel="noopener"
                       className="btn-success-secondary"
                     >
-                      Follow NovaBoard AI
+                      Follow @wireups.dev
                     </a>
                   </div>
                 </div>

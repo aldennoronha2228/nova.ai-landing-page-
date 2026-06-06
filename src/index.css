@@ -1920,6 +1920,26 @@ textarea.form-control::-webkit-scrollbar {
     color: rgba(255, 255, 255, 0.2);
 }
 
+.footer-bottom-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.footer-social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.4);
+    transition: color 0.3s ease, transform 0.2s ease;
+    text-decoration: none;
+}
+
+.footer-social-link:hover {
+    color: rgba(255, 255, 255, 0.8);
+    transform: translateY(-1px);
+}
+
 @media (max-width: 900px) {
     .footer-top {
         grid-template-columns: 1fr;

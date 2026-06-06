@@ -7,7 +7,7 @@ const siteUrlBase =
   process.env.NEXT_PUBLIC_SITE_URL ||
   'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
-const shareImage = `${siteUrl}/og-image-small.png?v=5`
+const shareImage = `${siteUrl}/nova-app-icon.png?v=7`
 const appIconUrl = '/nova-app-icon.png?v=1'
 const pageUrl = siteUrl
 const shareTitle = 'WireUp | AI Copilot for Hardware'
@@ -24,8 +24,8 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         {/* Absolute Top Priority for WhatsApp/Social */}
         <meta property="og:image" content={shareImage} />
         <meta property="og:image:secure_url" content={shareImage} />
-        <meta property="og:image:width" content="600" />
-        <meta property="og:image:height" content="600" />
+        <meta property="og:image:width" content="512" />
+        <meta property="og:image:height" content="512" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:title" content={shareTitle} />
         <meta property="og:description" content={ogDescription} />
