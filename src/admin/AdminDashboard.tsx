@@ -406,6 +406,7 @@ function DashboardHome({
   const emailOpenRate = overview.kpis.openRate || 0
   const clickRate = overview.kpis.clickRate || 0
   const bounceRate = overview.kpis.bounceRate || 0
+  const latestApplicants = overview.applicants.slice(0, 5)
   const latestCampaigns = overview.campaigns.slice(0, 3)
 
   const formatTrend = (val: number) => `${val >= 0 ? '+' : ''}${val}% vs last 14d`
