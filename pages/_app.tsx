@@ -5,7 +5,7 @@ import '../src/admin/admin.css'
 
 const siteUrlBase =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://nova-board.vercel.app'
+  'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
 const shareImage = `${siteUrl}/og-image-small.png`
 const appIconUrl = '/nova-app-icon.png?v=1'
