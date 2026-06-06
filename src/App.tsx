@@ -880,7 +880,6 @@ function App() {
               <h4>Company</h4>
               <a href="#about">About WireUp</a>
               <a href="https://novaboard.ai" target="_blank" rel="noopener">NovaBoard AI</a>
-              <a href="mailto:novaboardai@gmail.com">Contact here for more details</a>
               <a href="/admin/login">Admin Login</a>
             </div>
             <div className="footer-link-group">
