@@ -1,5 +1,7 @@
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 'next'
 import { createHmac, timingSafeEqual } from 'crypto'
+import { FieldValue } from 'firebase-admin/firestore'
+import { getAdminDb } from './firebaseAdmin'
 import { listAdminEmails } from './adminData'
 
 export type AdminSession = {
@@ -9,6 +11,9 @@ export type AdminSession = {
 
 const cookieName = 'novaboard_admin_session'
 const maxAgeSeconds = 60 * 60 * 12
+const RATE_LIMIT_COLLECTION = 'admin_rate_limits'
+const MAX_FAILED_ATTEMPTS = 5
+const LOCKOUT_MINUTES = 15
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase()
 
@@ -70,11 +75,64 @@ export const createAdminSessionCookie = (email: string) => {
   const session: AdminSession = { email: normalizeEmail(email), issuedAt: Date.now() }
   const payload = Buffer.from(JSON.stringify(session)).toString('base64url')
   const signature = sign(payload)
-  return `${cookieName}=${encodeURIComponent(`${payload}.${signature}`)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}`
+  const isProd = process.env.NODE_ENV === 'production'
+  return `${cookieName}=${encodeURIComponent(`${payload}.${signature}`)}; Path=/; HttpOnly; SameSite=Strict;${isProd ? ' Secure;' : ''} Max-Age=${maxAgeSeconds}`
 }
 
-export const clearAdminSessionCookie = () =>
-  `${cookieName}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
+export const clearAdminSessionCookie = () => {
+  const isProd = process.env.NODE_ENV === 'production'
+  return `${cookieName}=; Path=/; HttpOnly; SameSite=Strict;${isProd ? ' Secure;' : ''} Max-Age=0`
+}
+
+export const checkRateLimit = async (email: string, ip: string) => {
+  const db = getAdminDb()
+  const key = `${normalizeEmail(email)}_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`
+  const doc = await db.collection(RATE_LIMIT_COLLECTION).doc(key).get()
+
+  if (doc.exists) {
+    const data = doc.data()
+    const failedAttempts = data?.failedAttempts ?? 0
+    const lastAttempt = data?.lastAttempt?.toDate?.()?.getTime() ?? 0
+
+    if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
+      const lockoutTime = LOCKOUT_MINUTES * 60 * 1000
+      if (Date.now() - lastAttempt < lockoutTime) {
+        const remainingMinutes = Math.ceil((lockoutTime - (Date.now() - lastAttempt)) / 60000)
+        return { blocked: true, remainingMinutes }
+      }
+      // Lockout expired, reset counter
+      await db.collection(RATE_LIMIT_COLLECTION).doc(key).update({
+        failedAttempts: 0,
+      })
+    }
+  }
+
+  return { blocked: false }
+}
+
+export const recordFailedLogin = async (email: string, ip: string) => {
+  const db = getAdminDb()
+  const key = `${normalizeEmail(email)}_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`
+  const doc = await db.collection(RATE_LIMIT_COLLECTION).doc(key).get()
+
+  if (doc.exists) {
+    await db.collection(RATE_LIMIT_COLLECTION).doc(key).update({
+      failedAttempts: FieldValue.increment(1),
+      lastAttempt: FieldValue.serverTimestamp(),
+    })
+  } else {
+    await db.collection(RATE_LIMIT_COLLECTION).doc(key).set({
+      failedAttempts: 1,
+      lastAttempt: FieldValue.serverTimestamp(),
+    })
+  }
+}
+
+export const recordSuccessfulLogin = async (email: string, ip: string) => {
+  const db = getAdminDb()
+  const key = `${normalizeEmail(email)}_${ip.replace(/[^a-zA-Z0-9]/g, '_')}`
+  await db.collection(RATE_LIMIT_COLLECTION).doc(key).delete().catch(() => {})
+}
 
 export const readAdminSessionFromCookie = async (cookieHeader?: string): Promise<AdminSession | null> => {
   const token = parseCookies(cookieHeader)[cookieName]
