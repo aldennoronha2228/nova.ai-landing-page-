@@ -864,6 +864,9 @@ function App() {
             <p className="footer-desc">
               WireUp is an AI-powered hardware development platform created by NovaBoard AI.
             </p>
+            <a href="mailto:novaboardai@gmail.com" className="footer-contact-email">
+              novaboardai@gmail.com
+            </a>
           </div>
           
           <div className="footer-nav-section">

@@ -1851,6 +1851,19 @@ textarea.form-control::-webkit-scrollbar {
     max-width: 320px;
 }
 
+.footer-contact-email {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    margin-top: -8px;
+    display: inline-block;
+}
+
+.footer-contact-email:hover {
+    color: white;
+}
+
 .footer-nav-section {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
