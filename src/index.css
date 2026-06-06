@@ -27,7 +27,8 @@
 html {
     scroll-behavior: smooth;
     font-size: 106.25%;
-    scrollbar-color: rgba(176, 48, 136, 0.7) rgba(8, 8, 13, 0.92);
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 body {
@@ -40,29 +41,34 @@ body {
     align-items: center;
     padding: var(--page-gutter);
     min-height: 100dvh;
+    width: 100%;
+    overflow: visible;
 }
 
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
+/* Custom pink/purple scrollbar */
+html::-webkit-scrollbar {
     width: 10px;
-    height: 10px;
+    height: 0px;
 }
 
-html::-webkit-scrollbar-track,
-body::-webkit-scrollbar-track {
+html::-webkit-scrollbar-track {
     background: rgba(8, 8, 13, 0.92);
 }
 
-html::-webkit-scrollbar-thumb,
-body::-webkit-scrollbar-thumb {
+html::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, rgba(176, 48, 136, 0.92), rgba(118, 34, 92, 0.94));
     border-radius: 999px;
     border: 2px solid rgba(8, 8, 13, 0.92);
 }
 
-html::-webkit-scrollbar-thumb:hover,
-body::-webkit-scrollbar-thumb:hover {
+html::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, rgba(204, 81, 160, 0.96), rgba(145, 41, 108, 0.98));
+}
+
+
+.app-shell {
+    width: 100%;
+    overflow: visible;
 }
 
 .hero-viewport {
@@ -1574,21 +1580,11 @@ textarea.form-control::-webkit-scrollbar {
 }
 
 .site-footer {
-    margin-top: clamp(24px, 3vh, 40px);
-    padding: 18px 22px;
+    margin-top: 60px;
+    padding: 20px;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 18px;
-}
-
-.site-footer-note {
-    margin: 0;
-    font-size: 0.78rem;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.58);
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .site-footer-asterisk {
@@ -2481,7 +2477,7 @@ textarea.form-control::-webkit-scrollbar {
     display: flex;
     flex-direction: column;
     padding: var(--page-gutter);
-    overflow-x: hidden;
+    overflow: visible;
 }
 
 .alpha-glow-bg {

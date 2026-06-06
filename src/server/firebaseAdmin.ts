@@ -46,8 +46,6 @@ const initAdminApp = () => {
       clientEmail: serviceAccount.client_email,
       privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'),
     }),
-    // Include storageBucket so Admin SDK knows the default bucket
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   })
 }
 

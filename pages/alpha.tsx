@@ -20,7 +20,7 @@ type MediaFile = {
   /** 0–100 */
   progress: number
   uploadState: UploadState
-  /** URL from Firebase Storage after successful upload */
+  /** URL from Cloudinary after successful upload */
   remoteUrl?: string
   errorMessage?: string
 }
@@ -323,14 +323,22 @@ export default function AlphaApplyPage() {
         <title>Apply for Alpha Access — NovaBoard AI</title>
         <meta name="description" content="Join the private NovaBoard AI Alpha Program and shape the future of hardware engineering." />
         <style>{`
-          html, body {
+          html {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            height: auto !important;
+          }
+          body {
             overflow: visible !important;
             height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .alpha-page-viewport {
             overflow: visible !important;
             height: auto !important;
             min-height: 100vh !important;
+            padding: var(--page-gutter) !important;
           }
         `}</style>
       </Head>

@@ -122,7 +122,7 @@ const getRelativeTime = (value: string) => {
   return `${Math.round(hours / 24)} day ago`
 }
 
-type IconName = 'home' | 'users' | 'mail' | 'chart' | 'settings' | 'clock' | 'check' | 'x' | 'send' | 'calendar' | 'download' | 'menu'
+type IconName = 'home' | 'users' | 'mail' | 'chart' | 'settings' | 'clock' | 'check' | 'x' | 'send' | 'calendar' | 'download' | 'menu' | 'video'
 
 function AdminIcon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
@@ -138,6 +138,7 @@ function AdminIcon({ name }: { name: IconName }) {
     calendar: <><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M8 2v4" /><path d="M16 2v4" /><path d="M3 10h18" /></>,
     download: <><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></>,
     menu: <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>,
+    video: <><path d="m22 8-6 4 6 4V8Z" /><rect x="2" y="6" width="14" height="12" rx="2" ry="2" /></>,
   }
 
   return (
@@ -432,6 +433,7 @@ function DashboardHome({
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
+                  <th>Media</th>
                   <th>Source</th>
                   <th>Date Applied</th>
                   <th>Status</th>
@@ -449,6 +451,47 @@ function DashboardHome({
                       </span>
                     </td>
                     <td data-label="Email"><span className="admin-table-val">{applicant.email}</span></td>
+                    <td data-label="Media">
+                      <span className="admin-table-val">
+                        {(() => {
+                          const media =
+                            applicant.projectMedia && applicant.projectMedia.length > 0
+                              ? applicant.projectMedia
+                              : (applicant.projectImages ?? []).map((url) => ({ url, type: 'image' as const }))
+
+                          if (media.length === 0) return <span className="admin-no-media">—</span>
+
+                          const first = media[0]
+                          return (
+                            <div className="admin-table-media-preview">
+                              {first.type === 'video' ? (
+                                <a
+                                  href={first.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="admin-table-video-placeholder"
+                                  onClick={(e) => e.stopPropagation()}
+                                  title="View video"
+                                >
+                                  <AdminIcon name="video" />
+                                </a>
+                              ) : (
+                                <a
+                                  href={first.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  title="View image"
+                                >
+                                  <img src={first.url} alt="Media" className="admin-table-media-thumb" />
+                                </a>
+                              )}
+                              {media.length > 1 && <span className="admin-table-media-count">+{media.length - 1}</span>}
+                            </div>
+                          )
+                        })()}
+                      </span>
+                    </td>
                     <td data-label="Source"><span className="admin-table-val">{applicant.source}</span></td>
                     <td data-label="Date Applied"><span className="admin-table-val">{formatDate(applicant.dateApplied)}</span></td>
                     <td data-label="Status">
@@ -596,6 +639,7 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
                 <th><input type="checkbox" checked={paged.length > 0 && paged.every((item) => selected.includes(item.id))} onChange={() => setSelected(paged.every((item) => selected.includes(item.id)) ? [] : paged.map((item) => item.id))} /></th>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Media</th>
                 <th>Date Applied</th>
                 <th>Status</th>
                 <th>Source</th>
@@ -616,6 +660,47 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
                     </span>
                   </td>
                   <td data-label="Email"><span className="admin-table-val">{applicant.email}</span></td>
+                  <td data-label="Media">
+                    <span className="admin-table-val">
+                      {(() => {
+                        const media =
+                          applicant.projectMedia && applicant.projectMedia.length > 0
+                            ? applicant.projectMedia
+                            : (applicant.projectImages ?? []).map((url) => ({ url, type: 'image' as const }))
+
+                        if (media.length === 0) return <span className="admin-no-media">—</span>
+
+                        const first = media[0]
+                        return (
+                          <div className="admin-table-media-preview">
+                            {first.type === 'video' ? (
+                              <a
+                                href={first.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="admin-table-video-placeholder"
+                                onClick={(e) => e.stopPropagation()}
+                                title="View video"
+                              >
+                                <AdminIcon name="video" />
+                              </a>
+                            ) : (
+                              <a
+                                href={first.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                title="View image"
+                              >
+                                <img src={first.url} alt="Media" className="admin-table-media-thumb" />
+                              </a>
+                            )}
+                            {media.length > 1 && <span className="admin-table-media-count">+{media.length - 1}</span>}
+                          </div>
+                        )
+                      })()}
+                    </span>
+                  </td>
                   <td data-label="Date Applied"><span className="admin-table-val">{formatDate(applicant.dateApplied)}</span></td>
                   <td data-label="Status">
                     <span className="admin-table-val">
@@ -644,6 +729,22 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
             <button className="admin-close" type="button" onClick={() => setDrawer(null)}>Close</button>
             <h2>{drawer.name}</h2>
             <p>{drawer.email}</p>
+            {(() => {
+              const mediaCount = (drawer.projectMedia?.length ?? 0) || (drawer.projectImages?.length ?? 0)
+              if (mediaCount === 0) return null
+              return (
+                <div className="admin-drawer-quick-actions">
+                  <button
+                    type="button"
+                    className="admin-quick-media-btn"
+                    onClick={() => document.getElementById('admin-drawer-media')?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    <AdminIcon name="video" />
+                    View {mediaCount} Media Item{mediaCount === 1 ? '' : 's'}
+                  </button>
+                </div>
+              )
+            })()}
             <dl>
               <div><dt>Application Date</dt><dd>{formatDate(drawer.dateApplied)}</dd></div>
               <div><dt>Source</dt><dd>{drawer.source}</dd></div>
@@ -674,7 +775,7 @@ function ApplicantsPage({ applicants, refresh }: { applicants: Applicant[]; refr
                 if (mediaItems.length === 0) return null
 
                 return (
-                  <div>
+                  <div id="admin-drawer-media">
                     <dt style={{ marginBottom: '10px' }}>Project Media</dt>
                     <dd>
                       <div className="admin-media-grid">

@@ -18,7 +18,7 @@ const alphaSuccessMessage =
   "You're on the NovaBoard AI Alpha waitlist. Thank you for your interest in NovaBoard AI — we've received your application and will reach out with Alpha invitations to selected testers soon.";
 const alphaErrorMessage = "We couldn't process your request. Please try again.";
 const alphaBackendMessage =
-  "NovaBoard AI signup storage is not enabled yet. Please enable Cloud Firestore for this Firebase project, then try again.";
+  "NovaBoard AI signup storage is not enabled yet. Please check the server configuration and try again.";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
@@ -827,9 +827,6 @@ function App() {
         <a href="/admin/login" className="nav-login-button">
           Admin login
         </a>
-        <p className="site-footer-note">
-          Secure admin access for internal team management and campaign analytics.
-        </p>
       </footer>
     </>
   );

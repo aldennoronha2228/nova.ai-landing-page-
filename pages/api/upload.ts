@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getStorage } from 'firebase-admin/storage'
-import { getAdminApp } from '../../src/server/firebaseAdmin'
+import { v2 as cloudinary } from 'cloudinary'
 
 // 110MB limit to support video uploads as base64
 export const config = {
@@ -16,19 +15,23 @@ const ALLOWED_VIDEO_TYPES = new Set(['video/mp4', 'video/quicktime']) // quickti
 const IMAGE_MAX_BYTES = 10 * 1024 * 1024  // 10MB
 const VIDEO_MAX_BYTES = 100 * 1024 * 1024 // 100MB
 
-const resolveStorageBucket = () => {
-  const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-  if (!bucketName) {
+const ensureCloudinary = () => {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+  const apiKey = process.env.CLOUDINARY_API_KEY
+  const apiSecret = process.env.CLOUDINARY_API_SECRET
+
+  if (!cloudName || !apiKey || !apiSecret) {
     throw new Error(
-      'Firebase Storage is not configured. Set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET in your .env file.'
+      'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your .env file.'
     )
   }
 
-  // This ensures the Admin app is initialized with the storageBucket option
-  const adminApp = getAdminApp()
-
-  // Use the bucket from env — works for both *.appspot.com and *.firebasestorage.app
-  return getStorage(adminApp).bucket(bucketName)
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+    secure: true,
+  })
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -65,29 +68,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     }
 
-    const bucket = resolveStorageBucket()
+    ensureCloudinary()
 
-    // Build storage path: alpha-projects/{applicationId}/{timestamp}_{filename}
+    // Build a Cloudinary folder path: alpha-projects/{applicationId}
     const safeAppId = applicationId
       ? String(applicationId).replace(/[^a-zA-Z0-9_-]/g, '')
       : `app_${Date.now()}`
-    const safeName = name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const storagePath = `alpha-projects/${safeAppId}/${Date.now()}_${safeName}`
-    const file = bucket.file(storagePath)
+    const safeName = name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9._-]/g, '_')
 
-    await file.save(buffer, {
-      metadata: { contentType: type },
+    const folder = `alpha-projects/${safeAppId}`
+    const publicId = `${folder}/${Date.now()}_${safeName}`
+
+    // Reconstruct data URI for Cloudinary upload
+    const dataUri = `data:${type};base64,${base64Data}`
+
+    const uploadResult = await cloudinary.uploader.upload(dataUri, {
+      public_id: publicId,
+      resource_type: isVideo ? 'video' : 'image',
+      overwrite: false,
+      folder: undefined, // folder is embedded in public_id
     })
 
-    // Make the file publicly readable
-    await file.makePublic()
-
-    // Construct public Firebase Storage read URL
-    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(file.name)}?alt=media`
-
     return res.status(200).json({
-      url: publicUrl,
-      path: file.name,
+      url: uploadResult.secure_url,
+      path: uploadResult.public_id,
       type: isVideo ? 'video' : 'image',
     })
   } catch (error) {
@@ -96,11 +100,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const msg = error instanceof Error ? error.message : 'Upload failed.'
 
-    // Friendlier message for common Firebase Storage errors
-    if (msg.includes('does not exist') || msg.includes('Not Found') || msg.includes('404')) {
+    // Friendlier message for common Cloudinary errors
+    if (msg.includes('Invalid') || msg.includes('not configured')) {
       return res.status(500).json({
         message:
-          'Firebase Storage bucket not found. Please enable Firebase Storage in your Firebase Console (Firestore → Storage → Get Started), then restart the dev server.',
+          'Cloudinary is not configured correctly. Please check your CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.',
       })
     }
 

@@ -55,6 +55,8 @@
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   min-height: 100dvh;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* Sidebar */
@@ -349,7 +351,7 @@
 /* KPI Stat Cards Grid */
 .admin-stat-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 14px;
 }
 
@@ -641,7 +643,7 @@
 
 .admin-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 600px;
   border-collapse: collapse;
 }
 
@@ -993,6 +995,26 @@
   color: var(--admin-muted);
   font-size: 0.88rem;
   line-height: 1.5;
+}
+
+.admin-drawer-quick-actions {
+  margin: 12px 0;
+  display: flex;
+  gap: 8px;
+}
+
+.admin-quick-media-btn {
+  background: rgba(109, 76, 255, 0.1) !important;
+  border-color: rgba(109, 76, 255, 0.25) !important;
+  color: var(--admin-purple) !important;
+  font-size: 0.8rem !important;
+  padding: 0 12px !important;
+  min-height: 32px !important;
+}
+
+.admin-quick-media-btn:hover {
+  background: rgba(109, 76, 255, 0.2) !important;
+  border-color: rgba(109, 76, 255, 0.4) !important;
 }
 
 .admin-drawer dl {
@@ -1640,6 +1662,49 @@ body:has(.admin-login-page) #__next {
 }
 
 /* ── Admin Project Media Viewer ─────────────────── */
+.admin-table-media-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.admin-table-media-thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--admin-border);
+  background: #000;
+}
+
+.admin-table-video-placeholder {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  border: 1px solid var(--admin-border);
+  background: rgba(109, 76, 255, 0.1);
+  color: var(--admin-purple);
+}
+
+.admin-table-media-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--admin-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid var(--admin-border);
+}
+
+.admin-no-media {
+  color: var(--admin-muted);
+  opacity: 0.4;
+  font-weight: 400;
+}
+
 .admin-media-grid {
   display: flex;
   flex-direction: column;

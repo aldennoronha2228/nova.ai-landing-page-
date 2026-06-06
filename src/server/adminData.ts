@@ -19,6 +19,7 @@ export type AdminApplicant = {
   bestProject?: string
   projectLinks?: string
   projectImages?: string[]
+  projectMedia?: Array<{ url: string; type: 'image' | 'video' }>
   willingFeedback?: string
 }
 
@@ -65,6 +66,12 @@ export const listApplicants = async (): Promise<AdminApplicant[]> => {
       bestProject: data.bestProject ? String(data.bestProject) : undefined,
       projectLinks: data.projectLinks ? String(data.projectLinks) : undefined,
       projectImages: Array.isArray(data.projectImages) ? data.projectImages.map(String) : undefined,
+      projectMedia: Array.isArray(data.projectMedia)
+        ? data.projectMedia.filter((m: unknown) => m && typeof (m as Record<string,unknown>).url === 'string').map((m: Record<string,unknown>) => ({
+            url: String(m.url),
+            type: m.type === 'video' ? 'video' as const : 'image' as const,
+          }))
+        : undefined,
       willingFeedback: data.willingFeedback !== undefined ? String(data.willingFeedback) : undefined,
     }
   })

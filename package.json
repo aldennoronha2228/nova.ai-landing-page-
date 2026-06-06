@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource/instrument-serif": "^5.2.8",
     "@fontsource/inter": "^5.2.8",
+    "cloudinary": "^2.10.0",
     "firebase": "^10.14.1",
     "firebase-admin": "^11.11.1",
     "framer-motion": "^12.40.0",
