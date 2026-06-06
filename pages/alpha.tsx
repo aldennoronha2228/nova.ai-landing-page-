@@ -481,24 +481,23 @@ export default function AlphaApplyPage() {
                 /* Success State Card */
                 <div className="alpha-success-card">
                   <div className="checkmark-wrapper">
-                    <svg className="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                      <circle className="checkmark-circle" cx="26" cy="26" r="25" fill="none" />
-                      <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
-                  <h2>Application Received</h2>
-                  <p>
-                    Thank you for applying to the NovaBoard AI Alpha Program. Our team will review your application and contact selected testers via email.
+                  <h2 className="success-title">Application Received</h2>
+                  <p className="success-desc">
+                    Thank you for joining the WireUp Alpha Program. Your application has been received. The NovaBoard AI team will review your submission and contact selected testers via email.
                   </p>
                   <div className="success-actions">
-                    <Link href="/" className="success-btn-primary">
+                    <Link href="/" className="btn-success-primary">
                       Return to Home
                     </Link>
                     <a
                       href="https://twitter.com/novaboardai"
                       target="_blank"
-                      rel="noopener noreferrer"
-                      className="success-btn-secondary"
+                      rel="noopener"
+                      className="btn-success-secondary"
                     >
                       Follow NovaBoard AI
                     </a>
@@ -506,15 +505,13 @@ export default function AlphaApplyPage() {
                 </div>
               ) : (
                 /* Form Card */
-                <div className="alpha-form-card">
-                  <div className="form-card-header">
-                    <h2>Apply for Alpha Access</h2>
-                    <p>
-                      We're selecting highly engaged builders and developers who can actively test NovaBoard AI and provide feedback.
-                    </p>
+                <div className="alpha-form-card" id="waitlist">
+                  <div className="alpha-form-header">
+                    <h1>Join the WireUp Alpha Program</h1>
+                    <p>Be among the first users helping shape the future of AI-powered hardware development.</p>
                   </div>
 
-                  <form className="alpha-apply-form" onSubmit={handleSubmit}>
+                  <form className="alpha-form" onSubmit={handleSubmit}>
 
                     {/* Full Name */}
                     <div className="beta-field-group">
@@ -648,14 +645,14 @@ export default function AlphaApplyPage() {
                     {/* Use Case Textarea */}
                     <div className="beta-field-group">
                       <label className="beta-field-label" htmlFor="useCase">
-                        What do you plan to use NovaBoard AI for? *
+                        How do you plan to use WireUp? *
                       </label>
                       <textarea
                         id="useCase"
                         required
                         value={useCase}
                         onChange={(e) => setUseCase(e.target.value)}
-                        placeholder="Describe the hardware layouts, simulations, or edge pipelines you want to build."
+                        placeholder="Tell us about the projects you want to build..."
                         className="form-control"
                         rows={4}
                         disabled={isSubmitting}
@@ -834,7 +831,7 @@ export default function AlphaApplyPage() {
                       className="beta-submit"
                       disabled={isSubmitting || anyUploading}
                     >
-                      {isSubmitting ? 'Submitting…' : anyUploading ? 'Waiting for uploads…' : 'Apply for Alpha Access'}
+                      {isSubmitting ? 'Joining…' : anyUploading ? 'Waiting for uploads…' : 'Join WireUp Alpha'}
                     </button>
 
                     {/* Status Message */}

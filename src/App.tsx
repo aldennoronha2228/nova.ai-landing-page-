@@ -352,46 +352,41 @@ function App() {
     <>
       <div className="hero-viewport" ref={heroViewportRef}>
         <nav className="nav-bar">
-          <a className="nav-brand" href="#" aria-label="NovaBoard AI home">
+          <Link href="/" className="nav-brand">
             <img className="nav-logo" src="/nova-logo-n.png" alt="" />
-            <span>NovaBoard AI</span>
-          </a>
+            <div className="brand-stack">
+              <span>WireUp</span>
+              <small className="brand-byline">by NovaBoard AI</small>
+            </div>
+          </Link>
           <div className={`nav-menu ${menuOpen ? "active" : ""}`}>
             <ul className="nav-links">
-              <li>
-                <a href="#" onClick={() => setMenuOpen(false)}>
-                  Platform
-                </a>
-              </li>
-              <li>
-                <a href="#core-features" onClick={() => setMenuOpen(false)}>
-                  Features
-                </a>
-              </li>
-              <li>
-                <a href="#" onClick={() => setMenuOpen(false)}>
-                  Docs
-                </a>
-              </li>
+              <li><a href="#features" onClick={() => setMenuOpen(false)}>Features</a></li>
+              <li><a href="#how-it-works" onClick={() => setMenuOpen(false)}>How It Works</a></li>
+              <li><a href="#waitlist" onClick={() => setMenuOpen(false)}>Waitlist</a></li>
+              <li><a href="#about" onClick={() => setMenuOpen(false)}>About</a></li>
+              <li><a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a></li>
             </ul>
             <div className="mobile-menu-actions">
-              <a href="/admin/login" className="mobile-menu-secondary" onClick={() => setMenuOpen(false)}>
-                Sign In
-              </a>
               <Link href="/alpha" className="mobile-menu-primary" onClick={() => setMenuOpen(false)}>
-                Alpha Waitlist
+                Join Waitlist
               </Link>
             </div>
           </div>
-          <button
-            type="button"
-            className={`menu-toggle ${menuOpen ? "active" : ""}`}
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-label="Toggle menu"
-          >
-            <span />
-            <span />
-          </button>
+          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <Link href="/alpha" className="nav-login-button" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.2)', display: 'none' }}>
+              Join Waitlist
+            </Link>
+            <button
+              type="button"
+              className={`menu-toggle ${menuOpen ? "active" : ""}`}
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label="Toggle menu"
+            >
+              <span />
+              <span />
+            </button>
+          </div>
         </nav>
 
         <section className="hero-card" ref={heroCardRef}>
@@ -505,7 +500,7 @@ function App() {
                     <path d="M10 8h6l4 6 4-6h6l-7 10 7 10h-6l-4-6-4 6h-6l7-10z" />
                   </svg>
                 </div>
-                <span className="icon-caption center">NovaBoard Core</span>
+                <span className="icon-caption center">WireUp Core</span>
               </div>
 
               <div className="pipeline-line right" />
@@ -526,32 +521,34 @@ function App() {
             </div>
 
             <div className="hero-content">
-              <motion.span {...heroMotionProps(0.05, disableMobileMotion)} className="hero-kicker">
-                AI-NATIVE HARDWARE PLATFORM
-              </motion.span>
-              <motion.h1 {...heroMotionProps(0.15, disableMobileMotion)} className="hero-heading">
-                Design, simulate, and deploy
-                <br />
-                <span className="accent-serif">intelligent hardware</span> with AI.
-              </motion.h1>
-              <motion.p {...heroMotionProps(0.25, disableMobileMotion)} className="hero-sub">
-                Nova AI combines circuit generation, embedded code intelligence, real-time simulation,
-                and edge deployment into one seamless workspace for modern hardware teams.
-              </motion.p>
-              <motion.div {...heroMotionProps(0.35, disableMobileMotion)} className="hero-actions">
-                <Link
-                  href="/alpha"
-                  className="btn-cta"
+                <motion.span {...heroMotionProps(0.05, disableMobileMotion)} className="hero-kicker alpha-program-badge">
+                  WIREUP BY NOVABOARD AI
+                </motion.span>
+                <motion.h1 {...heroMotionProps(0.15, disableMobileMotion)} className="hero-heading">
+                  Design, simulate, and deploy
+                  <br />
+                  <span className="accent-serif">intelligent hardware</span> with WireUp.
+                </motion.h1>
+                <motion.p {...heroMotionProps(0.25, disableMobileMotion)} className="hero-sub">
+                  WireUp combines circuit generation, embedded code intelligence, real-time simulation,
+                  and edge deployment into one seamless workspace for modern hardware teams.
+                </motion.p>
+                <motion.div {...heroMotionProps(0.35, disableMobileMotion)} className="hero-actions">
+                  <Link
+                    href="/alpha"
+                    className="btn-cta"
+                  >
+                    Join WireUp Waitlist
+                  </Link>
+                </motion.div>
+                <motion.p 
+                  {...heroMotionProps(0.45, disableMobileMotion)}
+                  className="hero-support-text"
+                  style={{ marginTop: '32px', opacity: 0.6, fontSize: '0.9rem' }}
                 >
-                  Join Alpha Waitlist
-                </Link>
-              </motion.div>
-              <motion.div {...heroMotionProps(0.45, disableMobileMotion)} className="hero-trust">
-                <span>Early builders are joining the Alpha waitlist</span>
-                <span>Private Alpha applications are now open</span>
-                <span>Selected testers help shape NovaBoard AI's development</span>
-              </motion.div>
-              <motion.div {...heroMotionProps(0.55, disableMobileMotion)} className="hero-pills">
+                  Built by NovaBoard AI for students, makers, hobbyists, engineers, and innovators.
+                </motion.p>
+                <motion.div {...heroMotionProps(0.55, disableMobileMotion)} className="hero-pills">
                 <div className="hero-pills-track" aria-hidden="false">
                   <span>AI Circuit Generation</span>
                   <span>Real-Time Simulation</span>
@@ -643,98 +640,105 @@ function App() {
         </div>
       </div>
 
-      <section className="features-section" id="core-features">
-        <motion.div {...fadeUp(0.1)} className="features-header">
-          <span className="section-label">Core Features</span>
-          <h2>Everything you need to build intelligent hardware.</h2>
-          <p>
-            NovaBoard AI unifies circuit design, firmware generation, component
-            selection, BOM creation, wiring diagrams, documentation, simulation,
-            and deployment into one hardware-focused AI workspace.
-          </p>
-        </motion.div>
+      {/* Core Features Section */}
+      <section id="features" className="product-image-section">
+        <div className="product-image-container">
+          <img src="/features-bg.png" alt="WireUp Hardware Development" className="product-image" />
+          <div className="product-image-overlay" />
+          
+          <div className="overlay-content">
+            <motion.div {...fadeUp(0.1)} className="features-header">
+              <span className="section-label">CORE FEATURES</span>
+              <h2 className="accent-serif">Everything you need to build <i>intelligent hardware.</i></h2>
+              <p>
+                WireUp unifies circuit design, firmware generation, component selection, BOM
+                creation, wiring diagrams, documentation, simulation, and deployment into one
+                hardware-focused AI workspace.
+              </p>
+            </motion.div>
 
-        <div className="feature-grid">
-          <motion.article {...fadeUp(0.15)} className="feature-card">
-            <h3>AI Circuit Generation</h3>
-            <p>
-              Describe your idea in plain English and instantly generate
-              complete circuits, wiring layouts, and hardware architectures
-              powered by AI.
-            </p>
-            <ul>
-              <li>Smart component selection</li>
-              <li>Auto-generated schematics</li>
-              <li>Arduino & ESP32 support</li>
-            </ul>
-          </motion.article>
+            <div className="feature-grid">
+              <motion.article {...fadeUp(0.15)} className="feature-card">
+                <h3>AI Circuit Generation</h3>
+                <p>
+                  Describe your idea in plain English and instantly generate
+                  complete circuits, wiring layouts, and hardware architectures
+                  powered by AI.
+                </p>
+                <ul>
+                  <li>Smart component selection</li>
+                  <li>Auto-generated schematics</li>
+                  <li>Arduino & ESP32 support</li>
+                </ul>
+              </motion.article>
 
-          <motion.article {...fadeUp(0.2)} className="feature-card">
-            <h3>Real-Time Hardware Simulation</h3>
-            <p>
-              Test and validate electronics projects directly in the browser
-              with live simulation, real-time signal updates, and instant
-              feedback loops.
-            </p>
-            <ul>
-              <li>Browser-based simulation</li>
-              <li>Live serial monitor</li>
-              <li>Interactive component testing</li>
-            </ul>
-          </motion.article>
+              <motion.article {...fadeUp(0.2)} className="feature-card">
+                <h3>Real-Time Hardware Simulation</h3>
+                <p>
+                  Test and validate electronics projects directly in the browser
+                  with live simulation, real-time signal updates, and instant
+                  feedback loops.
+                </p>
+                <ul>
+                  <li>Browser-based simulation</li>
+                  <li>Live serial monitor</li>
+                  <li>Interactive component testing</li>
+                </ul>
+              </motion.article>
 
-          <motion.article {...fadeUp(0.25)} className="feature-card">
-            <h3>Embedded Code Intelligence</h3>
-            <p>
-              Generate, edit, optimize, and debug embedded firmware using AI
-              trained for hardware workflows and microcontroller systems.
-            </p>
-            <ul>
-              <li>AI firmware assistant</li>
-              <li>Instant code debugging</li>
-              <li>Multi-board compatibility</li>
-            </ul>
-          </motion.article>
+              <motion.article {...fadeUp(0.25)} className="feature-card">
+                <h3>Embedded Code Intelligence</h3>
+                <p>
+                  Generate, edit, optimize, and debug embedded firmware using AI
+                  trained for hardware workflows and microcontroller systems.
+                </p>
+                <ul>
+                  <li>AI firmware assistant</li>
+                  <li>Instant code debugging</li>
+                  <li>Multi-board compatibility</li>
+                </ul>
+              </motion.article>
 
-          <motion.article {...fadeUp(0.3)} className="feature-card">
-            <h3>One-Click Deployment</h3>
-            <p>
-              Compile and push code directly to connected boards without
-              switching tools, terminals, or desktop applications.
-            </p>
-            <ul>
-              <li>Direct USB flashing</li>
-              <li>Board auto-detection</li>
-              <li>Fast compile pipeline</li>
-            </ul>
-          </motion.article>
+              <motion.article {...fadeUp(0.3)} className="feature-card">
+                <h3>One-Click Deployment</h3>
+                <p>
+                  Compile and push code directly to connected boards without
+                  switching tools, terminals, or desktop applications.
+                </p>
+                <ul>
+                  <li>Direct USB flashing</li>
+                  <li>Board auto-detection</li>
+                  <li>Fast compile pipeline</li>
+                </ul>
+              </motion.article>
 
-          <motion.article {...fadeUp(0.35)} className="feature-card">
-            <h3>Collaborative Hardware Workspace</h3>
-            <p>
-              Work together in shared projects with synchronized circuits, live
-              editing, version history, and AI-assisted collaboration.
-            </p>
-            <ul>
-              <li>Multiplayer editing</li>
-              <li>Shared simulations</li>
-              <li>Version control support</li>
-            </ul>
-          </motion.article>
+              <motion.article {...fadeUp(0.35)} className="feature-card">
+                <h3>Collaborative Hardware Workspace</h3>
+                <p>
+                  Work together in shared projects with synchronized circuits, live
+                  editing, version history, and AI-assisted collaboration.
+                </p>
+                <ul>
+                  <li>Multiplayer editing</li>
+                  <li>Shared simulations</li>
+                  <li>Version control support</li>
+                </ul>
+              </motion.article>
 
-          <motion.article {...fadeUp(0.4)} className="feature-card">
-            <h3>Edge AI Infrastructure</h3>
-            <p>
-              Deploy intelligent hardware systems capable of autonomous
-              operation, local decision making, and offline execution at the
-              edge.
-            </p>
-            <ul>
-              <li>Local AI workflows</li>
-              <li>Offline hardware logic</li>
-              <li>Edge-ready deployment</li>
-            </ul>
-          </motion.article>
+              <motion.article {...fadeUp(0.4)} className="feature-card">
+                <h3>Edge AI Infrastructure</h3>
+                <p>
+                  Deploy intelligent hardware systems capable of autonomous
+                  operation, local decision making, and offline execution at the edge.
+                </p>
+                <ul>
+                  <li>Local AI workflows</li>
+                  <li>Offline hardware logic</li>
+                  <li>Edge-ready deployment</li>
+                </ul>
+              </motion.article>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -764,28 +768,41 @@ function App() {
         </motion.div>
       </section>
 
-      <section className="how-section">
-        <motion.div {...fadeUp(0.1)} className="features-header">
-          <span className="section-label">How It Works</span>
-          <h2>From idea to hardware in four steps.</h2>
-        </motion.div>
-        <div className="how-steps">
-          <motion.div {...fadeUp(0.2)} className="step-card">
-            <span>Step 1</span>
-            <h3>Describe your hardware idea</h3>
-          </motion.div>
-          <motion.div {...fadeUp(0.25)} className="step-card">
-            <span>Step 2</span>
-            <h3>Generate circuits and firmware instantly</h3>
-          </motion.div>
-          <motion.div {...fadeUp(0.3)} className="step-card">
-            <span>Step 3</span>
-            <h3>Simulate and test in real time</h3>
-          </motion.div>
-          <motion.div {...fadeUp(0.35)} className="step-card">
-            <span>Step 4</span>
-            <h3>Deploy directly to hardware</h3>
-          </motion.div>
+      {/* How It Works Section */}
+      <section id="how-it-works" className="how-it-works-section">
+        <div className="how-it-works-bg-image" />
+        <div className="how-it-works-bg-graphics" />
+        
+        <div className="overlay-content" style={{ padding: '80px 24px' }}>
+          <div className="section-header" style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <h2 style={{ fontSize: '2rem', fontWeight: 600, marginBottom: '12px' }}>How WireUp Works</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>From concept to hardware in four simple steps</p>
+          </div>
+          <div className="how-steps" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+            <div className="step-card" style={{ padding: '32px 24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', backdropFilter: 'blur(12px)' }}>
+               <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent)', marginBottom: '12px' }}>01</div>
+               <h3 style={{ marginBottom: '8px', fontSize: '1.1rem' }}>Describe your idea</h3>
+               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.4' }}>Tell WireUp what you want to build using natural language prompts.</p>
+             </div>
+             <div className="step-card" style={{ padding: '32px 24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', backdropFilter: 'blur(12px)' }}>
+               <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent)', marginBottom: '12px' }}>02</div>
+               <h3 style={{ marginBottom: '8px', fontSize: '1.1rem' }}>AI Generation</h3>
+               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.4' }}>WireUp generates circuits, components, and code tailored to your project.</p>
+             </div>
+             <div className="step-card" style={{ padding: '32px 24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', backdropFilter: 'blur(12px)' }}>
+               <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent)', marginBottom: '12px' }}>03</div>
+               <h3 style={{ marginBottom: '8px', fontSize: '1.1rem' }}>Refine & Iterate</h3>
+               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.4' }}>Refine and iterate with AI assistance to perfect your design.</p>
+             </div>
+             <div className="step-card" style={{ padding: '32px 24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', backdropFilter: 'blur(12px)' }}>
+               <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent)', marginBottom: '12px' }}>04</div>
+               <h3 style={{ marginBottom: '8px', fontSize: '1.1rem' }}>Build Faster</h3>
+               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.4' }}>Build faster and smarter with complete documentation and firmware.</p>
+             </div>
+           </div>
+          <div style={{ textAlign: 'center', marginTop: '40px', opacity: 0.4, fontSize: '0.75rem' }}>
+            Powered by NovaBoard AI
+          </div>
         </div>
       </section>
 
@@ -816,17 +833,66 @@ function App() {
             <p className="beta-sub" style={{ marginBottom: '24px' }}>
               We're selecting highly engaged builders and developers to test NovaBoard AI and provide feedback.
             </p>
-            <Link href="/alpha" className="beta-submit" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link href="/alpha" className="beta-submit">
               Apply for Alpha Access
             </Link>
           </div>
         </motion.div>
       </section>
 
+      {/* About Section */}
+      <section id="about" className="about-section" style={{ padding: '60px 24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', borderTop: '1px solid var(--border)' }}>
+        <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+          <span className="alpha-program-badge" style={{ marginBottom: '16px', fontSize: '0.7rem' }}>BUILT BY NOVABOARD AI</span>
+          <h2 style={{ fontSize: '2rem', marginBottom: '16px', fontWeight: 600, letterSpacing: '-0.02em' }}>NovaBoard AI is the parent company of WireUp</h2>
+          <p style={{ fontSize: '1rem', color: 'var(--text-muted)', lineHeight: '1.5', opacity: 0.8 }}>
+            NovaBoard AI is building the future of AI-powered hardware development tools. Our first product, WireUp, helps makers, students, hobbyists, and engineers design and build electronics projects faster with AI.
+          </p>
+        </div>
+      </section>
+
       <footer className="site-footer">
-        <a href="/admin/login" className="nav-login-button">
-          Admin login
-        </a>
+        <div className="footer-top">
+          <div className="footer-brand-section">
+            <div className="brand-stack">
+              <span className="footer-logo-text">WireUp</span>
+              <small className="brand-byline">by NovaBoard AI</small>
+            </div>
+            <p className="footer-desc">
+              WireUp is an AI-powered hardware development platform created by NovaBoard AI.
+            </p>
+          </div>
+          
+          <div className="footer-nav-section">
+            <div className="footer-link-group">
+              <h4>Product</h4>
+              <a href="#features">Features</a>
+              <a href="#how-it-works">How It Works</a>
+              <a href="#waitlist">Waitlist</a>
+            </div>
+            <div className="footer-link-group">
+              <h4>Company</h4>
+              <a href="#about">About WireUp</a>
+              <a href="https://novaboard.ai" target="_blank" rel="noopener">NovaBoard AI</a>
+              <a href="#contact">Contact</a>
+              <a href="/admin/login">Admin Login</a>
+            </div>
+            <div className="footer-link-group">
+              <h4>Legal</h4>
+              <a href="/privacy">Privacy Policy</a>
+              <a href="/terms">Terms</a>
+            </div>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <p className="copyright">© 2026 NovaBoard AI. All Rights Reserved.</p>
+          <div className="footer-bottom-actions">
+            <a href="/admin/login" className="discreet-admin-link">
+              Admin
+            </a>
+          </div>
+        </div>
       </footer>
     </>
   );

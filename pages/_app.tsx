@@ -10,9 +10,9 @@ const siteUrl = siteUrlBase.replace(/\/$/, '')
 const shareImage = `${siteUrl}/og-image-small.png`
 const appIconUrl = '/nova-app-icon.png?v=1'
 const pageUrl = siteUrl
-const shareTitle = 'NovaBoard AI — Cursor for Hardware'
-const shareDescription = 'NovaBoard AI is an AI-powered hardware development workspace for electronics engineers, makers, students, and embedded developers. Design circuits, generate firmware, and build complete hardware projects faster.'
-const ogDescription = 'Build electronics projects with AI.'
+const shareTitle = 'WireUp by NovaBoard AI | AI Copilot for Hardware Development'
+const shareDescription = 'WireUp by NovaBoard AI helps makers, students, hobbyists, and engineers build electronics projects faster using AI-powered circuit generation, component recommendations, code generation, and debugging assistance.'
+const ogDescription = 'The AI Copilot for Hardware Development.'
 const twitterDescription = 'Generate circuits, firmware, documentation, and hardware systems using AI.'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
@@ -25,7 +25,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         {pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
         {pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="NovaBoard AI" />
+        <meta property="og:site_name" content="WireUp" />
         <meta property="og:locale" content="en_US" />
         <meta property="og:title" content={shareTitle} />
         <meta property="og:description" content={ogDescription} />

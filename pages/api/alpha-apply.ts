@@ -6,13 +6,13 @@ const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
 const emailServiceConfigured = Boolean(resendApiKey && senderEmail)
 
-const duplicateSignupMessage = "You're already on the NovaBoard AI Alpha waitlist."
+const duplicateSignupMessage = "You're already on the WireUp Alpha waitlist."
 
 const defaultTextBody = `Hi {{name}},
 
-Thank you for joining the NovaBoard AI Alpha Program.
+Thank you for joining the WireUp Alpha Program.
 
-NovaBoard AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
+WireUp is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
 
 Your application has been received successfully.
 
@@ -27,13 +27,14 @@ What happens next?
 
 We're excited to have you with us at this early stage.
 
-— Team NovaBoard AI`
+— Team WireUp
+Built by NovaBoard AI`
 
 const defaultHtmlBody = `<div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#111827">
   <p>Hi {{name}},</p>
-  <p>Thank you for joining the NovaBoard AI Alpha Program.</p>
+  <p>Thank you for joining the WireUp Alpha Program.</p>
   <p>
-    NovaBoard AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
+    WireUp is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
   </p>
   <p>Your application has been received successfully.</p>
   <p>
@@ -47,7 +48,7 @@ const defaultHtmlBody = `<div style="font-family:Inter,Segoe UI,Arial,sans-serif
     <li>Feedback directly influences AI-assisted hardware development.</li>
   </ul>
   <p>We're excited to have you with us at this early stage.</p>
-  <p>— Team NovaBoard AI</p>
+  <p>— Team WireUp<br>Built by NovaBoard AI</p>
 </div>`
 
 const isValidEmail = (value: string): boolean =>
