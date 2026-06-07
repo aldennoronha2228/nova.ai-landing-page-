@@ -3395,6 +3395,20 @@ textarea.form-control::-webkit-scrollbar {
     padding: 60px 40px;
 }
 
+/* Closed state variant */
+.alpha-closed-card .closed-icon-wrapper {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.alpha-closed-card .closed-icon-wrapper svg {
+    stroke: #f87171;
+}
+
+.alpha-closed-card h2 {
+    color: rgba(255, 255, 255, 0.9);
+}
+
 .checkmark-wrapper {
     width: 72px;
     height: 72px;

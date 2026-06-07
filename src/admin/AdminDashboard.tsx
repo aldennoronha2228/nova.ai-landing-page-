@@ -1200,6 +1200,13 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
   const [loadingTemplate, setLoadingTemplate] = useState(true)
   const [templateStatus, setTemplateStatus] = useState('')
 
+  // Application window settings
+  const [windowIsOpen, setWindowIsOpen] = useState(true)
+  const [windowDeadline, setWindowDeadline] = useState('')
+  const [windowClosedMessage, setWindowClosedMessage] = useState('')
+  const [loadingWindow, setLoadingWindow] = useState(true)
+  const [windowStatus, setWindowStatus] = useState('')
+
   const loadEmails = async () => {
     try {
       setLoadingEmails(true)
@@ -1236,6 +1243,7 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
   useEffect(() => {
     void loadEmails()
     void loadTemplate()
+    void loadWindow()
   }, [])
 
   const addEmail = async () => {
@@ -1304,6 +1312,37 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
     }
   }
 
+  const loadWindow = async () => {
+    try {
+      setLoadingWindow(true)
+      const data = await requestJson<{ isOpen: boolean; deadline: string | null; closedMessage: string }>('/api/admin/application-window')
+      setWindowIsOpen(data.isOpen !== false)
+      setWindowDeadline(data.deadline ?? '')
+      setWindowClosedMessage(data.closedMessage ?? '')
+    } catch (err) {
+      setWindowStatus('Unable to load application window settings.')
+    } finally {
+      setLoadingWindow(false)
+    }
+  }
+
+  const saveWindow = async () => {
+    try {
+      setWindowStatus('Saving…')
+      await requestJson('/api/admin/application-window', {
+        method: 'POST',
+        body: JSON.stringify({
+          isOpen: windowIsOpen,
+          deadline: windowDeadline || null,
+          closedMessage: windowClosedMessage,
+        }),
+      })
+      setWindowStatus(windowIsOpen ? '✓ Applications are now OPEN.' : '✓ Applications are now CLOSED.')
+    } catch (err) {
+      setWindowStatus(err instanceof Error ? err.message : 'Unable to save application window.')
+    }
+  }
+
   return (
     <>
       <PageHeader title="Settings" eyebrow="Workspace controls" />
@@ -1355,9 +1394,76 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
           <h2>Security Settings</h2>
           <p>Approved email allowlist, password authentication, signed HTTP-only session cookies, protected routes, and explicit logout are enabled.</p>
         </article>
+        <article className="admin-panel">
+          <h2>Application Window</h2>
+          <p>Control whether the Alpha application form is open or closed. When closed, submissions are rejected and applicants see your custom message.</p>
+          {loadingWindow ? (
+            <p>Loading application window settings…</p>
+          ) : (
+            <div className="admin-template-form">
+              {/* Open / Closed toggle */}
+              <div className="app-window-toggle-row">
+                <span className="app-window-label">Application Status</span>
+                <div className="app-window-toggle-group">
+                  <button
+                    type="button"
+                    className={windowIsOpen ? 'admin-primary app-window-btn active' : 'admin-secondary app-window-btn'}
+                    onClick={() => setWindowIsOpen(true)}
+                  >
+                    ✓ Open
+                  </button>
+                  <button
+                    type="button"
+                    className={!windowIsOpen ? 'admin-danger app-window-btn active' : 'admin-secondary app-window-btn'}
+                    onClick={() => setWindowIsOpen(false)}
+                  >
+                    ✕ Closed
+                  </button>
+                </div>
+              </div>
+
+              {/* Deadline */}
+              <label>
+                Deadline (optional)
+                <input
+                  type="datetime-local"
+                  value={windowDeadline}
+                  onChange={(e) => setWindowDeadline(e.target.value)}
+                  placeholder="No deadline"
+                />
+                <small style={{ color: 'var(--admin-muted, #888)', fontSize: '0.78rem' }}>
+                  Applications will auto-close after this date/time. Leave blank for no deadline.
+                </small>
+              </label>
+
+              {/* Closed message */}
+              <label>
+                Closed Message
+                <textarea
+                  value={windowClosedMessage}
+                  onChange={(e) => setWindowClosedMessage(e.target.value)}
+                  rows={3}
+                  placeholder="Applications are currently closed. Check back soon!"
+                />
+                <small style={{ color: 'var(--admin-muted, #888)', fontSize: '0.78rem' }}>
+                  Shown to users when applications are closed or past the deadline.
+                </small>
+              </label>
+
+              <button type="button" className="admin-primary" onClick={saveWindow}>
+                Save Application Window
+              </button>
+              {windowStatus ? (
+                <p className={`admin-form-status ${windowStatus.startsWith('✓') ? 'success' : ''}`}>
+                  {windowStatus}
+                </p>
+              ) : null}
+            </div>
+          )}
+        </article>
+
         <article className="admin-panel template-editor-panel">
-          <h2>Alpha Waitlist Signup Email Template</h2>
-          <p>Customize the automated welcome email sent when a user signs up. Use <code>{"{{name}}"}</code> to insert the applicant's name dynamically.</p>
+          <h2>Alpha Waitlist Signup Email Template</h2>          <p>Customize the automated welcome email sent when a user signs up. Use <code>{"{{name}}"}</code> to insert the applicant's name dynamically.</p>
           {loadingTemplate ? (
             <p>Loading email template settings…</p>
           ) : (

@@ -233,3 +233,32 @@ export const saveSignupTemplate = async (template: EmailTemplate) => {
     updated_at: FieldValue.serverTimestamp(),
   }, { merge: true })
 }
+
+export type ApplicationWindow = {
+  isOpen: boolean
+  deadline: string | null   // ISO date string or null
+  closedMessage: string
+}
+
+export const getApplicationWindow = async (): Promise<ApplicationWindow> => {
+  const doc = await getAdminDb().collection('settings').doc('application_window').get()
+  if (!doc.exists) {
+    // Default: open with no deadline
+    return { isOpen: true, deadline: null, closedMessage: '' }
+  }
+  const data = doc.data()!
+  return {
+    isOpen: data.isOpen !== false,
+    deadline: data.deadline ? String(data.deadline) : null,
+    closedMessage: data.closedMessage ? String(data.closedMessage) : '',
+  }
+}
+
+export const saveApplicationWindow = async (window: ApplicationWindow) => {
+  await getAdminDb().collection('settings').doc('application_window').set({
+    isOpen: window.isOpen,
+    deadline: window.deadline ?? null,
+    closedMessage: window.closedMessage ?? '',
+    updated_at: FieldValue.serverTimestamp(),
+  }, { merge: true })
+}

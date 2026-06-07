@@ -965,6 +965,45 @@
   text-decoration: underline;
 }
 
+/* Application Window Toggle */
+.app-window-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+
+.app-window-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.app-window-toggle-group {
+  display: flex;
+  gap: 8px;
+}
+
+.app-window-btn {
+  min-width: 90px;
+  opacity: 0.45;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.app-window-btn.active {
+  opacity: 1;
+  transform: scale(1.03);
+}
+
+.admin-form-status.success {
+  color: #4ade80 !important;
+}
+
 .admin-drawer-header-actions {
   display: flex;
   justify-content: space-between;

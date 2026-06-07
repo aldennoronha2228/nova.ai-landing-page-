@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminDb } from '../../src/server/firebaseAdmin'
 import { sendTrackedEmail } from '../../src/server/adminEmail'
-import { listAdminEmails, getSignupTemplate } from '../../src/server/adminData'
+import { listAdminEmails, getSignupTemplate, getApplicationWindow } from '../../src/server/adminData'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
@@ -112,6 +112,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Check application window before anything else
+    try {
+      const appWindow = await getApplicationWindow()
+      const pastDeadline = appWindow.deadline
+        ? new Date() > new Date(appWindow.deadline)
+        : false
+
+      if (!appWindow.isOpen || pastDeadline) {
+        const message = appWindow.closedMessage?.trim()
+          || 'Applications are currently closed. Check back soon!'
+        return res.status(403).json({ message, closed: true })
+      }
+    } catch (windowErr) {
+      // Fail open — if we can't read the window setting, allow the application
+      console.warn('[Alpha Apply] Could not read application window, allowing submission:', windowErr)
+    }
+
     const {
       fullName,
       email,

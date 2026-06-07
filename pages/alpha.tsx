@@ -89,6 +89,29 @@ export default function AlphaApplyPage() {
   const [status, setStatus] = useState<FormStatus>(null)
   const [isCloudinaryConfigured, setIsCloudinaryConfigured] = useState<boolean | null>(null)
 
+  // Application window state
+  const [windowLoading, setWindowLoading] = useState(true)
+  const [windowClosed, setWindowClosed] = useState(false)
+  const [windowDeadline, setWindowDeadline] = useState<string | null>(null)
+  const [windowClosedMessage, setWindowClosedMessage] = useState('Applications are currently closed. Check back soon!')
+
+  // Check application window on mount
+  useEffect(() => {
+    fetch('/api/application-window')
+      .then((res) => res.json())
+      .then((data) => {
+        const pastDeadline = data.deadline ? new Date() > new Date(data.deadline) : false
+        setWindowClosed(!data.isOpen || pastDeadline)
+        setWindowDeadline(data.deadline ?? null)
+        setWindowClosedMessage(data.closedMessage || 'Applications are currently closed. Check back soon!')
+      })
+      .catch(() => {
+        // Fail open
+        setWindowClosed(false)
+      })
+      .finally(() => setWindowLoading(false))
+  }, [])
+
   // Stable application ID generated once on mount
   const applicationId = useRef<string>(generateId())
 
@@ -517,6 +540,41 @@ export default function AlphaApplyPage() {
                       className="btn-success-secondary"
                     >
                       Follow @wireups.dev
+                    </a>
+                  </div>
+                </div>
+              ) : windowLoading ? (
+                /* Loading window state */
+                <div className="alpha-form-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>Loading…</p>
+                </div>
+              ) : windowClosed ? (
+                /* Applications Closed Card */
+                <div className="alpha-success-card alpha-closed-card">
+                  <div className="checkmark-wrapper closed-icon-wrapper">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </div>
+                  <h2 className="success-title">Applications Closed</h2>
+                  <p className="success-desc">{windowClosedMessage}</p>
+                  {windowDeadline && new Date() > new Date(windowDeadline) && (
+                    <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)', marginTop: '8px' }}>
+                      The application window closed on {new Date(windowDeadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.
+                    </p>
+                  )}
+                  <div className="success-actions">
+                    <Link href="/" className="btn-success-primary">
+                      Return to Home
+                    </Link>
+                    <a
+                      href="https://www.instagram.com/wireups.dev"
+                      target="_blank"
+                      rel="noopener"
+                      className="btn-success-secondary"
+                    >
+                      Follow @wireups.dev for updates
                     </a>
                   </div>
                 </div>
