@@ -2,10 +2,9 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminDb } from './firebaseAdmin'
 import type { AdminApplicant } from './adminData'
 
-const senderEmail = process.env.RESEND_FROM_EMAIL?.trim()
-const resendApiKey = process.env.RESEND_API_KEY?.trim()
-
-const usesResendTestSender = Boolean(senderEmail && /@resend\.dev/i.test(senderEmail))
+// Read at call time — not module load — so env var changes take effect without redeploy
+const getSenderEmail = () => process.env.RESEND_FROM_EMAIL?.trim()
+const getResendApiKey = () => process.env.RESEND_API_KEY?.trim()
 
 const escapeHtml = (value: string) =>
   value
@@ -33,39 +32,44 @@ export const sendAdminEmail = async ({
   previewText?: string
   logId?: string
 }) => {
-  if (!senderEmail || !resendApiKey) {
-    throw new Error('Resend is not configured.')
-  }
+  const senderEmail = getSenderEmail()
+  const resendApiKey = getResendApiKey()
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  if (!resendApiKey) throw new Error('RESEND_API_KEY is not set. Add it in Vercel → Settings → Environment Variables.')
+  if (!senderEmail) throw new Error('RESEND_FROM_EMAIL is not set. Add it in Vercel → Settings → Environment Variables.')
 
-  let html = customHtml || `
-    <div style="display:none;max-height:0;overflow:hidden">${escapeHtml(previewText || '')}</div>
-    <div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.65;color:#111827">
-      ${content
-        .split('\n')
-        .map((line) => `<p>${escapeHtml(line)}</p>`)
-        .join('')}
-    </div>
-  `
+  const usesTestSender = /@resend\.dev/i.test(senderEmail)
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000').replace(/\/$/, '')
 
-  // Add tracking pixel and rewrite links if logId is provided
+  // Build HTML body
+  let html = customHtml || `<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f4f4f8;font-family:Inter,Segoe UI,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f8;padding:32px 16px">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
+        <tr><td style="background:#0f0f14;padding:20px 28px;border-radius:10px 10px 0 0">
+          <p style="margin:0;font-size:1.1rem;font-weight:800;color:#fff">WireUp</p>
+          <p style="margin:4px 0 0;font-size:0.72rem;color:rgba(255,255,255,0.4);letter-spacing:0.06em;text-transform:uppercase">by NovaBoard AI</p>
+        </td></tr>
+        <tr><td style="background:#fff;padding:28px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px">
+          ${content.split('\n').map(line => `<p style="margin:0 0 12px;font-size:0.92rem;color:#374151;line-height:1.65">${escapeHtml(line)}</p>`).join('')}
+        </td></tr>
+        <tr><td style="padding:16px 0;text-align:center">
+          <p style="margin:0;font-size:0.72rem;color:#9ca3af">© 2026 NovaBoard AI</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`
+
+  // Inject tracking pixel
   if (logId) {
     const trackingPixel = `<img src="${baseUrl}/api/t/o?id=${logId}" width="1" height="1" style="display:none" alt="" />`
-    
-    // If it's custom HTML, we might need to be more careful, but for now we just append/inject
-    if (html.includes('</body>')) {
-      html = html.replace('</body>', `${trackingPixel}</body>`)
-    } else {
-      html += trackingPixel
-    }
-
-    // Simple link rewriting for tracking
-    // Matches <a href="..."> and replaces with <a href="baseUrl/api/t/c?id=logId&url=url">
+    html = html.includes('</body>') ? html.replace('</body>', `${trackingPixel}</body>`) : html + trackingPixel
     html = html.replace(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi, (match, url) => {
       if (url.startsWith('http')) {
-        const trackedUrl = `${baseUrl}/api/t/c?id=${logId}&url=${encodeURIComponent(url)}`
-        return match.replace(url, trackedUrl)
+        return match.replace(url, `${baseUrl}/api/t/c?id=${logId}&url=${encodeURIComponent(url)}`)
       }
       return match
     })
@@ -87,21 +91,23 @@ export const sendAdminEmail = async ({
   })
 
   if (!response.ok) {
-    const errorText = await response.text()
-    const deliveryHint = usesResendTestSender
-      ? ' Resend is currently using the test sender. Verify your domain in Resend and update RESEND_FROM_EMAIL to use that domain before sending to real applicants.'
-      : ''
-    console.error('[Resend Error]', {
-      status: response.status,
-      error: errorText,
-      to,
-      from: senderEmail,
-    })
-    throw new Error(`Email failed: ${errorText}${deliveryHint}`)
+    const errorBody = await response.text()
+    let hint = ''
+    if (usesTestSender) {
+      hint = ' Your sender is using the Resend test domain (@resend.dev) which can only deliver to your own verified email. Verify novaboard.dev at resend.com/domains and update RESEND_FROM_EMAIL to hello@novaboard.dev.'
+    } else if (response.status === 403) {
+      hint = ' Domain not verified in Resend. Go to resend.com/domains and verify novaboard.dev.'
+    } else if (response.status === 422) {
+      hint = ' Invalid email address or missing required fields.'
+    } else if (response.status === 429) {
+      hint = ' Rate limit hit. Wait a moment and try again.'
+    }
+    console.error('[Resend Error]', { status: response.status, error: errorBody, to, from: senderEmail })
+    throw new Error(`Email to ${to} failed (${response.status}): ${errorBody}${hint}`)
   }
 
   const data = (await response.json()) as { id?: string }
-  console.log(`[Resend Success] Email sent to ${to}, ID: ${data.id}`)
+  console.log(`[Resend OK] → ${to} | ID: ${data.id}`)
   return data
 }
 
