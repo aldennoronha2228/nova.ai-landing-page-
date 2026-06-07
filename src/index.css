@@ -3476,6 +3476,12 @@ textarea.form-control::-webkit-scrollbar {
 .alpha-closed-card .closed-icon-wrapper {
     background: rgba(239, 68, 68, 0.08);
     border-color: rgba(239, 68, 68, 0.2);
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .alpha-closed-card .closed-icon-wrapper svg {
@@ -3484,6 +3490,128 @@ textarea.form-control::-webkit-scrollbar {
 
 .alpha-closed-card h2 {
     color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Sad Face Animation ────────────────────────── */
+.sad-face-wrapper {
+    margin-bottom: 28px;
+    position: relative;
+}
+
+.sad-face-svg {
+    width: 120px;
+    height: 120px;
+    animation: sad-head-wobble 4s ease-in-out infinite;
+    filter: drop-shadow(0 8px 24px rgba(239, 68, 68, 0.25));
+}
+
+/* Head gently tilts side to side */
+@keyframes sad-head-wobble {
+    0%   { transform: rotate(0deg)   translateY(0px); }
+    20%  { transform: rotate(-4deg)  translateY(-3px); }
+    50%  { transform: rotate(3deg)   translateY(-6px); }
+    80%  { transform: rotate(-3deg)  translateY(-3px); }
+    100% { transform: rotate(0deg)   translateY(0px); }
+}
+
+/* Shadow breathes with the float */
+.sad-shadow {
+    animation: sad-shadow-pulse 4s ease-in-out infinite;
+    transform-origin: 60px 112px;
+}
+@keyframes sad-shadow-pulse {
+    0%, 100% { transform: scaleX(1);   opacity: 1; }
+    50%       { transform: scaleX(0.7); opacity: 0.5; }
+}
+
+/* Cheek blush pulses softly */
+.sad-blush {
+    animation: sad-blush-pulse 3s ease-in-out infinite;
+}
+@keyframes sad-blush-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+}
+
+/* Left eyebrow crunch toward center */
+.sad-brow-left {
+    animation: sad-brow-l 4s ease-in-out infinite;
+    transform-origin: 38px 32px;
+}
+@keyframes sad-brow-l {
+    0%, 100% { transform: rotate(0deg)  translateY(0px); }
+    50%       { transform: rotate(10deg) translateY(3px); }
+}
+
+/* Right eyebrow mirrors */
+.sad-brow-right {
+    animation: sad-brow-r 4s ease-in-out infinite;
+    transform-origin: 82px 32px;
+}
+@keyframes sad-brow-r {
+    0%, 100% { transform: rotate(0deg)   translateY(0px); }
+    50%       { transform: rotate(-10deg) translateY(3px); }
+}
+
+/* Pupils look down in sync with head tilt */
+.sad-pupil-left {
+    animation: sad-pupil-drift 4s ease-in-out infinite;
+    transform-origin: 40px 55px;
+}
+.sad-pupil-right {
+    animation: sad-pupil-drift 4s ease-in-out infinite 0.1s;
+    transform-origin: 80px 55px;
+}
+@keyframes sad-pupil-drift {
+    0%, 100% { transform: translate(0px, 0px); }
+    30%       { transform: translate(-2px, 2px); }
+    60%       { transform: translate(2px, 3px); }
+}
+
+/* Eyelids droop down in a slow blink */
+.sad-lid-left {
+    animation: sad-lid-droop 5s ease-in-out infinite;
+    transform-origin: 40px 48px;
+}
+.sad-lid-right {
+    animation: sad-lid-droop 5s ease-in-out infinite 0.2s;
+    transform-origin: 80px 48px;
+}
+@keyframes sad-lid-droop {
+    0%, 60%, 100% { transform: translateY(0px);  opacity: 1; }
+    75%            { transform: translateY(6px);  opacity: 1; }
+    80%            { transform: translateY(10px); opacity: 0.6; }
+    88%            { transform: translateY(10px); opacity: 0.6; }
+    95%            { transform: translateY(0px);  opacity: 1; }
+}
+
+/* Mouth quivers unhappily */
+.sad-mouth {
+    animation: sad-mouth-quiver 4s ease-in-out infinite;
+    transform-origin: 60px 76px;
+}
+@keyframes sad-mouth-quiver {
+    0%, 100% { transform: scaleX(1)    translateY(0px); }
+    25%       { transform: scaleX(0.9) translateY(2px); }
+    50%       { transform: scaleX(1.05) translateY(0px); }
+    75%       { transform: scaleX(0.92) translateY(1px); }
+}
+
+/* Left teardrop — falls every 3s, offset */
+.sad-tear-left {
+    animation: sad-tear-drop 3.5s ease-in 0.8s infinite;
+    transform-origin: 36px 63px;
+}
+/* Right teardrop — slightly delayed */
+.sad-tear-right {
+    animation: sad-tear-drop 3.5s ease-in 2.2s infinite;
+    transform-origin: 76px 63px;
+}
+@keyframes sad-tear-drop {
+    0%   { transform: translateY(0px);  opacity: 0;   }
+    8%   { opacity: 0.85; }
+    70%  { transform: translateY(22px); opacity: 0.5; }
+    100% { transform: translateY(32px); opacity: 0;   }
 }
 
 .checkmark-wrapper {

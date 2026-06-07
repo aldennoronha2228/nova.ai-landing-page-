@@ -582,10 +582,46 @@ export default function AlphaApplyPage() {
               ) : windowClosed ? (
                 /* Applications Closed Card */
                 <div className="alpha-success-card alpha-closed-card">
-                  <div className="checkmark-wrapper closed-icon-wrapper">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  <div className="sad-face-wrapper">
+                    <svg className="sad-face-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      {/* Shadow under face */}
+                      <ellipse cx="60" cy="112" rx="28" ry="5" fill="rgba(239,68,68,0.12)" className="sad-shadow" />
+
+                      {/* Face */}
+                      <circle className="sad-face-circle" cx="60" cy="60" r="46" fill="#1a0a0a" stroke="#f87171" strokeWidth="2.5" />
+
+                      {/* Cheek blush left */}
+                      <ellipse cx="32" cy="72" rx="10" ry="6" fill="rgba(248,113,113,0.18)" className="sad-blush" />
+                      {/* Cheek blush right */}
+                      <ellipse cx="88" cy="72" rx="10" ry="6" fill="rgba(248,113,113,0.18)" className="sad-blush" />
+
+                      {/* Left eyebrow */}
+                      <path className="sad-brow-left" d="M30 36 Q39 30 46 34" stroke="#f87171" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+                      {/* Right eyebrow */}
+                      <path className="sad-brow-right" d="M74 34 Q81 30 90 36" stroke="#f87171" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+
+                      {/* Left eye white */}
+                      <ellipse cx="40" cy="52" rx="9" ry="10" fill="rgba(255,255,255,0.08)" stroke="#f87171" strokeWidth="1.5" />
+                      {/* Right eye white */}
+                      <ellipse cx="80" cy="52" rx="9" ry="10" fill="rgba(255,255,255,0.08)" stroke="#f87171" strokeWidth="1.5" />
+
+                      {/* Left pupil — looks down */}
+                      <ellipse className="sad-pupil-left" cx="40" cy="55" rx="4" ry="4.5" fill="#f87171" />
+                      {/* Right pupil — looks down */}
+                      <ellipse className="sad-pupil-right" cx="80" cy="55" rx="4" ry="4.5" fill="#f87171" />
+
+                      {/* Left eyelid drooping */}
+                      <path className="sad-lid-left" d="M31 48 Q40 43 49 48" stroke="#f87171" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                      {/* Right eyelid drooping */}
+                      <path className="sad-lid-right" d="M71 48 Q80 43 89 48" stroke="#f87171" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+
+                      {/* Frown mouth */}
+                      <path className="sad-mouth" d="M40 82 Q60 70 80 82" stroke="#f87171" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+
+                      {/* Teardrop left */}
+                      <path className="sad-tear-left" d="M36 63 Q34 68 36 72 Q38 68 36 63Z" fill="#f87171" opacity="0" />
+                      {/* Teardrop right */}
+                      <path className="sad-tear-right" d="M76 63 Q74 68 76 72 Q78 68 76 63Z" fill="#f87171" opacity="0" />
                     </svg>
                   </div>
                   <h2 className="success-title">Applications Closed</h2>
