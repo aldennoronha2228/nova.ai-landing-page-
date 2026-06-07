@@ -1,12 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminDb } from '../../src/server/firebaseAdmin'
-import { sendAdminEmail, sendTrackedEmail } from '../../src/server/adminEmail'
+import { sendTrackedEmail } from '../../src/server/adminEmail'
 import { listAdminEmails } from '../../src/server/adminData'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
 const emailServiceConfigured = Boolean(resendApiKey && senderEmail)
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
 
 const duplicateSignupMessage = "You're already on the NovaBoard AI Alpha waitlist."
 
@@ -193,11 +201,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (emailServiceConfigured) {
       try {
         const adminEntries = await listAdminEmails()
-        const recipients = adminEntries
+        const firestoreRecipients = adminEntries
           .filter((entry) => entry.notificationsEnabled)
           .map((entry) => entry.email)
 
-        if (recipients.length > 0) {
+        // Always include the hardcoded admin email as a fallback
+        const hardcodedAdmin = process.env.ADMIN_NOTIFICATION_EMAIL || 'novaboardai@gmail.com'
+        const allRecipients = Array.from(new Set([hardcodedAdmin, ...firestoreRecipients]))
+
+        if (allRecipients.length > 0) {
           const mediaSummary = resolvedMedia.length
             ? `${resolvedMedia.filter((item) => item.type === 'image').length} image(s), ${resolvedMedia.filter((item) => item.type === 'video').length} video(s)`
             : 'No media uploaded'
@@ -222,13 +234,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             useCase.trim(),
           ].join('\n')
 
+          const notificationHtml = `
+<div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#111827;max-width:600px">
+  <div style="background:#0f0f14;padding:24px 28px;border-radius:10px 10px 0 0">
+    <h2 style="margin:0;color:#ffffff;font-size:1.2rem;font-weight:700">🚀 New Alpha Application</h2>
+    <p style="margin:6px 0 0;color:rgba(255,255,255,0.5);font-size:0.85rem">NovaBoard AI / WireUp</p>
+  </div>
+  <div style="background:#ffffff;padding:28px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px">
+    <table style="width:100%;border-collapse:collapse;font-size:0.9rem">
+      <tr><td style="padding:8px 0;color:#6b7280;width:40%">Name</td><td style="padding:8px 0;font-weight:600">${escapeHtml(fullName.trim())}</td></tr>
+      <tr style="background:#f9fafb"><td style="padding:8px 6px;color:#6b7280">Email</td><td style="padding:8px 6px"><a href="mailto:${escapeHtml(normalizedEmail)}" style="color:#6366f1">${escapeHtml(normalizedEmail)}</a></td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">Country</td><td style="padding:8px 0">${escapeHtml(country.trim())}</td></tr>
+      <tr style="background:#f9fafb"><td style="padding:8px 6px;color:#6b7280">Student</td><td style="padding:8px 6px">${escapeHtml(student)}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">Experience</td><td style="padding:8px 0">${escapeHtml(experienceLevel)}</td></tr>
+      <tr style="background:#f9fafb"><td style="padding:8px 6px;color:#6b7280">Projects Done</td><td style="padding:8px 6px">${escapeHtml(projectsCompleted)}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280">Feedback</td><td style="padding:8px 0">${toDisplayBoolean(willingFeedback === 'yes' || willingFeedback === true)}</td></tr>
+      <tr style="background:#f9fafb"><td style="padding:8px 6px;color:#6b7280">Media</td><td style="padding:8px 6px">${escapeHtml(mediaSummary)}</td></tr>
+      ${projectLinks ? `<tr><td style="padding:8px 0;color:#6b7280">Links</td><td style="padding:8px 0"><a href="${escapeHtml(projectLinks.trim())}" style="color:#6366f1">${escapeHtml(projectLinks.trim())}</a></td></tr>` : ''}
+    </table>
+    <div style="margin-top:20px">
+      <p style="font-size:0.8rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Best Project</p>
+      <p style="background:#f9fafb;padding:12px;border-radius:6px;font-size:0.9rem;margin:4px 0 0">${escapeHtml(bestProject.trim())}</p>
+    </div>
+    <div style="margin-top:16px">
+      <p style="font-size:0.8rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Planned Use Case</p>
+      <p style="background:#f9fafb;padding:12px;border-radius:6px;font-size:0.9rem;margin:4px 0 0">${escapeHtml(useCase.trim())}</p>
+    </div>
+  </div>
+</div>`
+
           const results = await Promise.allSettled(
-            recipients.map((recipient) =>
+            allRecipients.map((recipient) =>
               sendTrackedEmail({
                 to: recipient,
                 subject: `New Alpha Applicant: ${fullName.trim()}`,
                 previewText: `${fullName.trim()} just submitted an alpha application.`,
                 content: notificationBody,
+                html: notificationHtml,
                 campaignId: 'admin_notification',
               }),
             ),
