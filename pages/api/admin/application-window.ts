@@ -13,9 +13,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'POST' || req.method === 'PUT') {
-      const { isOpen, deadline, closedMessage } = req.body
+      const { isOpen, startTime, deadline, closedMessage } = req.body
       await saveApplicationWindow({
         isOpen: Boolean(isOpen),
+        startTime: startTime ? String(startTime) : null,
         deadline: deadline ? String(deadline) : null,
         closedMessage: closedMessage ? String(closedMessage) : '',
       })

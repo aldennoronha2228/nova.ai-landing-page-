@@ -10,6 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(window)
   } catch (error) {
     // Fail open — if we can't read the setting, allow applications
-    return res.status(200).json({ isOpen: true, deadline: null, closedMessage: '' })
+    return res.status(200).json({ isOpen: true, startTime: null, deadline: null, closedMessage: '' })
   }
 }

@@ -236,19 +236,20 @@ export const saveSignupTemplate = async (template: EmailTemplate) => {
 
 export type ApplicationWindow = {
   isOpen: boolean
-  deadline: string | null   // ISO date string or null
+  startTime: string | null  // ISO date string — auto-opens at this time
+  deadline: string | null   // ISO date string — auto-closes at this time
   closedMessage: string
 }
 
 export const getApplicationWindow = async (): Promise<ApplicationWindow> => {
   const doc = await getAdminDb().collection('settings').doc('application_window').get()
   if (!doc.exists) {
-    // Default: open with no deadline
-    return { isOpen: true, deadline: null, closedMessage: '' }
+    return { isOpen: true, startTime: null, deadline: null, closedMessage: '' }
   }
   const data = doc.data()!
   return {
     isOpen: data.isOpen !== false,
+    startTime: data.startTime ? String(data.startTime) : null,
     deadline: data.deadline ? String(data.deadline) : null,
     closedMessage: data.closedMessage ? String(data.closedMessage) : '',
   }
@@ -257,6 +258,7 @@ export const getApplicationWindow = async (): Promise<ApplicationWindow> => {
 export const saveApplicationWindow = async (window: ApplicationWindow) => {
   await getAdminDb().collection('settings').doc('application_window').set({
     isOpen: window.isOpen,
+    startTime: window.startTime ?? null,
     deadline: window.deadline ?? null,
     closedMessage: window.closedMessage ?? '',
     updated_at: FieldValue.serverTimestamp(),

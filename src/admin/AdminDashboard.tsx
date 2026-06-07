@@ -1202,6 +1202,7 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
 
   // Application window settings
   const [windowIsOpen, setWindowIsOpen] = useState(true)
+  const [windowStartTime, setWindowStartTime] = useState('')
   const [windowDeadline, setWindowDeadline] = useState('')
   const [windowClosedMessage, setWindowClosedMessage] = useState('')
   const [loadingWindow, setLoadingWindow] = useState(true)
@@ -1315,8 +1316,9 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
   const loadWindow = async () => {
     try {
       setLoadingWindow(true)
-      const data = await requestJson<{ isOpen: boolean; deadline: string | null; closedMessage: string }>('/api/admin/application-window')
+      const data = await requestJson<{ isOpen: boolean; startTime: string | null; deadline: string | null; closedMessage: string }>('/api/admin/application-window')
       setWindowIsOpen(data.isOpen !== false)
+      setWindowStartTime(data.startTime ?? '')
       setWindowDeadline(data.deadline ?? '')
       setWindowClosedMessage(data.closedMessage ?? '')
     } catch (err) {
@@ -1333,6 +1335,7 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
         method: 'POST',
         body: JSON.stringify({
           isOpen: windowIsOpen,
+          startTime: windowStartTime || null,
           deadline: windowDeadline || null,
           closedMessage: windowClosedMessage,
         }),
@@ -1340,6 +1343,26 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
       setWindowStatus(windowIsOpen ? '✓ Applications are now OPEN.' : '✓ Applications are now CLOSED.')
     } catch (err) {
       setWindowStatus(err instanceof Error ? err.message : 'Unable to save application window.')
+    }
+  }
+
+  const closeApplicationsNow = async () => {
+    if (!confirm('Close applications immediately? Users will see the closed message right away.')) return
+    try {
+      setWindowStatus('Closing…')
+      setWindowIsOpen(false)
+      await requestJson('/api/admin/application-window', {
+        method: 'POST',
+        body: JSON.stringify({
+          isOpen: false,
+          startTime: windowStartTime || null,
+          deadline: windowDeadline || null,
+          closedMessage: windowClosedMessage,
+        }),
+      })
+      setWindowStatus('✓ Applications closed immediately.')
+    } catch (err) {
+      setWindowStatus(err instanceof Error ? err.message : 'Unable to close applications.')
     }
   }
 
@@ -1401,9 +1424,14 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
             <p>Loading application window settings…</p>
           ) : (
             <div className="admin-template-form">
-              {/* Open / Closed toggle */}
+              {/* Status indicator */}
               <div className="app-window-toggle-row">
-                <span className="app-window-label">Application Status</span>
+                <div>
+                  <span className="app-window-label">Application Status</span>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: windowIsOpen ? '#4ade80' : '#f87171' }}>
+                    {windowIsOpen ? '● Currently Open' : '● Currently Closed'}
+                  </p>
+                </div>
                 <div className="app-window-toggle-group">
                   <button
                     type="button"
@@ -1422,17 +1450,29 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
                 </div>
               </div>
 
+              {/* Start time */}
+              <label>
+                Start Time (optional)
+                <input
+                  type="datetime-local"
+                  value={windowStartTime}
+                  onChange={(e) => setWindowStartTime(e.target.value)}
+                />
+                <small style={{ color: 'var(--admin-muted, #888)', fontSize: '0.78rem' }}>
+                  Applications will auto-open at this date/time. Leave blank to open manually.
+                </small>
+              </label>
+
               {/* Deadline */}
               <label>
-                Deadline (optional)
+                Closing Deadline (optional)
                 <input
                   type="datetime-local"
                   value={windowDeadline}
                   onChange={(e) => setWindowDeadline(e.target.value)}
-                  placeholder="No deadline"
                 />
                 <small style={{ color: 'var(--admin-muted, #888)', fontSize: '0.78rem' }}>
-                  Applications will auto-close after this date/time. Leave blank for no deadline.
+                  Applications will auto-close after this date/time. A live countdown shows on the apply page.
                 </small>
               </label>
 
@@ -1450,9 +1490,17 @@ function SettingsPage({ adminEmail }: { adminEmail: string }) {
                 </small>
               </label>
 
-              <button type="button" className="admin-primary" onClick={saveWindow}>
-                Save Application Window
-              </button>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <button type="button" className="admin-primary" onClick={saveWindow}>
+                  Save Settings
+                </button>
+                {windowIsOpen && (
+                  <button type="button" className="admin-danger" onClick={closeApplicationsNow}>
+                    Close Applications Now
+                  </button>
+                )}
+              </div>
+
               {windowStatus ? (
                 <p className={`admin-form-status ${windowStatus.startsWith('✓') ? 'success' : ''}`}>
                   {windowStatus}

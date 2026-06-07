@@ -115,17 +115,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Check application window before anything else
     try {
       const appWindow = await getApplicationWindow()
-      const pastDeadline = appWindow.deadline
-        ? new Date() > new Date(appWindow.deadline)
-        : false
+      const now = new Date()
+      const notYetOpen = appWindow.startTime ? now < new Date(appWindow.startTime) : false
+      const pastDeadline = appWindow.deadline ? now > new Date(appWindow.deadline) : false
 
-      if (!appWindow.isOpen || pastDeadline) {
+      if (!appWindow.isOpen || notYetOpen || pastDeadline) {
         const message = appWindow.closedMessage?.trim()
           || 'Applications are currently closed. Check back soon!'
         return res.status(403).json({ message, closed: true })
       }
     } catch (windowErr) {
-      // Fail open — if we can't read the window setting, allow the application
       console.warn('[Alpha Apply] Could not read application window, allowing submission:', windowErr)
     }
 

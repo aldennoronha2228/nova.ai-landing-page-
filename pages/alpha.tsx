@@ -103,8 +103,10 @@ export default function AlphaApplyPage() {
     fetch('/api/application-window')
       .then((res) => res.json())
       .then((data) => {
-        const pastDeadline = data.deadline ? new Date() > new Date(data.deadline) : false
-        setWindowClosed(!data.isOpen || pastDeadline)
+        const now = new Date()
+        const notYetOpen = data.startTime ? now < new Date(data.startTime) : false
+        const pastDeadline = data.deadline ? now > new Date(data.deadline) : false
+        setWindowClosed(!data.isOpen || notYetOpen || pastDeadline)
         setWindowDeadline(data.deadline ?? null)
         setWindowClosedMessage(data.closedMessage || 'Applications are currently closed. Check back soon!')
       })
