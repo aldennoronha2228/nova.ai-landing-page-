@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminDb } from '../../src/server/firebaseAdmin'
 import { sendTrackedEmail } from '../../src/server/adminEmail'
-import { listAdminEmails } from '../../src/server/adminData'
+import { listAdminEmails, getSignupTemplate } from '../../src/server/adminData'
 
 const resendApiKey = process.env.RESEND_API_KEY
 const senderEmail = process.env.RESEND_FROM_EMAIL
@@ -205,18 +205,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let textBody = defaultTextBody
         let htmlBody = defaultHtmlBody
 
-        // Load custom settings
+        // Load custom template saved from admin panel
         try {
-          const doc = await db.collection('settings').doc('signup_email').get()
-          if (doc.exists) {
-            const data = doc.data()
-            if (data?.subject) subject = String(data.subject)
-            if (data?.bodyText) textBody = String(data.bodyText)
-            if (data?.bodyHtml) htmlBody = String(data.bodyHtml)
+          const savedTemplate = await getSignupTemplate()
+          if (savedTemplate) {
+            if (savedTemplate.subject?.trim()) subject = savedTemplate.subject.trim()
+            if (savedTemplate.bodyText?.trim()) textBody = savedTemplate.bodyText.trim()
+            if (savedTemplate.bodyHtml?.trim()) htmlBody = savedTemplate.bodyHtml.trim()
+            console.log('[Alpha Apply] Using custom email template from admin panel. Subject:', subject)
+          } else {
+            console.log('[Alpha Apply] No custom template found in Firestore — using default template.')
           }
         } catch (dbErr) {
-          // eslint-disable-next-line no-console
-          console.warn('Failed to load dynamic template for detailed alpha apply:', dbErr)
+          console.warn('[Alpha Apply] Failed to load custom template, falling back to default:', dbErr)
         }
 
         // Compile placeholders
