@@ -2957,7 +2957,27 @@ textarea.form-control::-webkit-scrollbar {
 
 @media (max-width: 768px) {
     .alpha-benefits-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px;
+    }
+
+    .benefit-card {
+        padding: 16px;
+        gap: 10px;
+    }
+
+    .benefit-icon-wrapper {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+    }
+
+    .benefit-card h4 {
+        font-size: 0.82rem;
+    }
+
+    .benefit-card p {
+        font-size: 0.75rem;
     }
 }
 
@@ -3548,8 +3568,8 @@ textarea.form-control::-webkit-scrollbar {
 
 @media (max-width: 576px) {
     .alpha-benefits-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
 
     .alpha-form-card {
