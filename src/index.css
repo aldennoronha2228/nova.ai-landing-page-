@@ -42,7 +42,8 @@ body {
     padding: var(--page-gutter);
     min-height: 100dvh;
     width: 100%;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: visible;
 }
 
 /* Custom pink/purple scrollbar */
@@ -2846,7 +2847,8 @@ textarea.form-control::-webkit-scrollbar {
     display: flex;
     flex-direction: column;
     padding: var(--page-gutter);
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: visible;
 }
 
 .alpha-glow-bg {
