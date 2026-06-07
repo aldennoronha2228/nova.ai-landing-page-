@@ -95,6 +95,9 @@ export default function AlphaApplyPage() {
   const [windowDeadline, setWindowDeadline] = useState<string | null>(null)
   const [windowClosedMessage, setWindowClosedMessage] = useState('Applications are currently closed. Check back soon!')
 
+  // Live countdown state
+  const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null)
+
   // Check application window on mount
   useEffect(() => {
     fetch('/api/application-window')
@@ -111,6 +114,32 @@ export default function AlphaApplyPage() {
       })
       .finally(() => setWindowLoading(false))
   }, [])
+
+  // Live countdown ticker
+  useEffect(() => {
+    if (!windowDeadline) {
+      setCountdown(null)
+      return
+    }
+
+    const tick = () => {
+      const diff = new Date(windowDeadline).getTime() - Date.now()
+      if (diff <= 0) {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+        setWindowClosed(true)
+        return
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+      setCountdown({ days, hours, minutes, seconds })
+    }
+
+    tick()
+    const interval = setInterval(tick, 1000)
+    return () => clearInterval(interval)
+  }, [windowDeadline])
 
   // Stable application ID generated once on mount
   const applicationId = useRef<string>(generateId())
@@ -584,6 +613,39 @@ export default function AlphaApplyPage() {
                   <div className="alpha-form-header">
                     <h1>Join the WireUp Alpha Program</h1>
                     <p>Be among the first users helping shape the future of AI-powered hardware development.</p>
+
+                    {/* Countdown timer — only shown when a deadline is set */}
+                    {countdown && (
+                      <div className="alpha-countdown">
+                        <span className="alpha-countdown-label">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                          </svg>
+                          Applications close in
+                        </span>
+                        <div className="alpha-countdown-tiles">
+                          <div className="countdown-tile">
+                            <span className="countdown-num">{String(countdown.days).padStart(2, '0')}</span>
+                            <span className="countdown-unit">days</span>
+                          </div>
+                          <span className="countdown-sep">:</span>
+                          <div className="countdown-tile">
+                            <span className="countdown-num">{String(countdown.hours).padStart(2, '0')}</span>
+                            <span className="countdown-unit">hrs</span>
+                          </div>
+                          <span className="countdown-sep">:</span>
+                          <div className="countdown-tile">
+                            <span className="countdown-num">{String(countdown.minutes).padStart(2, '0')}</span>
+                            <span className="countdown-unit">min</span>
+                          </div>
+                          <span className="countdown-sep">:</span>
+                          <div className="countdown-tile">
+                            <span className="countdown-num">{String(countdown.seconds).padStart(2, '0')}</span>
+                            <span className="countdown-unit">sec</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <form className="alpha-form" onSubmit={handleSubmit}>
