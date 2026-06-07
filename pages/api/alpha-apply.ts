@@ -39,26 +39,67 @@ We're excited to have you with us at this early stage.
 
 — Team NovaBoard AI`
 
-const defaultHtmlBody = `<div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#111827">
-  <p>Hi {{name}},</p>
-  <p>Thank you for joining the NovaBoard AI Alpha Program.</p>
-  <p>
-    NovaBoard AI is currently in active development, and we're working closely with a small group of early testers to shape the future of AI-powered hardware development.
-  </p>
-  <p>Your application has been received successfully.</p>
-  <p>
-    As we expand access, selected users will receive invitations to participate in the Alpha program and provide feedback on project generation, firmware creation, circuit design, and workflow experience.
-  </p>
-  <p>What happens next?</p>
-  <ul>
-    <li>We review Alpha waitlist applications.</li>
-    <li>Selected users receive Alpha invitations.</li>
-    <li>Testers gain early access to upcoming features.</li>
-    <li>Feedback directly influences AI-assisted hardware development.</li>
-  </ul>
-  <p>We're excited to have you with us at this early stage.</p>
-  <p>— Team NovaBoard AI</p>
-</div>`
+const defaultHtmlBody = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f8;font-family:Inter,Segoe UI,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f8;padding:40px 16px">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
+
+        <!-- Header -->
+        <tr><td style="background:#0f0f14;padding:32px 36px;border-radius:14px 14px 0 0;text-align:center">
+          <p style="margin:0 0 8px;font-size:1.5rem;font-weight:800;color:#ffffff;letter-spacing:-0.02em">WireUp</p>
+          <p style="margin:0;font-size:0.78rem;color:rgba(255,255,255,0.4);letter-spacing:0.06em;text-transform:uppercase">by NovaBoard AI</p>
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td style="background:#ffffff;padding:36px 36px 28px;border:1px solid #e5e7eb;border-top:none">
+          <p style="margin:0 0 20px;font-size:1.05rem;font-weight:700;color:#111827">Hi {{name}}, you&apos;re on the list 🎉</p>
+          <p style="margin:0 0 16px;font-size:0.92rem;color:#374151;line-height:1.65">
+            Thank you for applying to the <strong>WireUp Alpha Program</strong>. Your application has been received and we&apos;re reviewing it now.
+          </p>
+          <p style="margin:0 0 24px;font-size:0.92rem;color:#374151;line-height:1.65">
+            WireUp is an AI-powered hardware development platform — and you&apos;re one of the first people helping shape it.
+          </p>
+
+          <!-- What happens next -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:10px;padding:20px 24px;margin-bottom:24px">
+            <tr><td>
+              <p style="margin:0 0 14px;font-size:0.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.07em">What happens next</p>
+              <table cellpadding="0" cellspacing="0">
+                <tr><td style="padding:5px 0;font-size:0.88rem;color:#374151">✦&nbsp;&nbsp;We review Alpha applications</td></tr>
+                <tr><td style="padding:5px 0;font-size:0.88rem;color:#374151">✦&nbsp;&nbsp;Selected users get Alpha invitations</td></tr>
+                <tr><td style="padding:5px 0;font-size:0.88rem;color:#374151">✦&nbsp;&nbsp;Early access to AI circuit generation, simulation &amp; deployment</td></tr>
+                <tr><td style="padding:5px 0;font-size:0.88rem;color:#374151">✦&nbsp;&nbsp;Your feedback directly shapes the product</td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <p style="margin:0 0 28px;font-size:0.92rem;color:#374151;line-height:1.65">
+            We&apos;ll reach out to selected testers soon. In the meantime, follow us for updates.
+          </p>
+
+          <!-- Follow button -->
+          <table cellpadding="0" cellspacing="0" style="margin-bottom:28px">
+            <tr><td style="background:#0f0f14;border-radius:8px;padding:12px 24px">
+              <a href="https://www.instagram.com/wireups.dev" style="color:#ffffff;font-size:0.88rem;font-weight:600;text-decoration:none;letter-spacing:0.01em">Follow @wireups.dev on Instagram →</a>
+            </td></tr>
+          </table>
+
+          <p style="margin:0;font-size:0.88rem;color:#374151">— Team NovaBoard AI</p>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="background:#f9fafb;padding:18px 36px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 14px 14px;text-align:center">
+          <p style="margin:0;font-size:0.75rem;color:#9ca3af">© 2026 NovaBoard AI. You received this because you applied to the WireUp Alpha Program.</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
 
 const isValidEmail = (value: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -160,7 +201,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (emailServiceConfigured) {
       try {
-        let subject = 'Welcome to NovaBoard AI Alpha'
+        let subject = "You're on the WireUp Alpha waitlist 🎉"
         let textBody = defaultTextBody
         let htmlBody = defaultHtmlBody
 
