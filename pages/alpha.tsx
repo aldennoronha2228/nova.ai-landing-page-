@@ -583,63 +583,102 @@ export default function AlphaApplyPage() {
                 /* Applications Closed Card */
                 <div className="alpha-success-card alpha-closed-card">
                   <div className="sad-face-wrapper">
-                    <svg className="sad-face-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-
-                      {/* Subtle ground shadow */}
-                      <ellipse cx="80" cy="148" rx="32" ry="5" fill="rgba(160,130,220,0.1)" className="sad-shadow" />
-
-                      {/* Face body — warm off-white fill, soft purple stroke */}
-                      <circle className="sad-face-circle" cx="80" cy="78" r="52" fill="#1e1b2e" stroke="#a78bfa" strokeWidth="2.5" />
-
-                      {/* Inner face glow */}
-                      <circle cx="80" cy="78" r="42" fill="url(#faceGlow)" opacity="0.35" />
+                    <svg className="sad-face-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                       <defs>
-                        <radialGradient id="faceGlow" cx="40%" cy="35%" r="60%">
-                          <stop offset="0%" stopColor="#c4b5fd" />
-                          <stop offset="100%" stopColor="#1e1b2e" />
+                        <radialGradient id="faceGrad" cx="45%" cy="38%" r="65%">
+                          <stop offset="0%" stopColor="#2d2550"/>
+                          <stop offset="100%" stopColor="#0f0d1a"/>
                         </radialGradient>
+                        <radialGradient id="eyeGrad" cx="40%" cy="35%" r="60%">
+                          <stop offset="0%" stopColor="#ffffff"/>
+                          <stop offset="100%" stopColor="#ddd6fe"/>
+                        </radialGradient>
+                        <radialGradient id="pupilGrad" cx="38%" cy="35%" r="55%">
+                          <stop offset="0%" stopColor="#6d28d9"/>
+                          <stop offset="100%" stopColor="#1e1b4b"/>
+                        </radialGradient>
+                        <filter id="faceShadow">
+                          <feDropShadow dx="0" dy="4" stdDeviation="12" floodColor="#7c3aed" floodOpacity="0.3"/>
+                        </filter>
+                        {/* Clip paths to keep lids inside each eye shape */}
+                        <clipPath id="leftEyeClip">
+                          <ellipse cx="70" cy="90" rx="18" ry="20"/>
+                        </clipPath>
+                        <clipPath id="rightEyeClip">
+                          <ellipse cx="130" cy="90" rx="18" ry="20"/>
+                        </clipPath>
                       </defs>
 
-                      {/* ── Eyebrows ── */}
-                      {/* Left brow — angled down toward center */}
-                      <path className="sad-brow-left" d="M48 55 Q58 50 65 54"
-                        stroke="#c4b5fd" strokeWidth="3" strokeLinecap="round" fill="none" />
-                      {/* Right brow */}
-                      <path className="sad-brow-right" d="M95 54 Q102 50 112 55"
-                        stroke="#c4b5fd" strokeWidth="3" strokeLinecap="round" fill="none" />
+                      {/* Ground shadow */}
+                      <ellipse className="sad-shadow" cx="100" cy="188" rx="38" ry="6" fill="rgba(124,58,237,0.15)"/>
 
-                      {/* ── Eyes ── */}
-                      {/* Left eye — slightly squinted/droopy */}
-                      <ellipse cx="62" cy="76" rx="9" ry="10" fill="#0f0d1a" stroke="#a78bfa" strokeWidth="1.8" />
-                      <ellipse className="sad-pupil-left" cx="62" cy="79" rx="5" ry="5.5" fill="#c4b5fd" />
-                      <ellipse cx="64" cy="77" rx="1.8" ry="1.8" fill="white" opacity="0.6" />
-                      {/* Left upper lid drooping */}
-                      <path className="sad-lid-left" d="M53 72 Q62 67 71 72"
-                        stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                      {/* Face */}
+                      <circle cx="100" cy="96" r="72" fill="url(#faceGrad)" stroke="#7c3aed" strokeWidth="2.5" filter="url(#faceShadow)"/>
 
-                      {/* Right eye */}
-                      <ellipse cx="98" cy="76" rx="9" ry="10" fill="#0f0d1a" stroke="#a78bfa" strokeWidth="1.8" />
-                      <ellipse className="sad-pupil-right" cx="98" cy="79" rx="5" ry="5.5" fill="#c4b5fd" />
-                      <ellipse cx="100" cy="77" rx="1.8" ry="1.8" fill="white" opacity="0.6" />
-                      {/* Right upper lid drooping */}
-                      <path className="sad-lid-right" d="M89 72 Q98 67 107 72"
-                        stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                      {/* Face shine */}
+                      <ellipse cx="76" cy="68" rx="22" ry="14" fill="white" opacity="0.04"/>
 
-                      {/* ── Mouth — soft frown ── */}
-                      <path className="sad-mouth" d="M60 106 Q80 96 100 106"
-                        stroke="#a78bfa" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+                      {/* ── LEFT EYE ── */}
+                      {/* eyeball white */}
+                      <ellipse cx="70" cy="90" rx="18" ry="20" fill="url(#eyeGrad)"/>
+                      {/* iris */}
+                      <ellipse className="sad-pupil-left" cx="70" cy="95" rx="11" ry="12" fill="url(#pupilGrad)"/>
+                      {/* pupil */}
+                      <ellipse className="sad-pupil-left" cx="70" cy="96" rx="6" ry="6.5" fill="#0a0820"/>
+                      {/* eye shines */}
+                      <ellipse cx="76" cy="89" rx="3.5" ry="3" fill="white" opacity="0.85"/>
+                      <ellipse cx="66" cy="94" rx="1.8" ry="1.5" fill="white" opacity="0.4"/>
+                      {/* upper eyelid — tall rect clipped to eye shape, slides down to cover */}
+                      <g clipPath="url(#leftEyeClip)">
+                        <rect className="sad-lid-left" x="52" y="50" width="36" height="42"
+                          fill="#2d2550" rx="2"/>
+                        {/* lid bottom edge — soft skin-tone curve */}
+                        <path className="sad-lid-left" d="M52 92 Q70 84 88 92"
+                          stroke="#c4b5fd" strokeWidth="2" fill="none" opacity="0.7"/>
+                      </g>
+                      {/* lower lash line */}
+                      <path d="M54 106 Q70 114 86 106" stroke="rgba(167,139,250,0.3)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
 
-                      {/* ── Cheeks ── */}
-                      <ellipse cx="48" cy="90" rx="11" ry="7" fill="rgba(196,181,253,0.1)" className="sad-blush" />
-                      <ellipse cx="112" cy="90" rx="11" ry="7" fill="rgba(196,181,253,0.1)" className="sad-blush" />
+                      {/* ── RIGHT EYE ── */}
+                      <ellipse cx="130" cy="90" rx="18" ry="20" fill="url(#eyeGrad)"/>
+                      <ellipse className="sad-pupil-right" cx="130" cy="95" rx="11" ry="12" fill="url(#pupilGrad)"/>
+                      <ellipse className="sad-pupil-right" cx="130" cy="96" rx="6" ry="6.5" fill="#0a0820"/>
+                      <ellipse cx="136" cy="89" rx="3.5" ry="3" fill="white" opacity="0.85"/>
+                      <ellipse cx="126" cy="94" rx="1.8" ry="1.5" fill="white" opacity="0.4"/>
+                      {/* upper eyelid */}
+                      <g clipPath="url(#rightEyeClip)">
+                        <rect className="sad-lid-right" x="112" y="50" width="36" height="42"
+                          fill="#2d2550" rx="2"/>
+                        <path className="sad-lid-right" d="M112 92 Q130 84 148 92"
+                          stroke="#c4b5fd" strokeWidth="2" fill="none" opacity="0.7"/>
+                      </g>
+                      {/* lower lash line */}
+                      <path d="M114 106 Q130 114 146 106" stroke="rgba(167,139,250,0.3)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
 
-                      {/* ── Tears ── */}
+                      {/* ── EYEBROWS — thick, clearly arched inward ── */}
+                      {/* Left brow: right end dips DOWN toward nose */}
+                      <path className="sad-brow-left"
+                        d="M48 62 Q62 54 78 60"
+                        stroke="#a78bfa" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
+                      {/* Right brow: left end dips DOWN toward nose */}
+                      <path className="sad-brow-right"
+                        d="M122 60 Q138 54 152 62"
+                        stroke="#a78bfa" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
+
+                      {/* ── MOUTH — wide, deep frown ── */}
+                      <path className="sad-mouth"
+                        d="M72 148 Q100 132 128 148"
+                        stroke="#a78bfa" strokeWidth="4" strokeLinecap="round" fill="none"/>
+
+                      {/* ── TEARS ── */}
+                      {/* Left tear — drops from bottom of left eye */}
                       <path className="sad-tear-left"
-                        d="M58 87 C56 92 54 96 56 100 C58 104 62 100 60 96 C58 92 58 87 58 87Z"
-                        fill="#a78bfa" opacity="0" />
+                        d="M67 110 C65 118 62 124 65 130 C68 136 74 130 71 124 C68 118 67 110 67 110Z"
+                        fill="#c4b5fd" opacity="0"/>
+                      {/* Right tear */}
                       <path className="sad-tear-right"
-                        d="M102 87 C100 92 98 96 100 100 C102 104 106 100 104 96 C102 92 102 87 102 87Z"
-                        fill="#a78bfa" opacity="0" />
+                        d="M127 110 C125 118 122 124 125 130 C128 136 134 130 131 124 C128 118 127 110 127 110Z"
+                        fill="#c4b5fd" opacity="0"/>
 
                     </svg>
                   </div>

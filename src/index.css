@@ -3499,10 +3499,10 @@ textarea.form-control::-webkit-scrollbar {
 }
 
 .sad-face-svg {
-    width: 140px;
-    height: 140px;
+    width: 160px;
+    height: 160px;
     animation: sad-head-bob 5s ease-in-out infinite;
-    filter: drop-shadow(0 6px 28px rgba(167, 139, 250, 0.18));
+    filter: drop-shadow(0 6px 28px rgba(124, 58, 237, 0.22));
 }
 
 /* Gentle bob — no jittery wobble */
@@ -3516,67 +3516,71 @@ textarea.form-control::-webkit-scrollbar {
 
 .sad-shadow {
     animation: sad-shadow-breathe 5s ease-in-out infinite;
-    transform-origin: 80px 148px;
+    transform-origin: 100px 188px;
 }
 @keyframes sad-shadow-breathe {
     0%, 100% { transform: scaleX(1);    opacity: 0.8; }
     50%       { transform: scaleX(0.65); opacity: 0.3; }
 }
 
-/* Eyebrows rotate inward — the key sad signal */
+/* Eyebrows — right end of left brow dips, left end of right brow dips */
 .sad-brow-left {
     animation: sad-brow-l 5s ease-in-out infinite;
-    transform-origin: 56px 52px;
+    transform-origin: 63px 57px;
 }
 @keyframes sad-brow-l {
-    0%, 100% { transform: rotate(0deg) translateY(0px); }
-    50%       { transform: rotate(12deg) translateY(4px); }
+    0%, 100% { transform: rotate(0deg)   translateY(0px); }
+    50%       { transform: rotate(8deg)  translateY(3px); }
 }
 
 .sad-brow-right {
     animation: sad-brow-r 5s ease-in-out infinite;
-    transform-origin: 104px 52px;
+    transform-origin: 137px 57px;
 }
 @keyframes sad-brow-r {
     0%, 100% { transform: rotate(0deg)   translateY(0px); }
-    50%       { transform: rotate(-12deg) translateY(4px); }
+    50%       { transform: rotate(-8deg) translateY(3px); }
 }
 
-/* Pupils drift down slowly */
+/* Pupils drift down */
 .sad-pupil-left {
     animation: sad-look-down 5s ease-in-out infinite;
-    transform-origin: 62px 79px;
+    transform-origin: 70px 95px;
 }
 .sad-pupil-right {
     animation: sad-look-down 5s ease-in-out infinite 0.2s;
-    transform-origin: 98px 79px;
+    transform-origin: 130px 95px;
 }
 @keyframes sad-look-down {
     0%, 100% { transform: translateY(0px); }
-    50%       { transform: translateY(2px); }
+    50%       { transform: translateY(3px); }
 }
 
-/* Eyelids heavy slow blink */
+/* Eyelids — rects clipped inside eye shape, slide down to cover */
 .sad-lid-left {
-    animation: sad-slow-blink 6s ease-in-out infinite;
-    transform-origin: 62px 72px;
+    animation: sad-lid-close 6s ease-in-out infinite;
+    transform-origin: 70px 70px;
 }
 .sad-lid-right {
-    animation: sad-slow-blink 6s ease-in-out infinite 0.3s;
-    transform-origin: 98px 72px;
+    animation: sad-lid-close 6s ease-in-out infinite 0.35s;
+    transform-origin: 130px 70px;
 }
-@keyframes sad-slow-blink {
-    0%, 55%, 100% { transform: translateY(0px);  }
-    68%            { transform: translateY(7px);  }
-    76%            { transform: translateY(11px); }
-    84%            { transform: translateY(11px); }
-    94%            { transform: translateY(0px);  }
+@keyframes sad-lid-close {
+    /* resting: lid sits at top, partially covering ~20% of eye (natural droopy look) */
+    0%, 48%, 100% { transform: translateY(0px);  }
+    /* lid slides down — needs 42px to fully cover the 20px-radius eye */
+    62%            { transform: translateY(22px); }
+    70%            { transform: translateY(42px); }
+    /* hold closed */
+    78%            { transform: translateY(42px); }
+    /* lift back up */
+    92%            { transform: translateY(0px);  }
 }
 
 /* Mouth quivers slightly */
 .sad-mouth {
     animation: sad-mouth-tremble 5s ease-in-out infinite;
-    transform-origin: 80px 101px;
+    transform-origin: 100px 140px;
 }
 @keyframes sad-mouth-tremble {
     0%, 100% { transform: scaleX(1)     translateY(0px); }
@@ -3604,8 +3608,8 @@ textarea.form-control::-webkit-scrollbar {
 @keyframes sad-tear-fall {
     0%   { transform: translateY(0px);  opacity: 0;    }
     6%   { opacity: 0.9; }
-    75%  { transform: translateY(24px); opacity: 0.45; }
-    100% { transform: translateY(36px); opacity: 0;    }
+    75%  { transform: translateY(28px); opacity: 0.5; }
+    100% { transform: translateY(42px); opacity: 0;    }
 }
 
 .checkmark-wrapper {

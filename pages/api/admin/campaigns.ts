@@ -5,6 +5,9 @@ import { createActivity, listApplicants, listCampaigns } from '../../../src/serv
 import { getAdminDb } from '../../../src/server/firebaseAdmin'
 import { logEmail, renderTemplate, sendAdminEmail } from '../../../src/server/adminEmail'
 
+// Extend Vercel function timeout to 60s for bulk sends
+export const config = { maxDuration: 60 }
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await requireAdminApi(req, res)
   if (!session) return
@@ -68,31 +71,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return applicant.status === 'approved' || applicant.status === 'active'
         })
 
-        for (const applicant of recipients) {
-          let logId: string | undefined
-          try {
-            logId = await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'sending' })
-            await sendAdminEmail({
-              to: applicant.email,
-              subject: renderTemplate(subject, applicant),
-              previewText,
-              content: renderTemplate(content, applicant),
-              logId,
-            })
-            sent += 1
-            if (logId) {
-              await getAdminDb().collection('email_logs').doc(logId).update({ status: 'sent' })
+        console.log(`[Campaign] Sending to ${recipients.length} recipients in segment "${segment}"`)
+
+        // Resend rate limit: 2 req/sec on free plan, 10 req/sec on paid
+        // Batch size 2 with 600ms delay keeps us safely under free tier
+        const BATCH_SIZE = 2
+        const BATCH_DELAY_MS = 600
+
+        for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+          const batch = recipients.slice(i, i + BATCH_SIZE)
+
+          await Promise.all(batch.map(async (applicant) => {
+            let logId: string | undefined
+            try {
+              logId = await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'sending' })
+              await sendAdminEmail({
+                to: applicant.email,
+                subject: renderTemplate(subject, applicant),
+                previewText,
+                content: renderTemplate(content, applicant),
+                logId,
+              })
+              sent += 1
+              if (logId) await getAdminDb().collection('email_logs').doc(logId).update({ status: 'sent' })
+              console.log(`[Campaign] ✓ Sent to ${applicant.email} (${sent}/${recipients.length})`)
+            } catch (err) {
+              console.error('[Campaign Send Error]', { email: applicant.email, error: err })
+              failures += 1
+              if (logId) {
+                await getAdminDb().collection('email_logs').doc(logId).update({
+                  status: 'failed',
+                  error_message: err instanceof Error ? err.message : 'Send failed',
+                })
+              } else {
+                await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'failed' })
+              }
             }
-          } catch (err) {
-            console.error('[Campaign Send Error]', { email: applicant.email, error: err })
-            failures += 1
-            if (logId) {
-              await getAdminDb().collection('email_logs').doc(logId).update({ status: 'failed' })
-            } else {
-              await logEmail({ campaignId: campaignRef.id, email: applicant.email, status: 'failed' })
-            }
+          }))
+
+          // Wait between batches to respect rate limit (skip after last batch)
+          if (i + BATCH_SIZE < recipients.length) {
+            await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS))
           }
         }
+
+        console.log(`[Campaign] Done. Sent: ${sent}, Failed: ${failures}`)
       }
 
       await createActivity(`Campaign ${mode === 'draft' ? 'drafted' : 'sent'}: ${name}`, 'campaign', session.email)
