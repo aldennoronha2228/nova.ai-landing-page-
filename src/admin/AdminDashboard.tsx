@@ -988,10 +988,25 @@ function CampaignsPage({ campaigns, refresh }: { campaigns: Campaign[]; refresh:
   const [isSubmitting, setIsSubmitting] = useState<string | null>(null)
   const [content, setContent] = useState('Hi {{name}},\n\nHere is an update from NovaBoard AI.')
   const [subject, setSubject] = useState('NovaBoard AI Alpha update')
+  const [segment, setSegment] = useState('all')
   const composerRef = useRef<HTMLFormElement | null>(null)
 
   const submitForm = async (formElement: HTMLFormElement, mode: 'draft' | 'send' | 'test') => {
     const form = new FormData(formElement)
+    const testEmail = String(form.get('testEmail') ?? '').trim()
+
+    if (mode === 'test' && !testEmail) {
+      setStatus('Enter a test email address first.')
+      return
+    }
+
+    if (mode === 'send') {
+      const confirmed = window.confirm(
+        `Send this campaign to all "${segment}" applicants?\n\nSubject: ${subject}\n\nThis cannot be undone.`
+      )
+      if (!confirmed) return
+    }
+
     try {
       setIsSubmitting(mode)
       setStatus('')
@@ -1003,22 +1018,28 @@ function CampaignsPage({ campaigns, refresh }: { campaigns: Campaign[]; refresh:
           previewText: form.get('previewText'),
           content,
           type: form.get('type'),
-          segment: form.get('segment'),
-          testEmail: form.get('testEmail'),
+          segment,
+          testEmail,
           mode,
         }),
       })
-      
+
       if (mode === 'draft') {
-        setStatus('Draft saved.')
+        setStatus('✓ Draft saved.')
+      } else if (mode === 'test') {
+        setStatus(`✓ Test email sent to ${testEmail}.`)
+      } else if (result.failures > 0 && result.sent === 0) {
+        setStatus(`✕ All ${result.failures} emails failed. Check that your domain is verified in Resend and RESEND_FROM_EMAIL is set correctly in Vercel.`)
       } else if (result.failures > 0) {
-        setStatus(`Warning: Sent ${result.sent}, but ${result.failures} failed. Check terminal for [Resend Error].`)
+        setStatus(`⚠ Sent ${result.sent}, failed ${result.failures}. Check Vercel logs for details.`)
+      } else if (result.sent === 0) {
+        setStatus('⚠ No recipients found for this segment. Try switching segment to "All Applicants".')
       } else {
-        setStatus(`Success: Sent ${result.sent} email(s) successfully.`)
+        setStatus(`✓ Campaign sent to ${result.sent} recipient${result.sent !== 1 ? 's' : ''}.`)
       }
       refresh()
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Campaign action failed.')
+      setStatus(`✕ ${error instanceof Error ? error.message : 'Campaign action failed.'}`)
     } finally {
       setIsSubmitting(null)
     }
@@ -1058,7 +1079,13 @@ function CampaignsPage({ campaigns, refresh }: { campaigns: Campaign[]; refresh:
               <label>Campaign Type<select name="type"><option>Alpha Acceptance</option><option>Alpha Rejection</option><option>Product Updates</option><option>Launch Announcements</option><option>Custom Campaign</option></select></label>
               <label>Subject<input value={subject} onChange={(event) => setSubject(event.target.value)} required /></label>
               <label>Preview Text<input name="previewText" placeholder="Short inbox preview" /></label>
-              <label>Segment<select name="segment"><option value="approved">Approved Users</option><option value="pending">Pending Users</option><option value="all">Custom Segment</option></select></label>
+              <label>Segment
+                <select name="segment" value={segment} onChange={(e) => setSegment(e.target.value)}>
+                  <option value="all">All Applicants</option>
+                  <option value="pending">Pending Only</option>
+                  <option value="approved">Approved Only</option>
+                </select>
+              </label>
               <label>Test Email<input name="testEmail" placeholder="founder@example.com" /></label>
             </div>
             <div className="admin-composer-editor">
