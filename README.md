@@ -3,6 +3,10 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14.2.35-blue)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-Private-red)](#license)
 
+## Preview
+
+![WireUp Landing Page](.github/assets/preview.png)
+
 ## Overview
 
 **WireUp by NovaBoard AI** is an AI‑powered hardware development workspace that helps engineers, makers, and students design circuits, generate firmware, create BOMs, and prototype complete hardware projects — all through natural‑language prompts. This repository hosts the **marketing landing page** and the **private Alpha waitlist flow** for WireUp.
