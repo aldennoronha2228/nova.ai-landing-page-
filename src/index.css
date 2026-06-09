@@ -3505,6 +3505,45 @@ textarea.form-control::-webkit-scrollbar {
     filter: drop-shadow(0 6px 28px rgba(124, 58, 237, 0.22));
 }
 
+/* Mobile — tighten the closed card and scale the emoji down */
+@media (max-width: 480px) {
+    .alpha-closed-card {
+        padding: 36px 24px 40px;
+    }
+
+    .sad-face-wrapper {
+        margin-bottom: 20px;
+    }
+
+    .sad-face-svg {
+        width: 110px;
+        height: 110px;
+    }
+
+    .alpha-closed-card h2 {
+        font-size: 1.45rem;
+    }
+
+    .alpha-closed-card .success-desc {
+        font-size: 0.88rem;
+    }
+
+    .alpha-closed-card .success-actions {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 360px) {
+    .sad-face-svg {
+        width: 90px;
+        height: 90px;
+    }
+
+    .alpha-closed-card {
+        padding: 28px 18px 32px;
+    }
+}
+
 /* Gentle bob — no jittery wobble */
 @keyframes sad-head-bob {
     0%   { transform: translateY(0px)   rotate(0deg); }
