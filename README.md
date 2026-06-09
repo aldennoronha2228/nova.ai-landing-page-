@@ -5,7 +5,7 @@
 
 ## Preview
 
-![WireUp Landing Page](.github/assets/preview.png)
+<video src=".github/assets/demo.mp4" controls autoplay loop muted width="100%"></video>
 
 ## Overview
 
