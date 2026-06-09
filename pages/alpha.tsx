@@ -628,16 +628,12 @@ export default function AlphaApplyPage() {
                       {/* eye shines */}
                       <ellipse cx="76" cy="89" rx="3.5" ry="3" fill="white" opacity="0.85"/>
                       <ellipse cx="66" cy="94" rx="1.8" ry="1.5" fill="white" opacity="0.4"/>
-                      {/* upper eyelid — tall rect clipped to eye shape, slides down to cover */}
-                      <g clipPath="url(#leftEyeClip)">
-                        <rect className="sad-lid-left" x="52" y="50" width="36" height="42"
-                          fill="#2d2550" rx="2"/>
-                        {/* lid bottom edge — soft skin-tone curve */}
-                        <path className="sad-lid-left" d="M52 92 Q70 84 88 92"
-                          stroke="#c4b5fd" strokeWidth="2" fill="none" opacity="0.7"/>
-                      </g>
-                      {/* lower lash line */}
-                      <path d="M54 106 Q70 114 86 106" stroke="rgba(167,139,250,0.3)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                      {/* Eyelid: same ellipse shape as the eye, starts above, slides down to cover */}
+                      <ellipse className="sad-lid-left" cx="70" cy="70" rx="18" ry="20" fill="#231f3a"/>
+                      {/* Lid bottom crease line */}
+                      <path className="sad-lid-left" d="M53 70 Q70 63 87 70" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.9"/>
+                      {/* lower lash line (static) */}
+                      <path d="M54 108 Q70 116 86 108" stroke="rgba(167,139,250,0.2)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
 
                       {/* ── RIGHT EYE ── */}
                       <ellipse cx="130" cy="90" rx="18" ry="20" fill="url(#eyeGrad)"/>
@@ -645,15 +641,9 @@ export default function AlphaApplyPage() {
                       <ellipse className="sad-pupil-right" cx="130" cy="96" rx="6" ry="6.5" fill="#0a0820"/>
                       <ellipse cx="136" cy="89" rx="3.5" ry="3" fill="white" opacity="0.85"/>
                       <ellipse cx="126" cy="94" rx="1.8" ry="1.5" fill="white" opacity="0.4"/>
-                      {/* upper eyelid */}
-                      <g clipPath="url(#rightEyeClip)">
-                        <rect className="sad-lid-right" x="112" y="50" width="36" height="42"
-                          fill="#2d2550" rx="2"/>
-                        <path className="sad-lid-right" d="M112 92 Q130 84 148 92"
-                          stroke="#c4b5fd" strokeWidth="2" fill="none" opacity="0.7"/>
-                      </g>
-                      {/* lower lash line */}
-                      <path d="M114 106 Q130 114 146 106" stroke="rgba(167,139,250,0.3)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                      <ellipse className="sad-lid-right" cx="130" cy="70" rx="18" ry="20" fill="#231f3a"/>
+                      <path className="sad-lid-right" d="M113 70 Q130 63 147 70" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.9"/>
+                      <path d="M114 108 Q130 116 146 108" stroke="rgba(167,139,250,0.2)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
 
                       {/* ── EYEBROWS — thick, clearly arched inward ── */}
                       {/* Left brow: right end dips DOWN toward nose */}

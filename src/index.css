@@ -3595,7 +3595,7 @@ textarea.form-control::-webkit-scrollbar {
     50%       { transform: translateY(3px); }
 }
 
-/* Eyelids — rects clipped inside eye shape, slide down to cover */
+/* Eyelids — ellipses positioned above each eye, slide down to cover */
 .sad-lid-left {
     animation: sad-lid-close 6s ease-in-out infinite;
     transform-origin: 70px 70px;
@@ -3605,15 +3605,15 @@ textarea.form-control::-webkit-scrollbar {
     transform-origin: 130px 70px;
 }
 @keyframes sad-lid-close {
-    /* resting: lid sits at top, partially covering ~20% of eye (natural droopy look) */
+    /* resting: lid sits at top — just the natural droopy position */
     0%, 48%, 100% { transform: translateY(0px);  }
-    /* lid slides down — needs 42px to fully cover the 20px-radius eye */
-    62%            { transform: translateY(22px); }
-    70%            { transform: translateY(42px); }
-    /* hold closed */
-    78%            { transform: translateY(42px); }
-    /* lift back up */
-    92%            { transform: translateY(0px);  }
+    /* slides down — 20px aligns lid center over eye center, 40px fully covers */
+    63%            { transform: translateY(20px); }
+    71%            { transform: translateY(40px); }
+    /* hold shut */
+    79%            { transform: translateY(40px); }
+    /* lift back */
+    93%            { transform: translateY(0px);  }
 }
 
 /* Mouth quivers slightly */
