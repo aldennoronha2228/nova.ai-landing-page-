@@ -619,20 +619,14 @@ export default function AlphaApplyPage() {
                       <ellipse cx="76" cy="68" rx="22" ry="14" fill="white" opacity="0.04"/>
 
                       {/* ── LEFT EYE ── */}
-                      {/* eyeball white */}
                       <ellipse cx="70" cy="90" rx="18" ry="20" fill="url(#eyeGrad)"/>
-                      {/* iris */}
                       <ellipse className="sad-pupil-left" cx="70" cy="95" rx="11" ry="12" fill="url(#pupilGrad)"/>
-                      {/* pupil */}
                       <ellipse className="sad-pupil-left" cx="70" cy="96" rx="6" ry="6.5" fill="#0a0820"/>
-                      {/* eye shines */}
                       <ellipse cx="76" cy="89" rx="3.5" ry="3" fill="white" opacity="0.85"/>
                       <ellipse cx="66" cy="94" rx="1.8" ry="1.5" fill="white" opacity="0.4"/>
-                      {/* Eyelid: same ellipse shape as the eye, starts above, slides down to cover */}
-                      <ellipse className="sad-lid-left" cx="70" cy="70" rx="18" ry="20" fill="#231f3a"/>
-                      {/* Lid bottom crease line */}
-                      <path className="sad-lid-left" d="M53 70 Q70 63 87 70" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.9"/>
-                      {/* lower lash line (static) */}
+                      {/* Eyelid: anchored at TOP of eye (cy=70), grows downward by animating ry */}
+                      <ellipse className="sad-lid-left" cx="70" cy="70" rx="19" ry="0" fill="#231f3a"/>
+                      <path className="sad-lid-crease-left" d="M52 70 Q70 64 88 70" stroke="#a78bfa" strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.85"/>
                       <path d="M54 108 Q70 116 86 108" stroke="rgba(167,139,250,0.2)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
 
                       {/* ── RIGHT EYE ── */}
@@ -641,8 +635,8 @@ export default function AlphaApplyPage() {
                       <ellipse className="sad-pupil-right" cx="130" cy="96" rx="6" ry="6.5" fill="#0a0820"/>
                       <ellipse cx="136" cy="89" rx="3.5" ry="3" fill="white" opacity="0.85"/>
                       <ellipse cx="126" cy="94" rx="1.8" ry="1.5" fill="white" opacity="0.4"/>
-                      <ellipse className="sad-lid-right" cx="130" cy="70" rx="18" ry="20" fill="#231f3a"/>
-                      <path className="sad-lid-right" d="M113 70 Q130 63 147 70" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.9"/>
+                      <ellipse className="sad-lid-right" cx="130" cy="70" rx="19" ry="0" fill="#231f3a"/>
+                      <path className="sad-lid-crease-right" d="M112 70 Q130 64 148 70" stroke="#a78bfa" strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.85"/>
                       <path d="M114 108 Q130 116 146 108" stroke="rgba(167,139,250,0.2)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
 
                       {/* ── EYEBROWS — thick, clearly arched inward ── */}

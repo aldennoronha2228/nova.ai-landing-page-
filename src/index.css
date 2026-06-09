@@ -3595,25 +3595,25 @@ textarea.form-control::-webkit-scrollbar {
     50%       { transform: translateY(3px); }
 }
 
-/* Eyelids — ellipses positioned above each eye, slide down to cover */
-.sad-lid-left {
+/* Eyelids — grow downward from top of eye by animating ry */
+.sad-lid-left,
+.sad-lid-crease-left {
     animation: sad-lid-close 6s ease-in-out infinite;
     transform-origin: 70px 70px;
 }
-.sad-lid-right {
+.sad-lid-right,
+.sad-lid-crease-right {
     animation: sad-lid-close 6s ease-in-out infinite 0.35s;
     transform-origin: 130px 70px;
 }
+
+/* ry grows from 0 → 22 to cover the eye, holds, then shrinks back */
 @keyframes sad-lid-close {
-    /* resting: lid sits at top — just the natural droopy position */
-    0%, 48%, 100% { transform: translateY(0px);  }
-    /* slides down — 20px aligns lid center over eye center, 40px fully covers */
-    63%            { transform: translateY(20px); }
-    71%            { transform: translateY(40px); }
-    /* hold shut */
-    79%            { transform: translateY(40px); }
-    /* lift back */
-    93%            { transform: translateY(0px);  }
+    0%, 48%, 100% { ry: 0;  }
+    63%            { ry: 12; }
+    71%            { ry: 22; }
+    79%            { ry: 22; }
+    93%            { ry: 0;  }
 }
 
 /* Mouth quivers slightly */
