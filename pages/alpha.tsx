@@ -624,19 +624,104 @@ export default function AlphaApplyPage() {
                       <ellipse className="sad-pupil-left" cx="70" cy="96" rx="6" ry="6.5" fill="#0a0820"/>
                       <ellipse cx="76" cy="89" rx="3.5" ry="3" fill="white" opacity="0.85"/>
                       <ellipse cx="66" cy="94" rx="1.8" ry="1.5" fill="white" opacity="0.4"/>
-                      {/* Eyelid: anchored at TOP of eye (cy=70), grows downward by animating ry */}
-                      <ellipse className="sad-lid-left" cx="70" cy="70" rx="19" ry="0" fill="#231f3a"/>
-                      <path className="sad-lid-crease-left" d="M52 70 Q70 64 88 70" stroke="#a78bfa" strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.85"/>
+                      {/* Eyelid: rect anchored to top of eye, scaleY from 0→1 covers eyeball */}
+                      <rect x="52" y="70" width="36" height="22" fill="#231f3a">
+                        <animateTransform
+                          attributeName="transform"
+                          type="scale"
+                          additive="sum"
+                          values="1,0;1,0;1,0;1,1;1,1;1,1;1,0;1,0"
+                          keyTimes="0;0.46;0.58;0.68;0.72;0.82;0.94;1"
+                          dur="6s"
+                          repeatCount="indefinite"
+                          calcMode="spline"
+                          keySplines="0 0 1 1;0.4 0 0.6 1;0.4 0 0.6 1;0 0 1 1;0 0 1 1;0.4 0 0.6 1;0 0 1 1"
+                        />
+                        <animateTransform
+                          attributeName="transform"
+                          type="translate"
+                          additive="sum"
+                          values="-70,-70;-70,-70;-70,-70;-70,-70;-70,-70;-70,-70;-70,-70;-70,-70"
+                          dur="6s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                      {/* Crease line at bottom of lid */}
+                      <path d="M52 92 Q70 85 88 92" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7">
+                        <animateTransform
+                          attributeName="transform"
+                          type="scale"
+                          additive="sum"
+                          values="1,0;1,0;1,0;1,1;1,1;1,1;1,0;1,0"
+                          keyTimes="0;0.46;0.58;0.68;0.72;0.82;0.94;1"
+                          dur="6s"
+                          repeatCount="indefinite"
+                          calcMode="spline"
+                          keySplines="0 0 1 1;0.4 0 0.6 1;0.4 0 0.6 1;0 0 1 1;0 0 1 1;0.4 0 0.6 1;0 0 1 1"
+                        />
+                        <animateTransform
+                          attributeName="transform"
+                          type="translate"
+                          additive="sum"
+                          values="-70,-70;-70,-70;-70,-70;-70,-70;-70,-70;-70,-70;-70,-70;-70,-70"
+                          dur="6s"
+                          repeatCount="indefinite"
+                        />
+                      </path>
                       <path d="M54 108 Q70 116 86 108" stroke="rgba(167,139,250,0.2)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
 
-                      {/* ── RIGHT EYE ── */}
+                      {/* ── RIGHT EYE ── (delayed 0.35s = begin="0.35s") */}
                       <ellipse cx="130" cy="90" rx="18" ry="20" fill="url(#eyeGrad)"/>
                       <ellipse className="sad-pupil-right" cx="130" cy="95" rx="11" ry="12" fill="url(#pupilGrad)"/>
                       <ellipse className="sad-pupil-right" cx="130" cy="96" rx="6" ry="6.5" fill="#0a0820"/>
                       <ellipse cx="136" cy="89" rx="3.5" ry="3" fill="white" opacity="0.85"/>
                       <ellipse cx="126" cy="94" rx="1.8" ry="1.5" fill="white" opacity="0.4"/>
-                      <ellipse className="sad-lid-right" cx="130" cy="70" rx="19" ry="0" fill="#231f3a"/>
-                      <path className="sad-lid-crease-right" d="M112 70 Q130 64 148 70" stroke="#a78bfa" strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.85"/>
+                      <rect x="112" y="70" width="36" height="22" fill="#231f3a">
+                        <animateTransform
+                          attributeName="transform"
+                          type="scale"
+                          additive="sum"
+                          values="1,0;1,0;1,0;1,1;1,1;1,1;1,0;1,0"
+                          keyTimes="0;0.46;0.58;0.68;0.72;0.82;0.94;1"
+                          dur="6s"
+                          begin="0.35s"
+                          repeatCount="indefinite"
+                          calcMode="spline"
+                          keySplines="0 0 1 1;0.4 0 0.6 1;0.4 0 0.6 1;0 0 1 1;0 0 1 1;0.4 0 0.6 1;0 0 1 1"
+                        />
+                        <animateTransform
+                          attributeName="transform"
+                          type="translate"
+                          additive="sum"
+                          values="-130,-70;-130,-70;-130,-70;-130,-70;-130,-70;-130,-70;-130,-70;-130,-70"
+                          dur="6s"
+                          begin="0.35s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                      <path d="M112 92 Q130 85 148 92" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7">
+                        <animateTransform
+                          attributeName="transform"
+                          type="scale"
+                          additive="sum"
+                          values="1,0;1,0;1,0;1,1;1,1;1,1;1,0;1,0"
+                          keyTimes="0;0.46;0.58;0.68;0.72;0.82;0.94;1"
+                          dur="6s"
+                          begin="0.35s"
+                          repeatCount="indefinite"
+                          calcMode="spline"
+                          keySplines="0 0 1 1;0.4 0 0.6 1;0.4 0 0.6 1;0 0 1 1;0 0 1 1;0.4 0 0.6 1;0 0 1 1"
+                        />
+                        <animateTransform
+                          attributeName="transform"
+                          type="translate"
+                          additive="sum"
+                          values="-130,-70;-130,-70;-130,-70;-130,-70;-130,-70;-130,-70;-130,-70;-130,-70"
+                          dur="6s"
+                          begin="0.35s"
+                          repeatCount="indefinite"
+                        />
+                      </path>
                       <path d="M114 108 Q130 116 146 108" stroke="rgba(167,139,250,0.2)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
 
                       {/* ── EYEBROWS — thick, clearly arched inward ── */}

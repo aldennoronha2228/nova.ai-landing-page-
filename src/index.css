@@ -3595,26 +3595,7 @@ textarea.form-control::-webkit-scrollbar {
     50%       { transform: translateY(3px); }
 }
 
-/* Eyelids — grow downward from top of eye by animating ry */
-.sad-lid-left,
-.sad-lid-crease-left {
-    animation: sad-lid-close 6s ease-in-out infinite;
-    transform-origin: 70px 70px;
-}
-.sad-lid-right,
-.sad-lid-crease-right {
-    animation: sad-lid-close 6s ease-in-out infinite 0.35s;
-    transform-origin: 130px 70px;
-}
-
-/* ry grows from 0 → 22 to cover the eye, holds, then shrinks back */
-@keyframes sad-lid-close {
-    0%, 48%, 100% { ry: 0;  }
-    63%            { ry: 12; }
-    71%            { ry: 22; }
-    79%            { ry: 22; }
-    93%            { ry: 0;  }
-}
+/* Eyelids handled via SMIL animateTransform in SVG — no CSS needed */
 
 /* Mouth quivers slightly */
 .sad-mouth {
