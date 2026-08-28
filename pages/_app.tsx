@@ -8,7 +8,7 @@ const siteUrlBase =
   'https://novaai-eight.vercel.app'
 const siteUrl = siteUrlBase.replace(/\/$/, '')
 const shareImage = `${siteUrl}/nova-app-icon.png?v=7`
-const appIconUrl = '/nova-app-icon.png?v=3'
+const appIconUrl = '/nova-app-icon.png?v=4'
 const pageUrl = siteUrl
 const shareTitle = 'WireUp | AI Copilot for Hardware'
 const shareDescription = 'WireUp by NovaBoard AI helps makers, students, hobbyists, and engineers build electronics projects faster using AI-powered circuit generation, component recommendations, code generation, and debugging assistance.'
