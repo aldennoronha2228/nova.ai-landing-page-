@@ -52,7 +52,7 @@ export function AdminLogin() {
       })
       const data = await res.json()
       setForgotStatus(data.message || 'Reset link sent.')
-    } catch {
+    } catch (_err) {
       setForgotStatus('Something went wrong. Please try again.')
     } finally {
       setForgotLoading(false)

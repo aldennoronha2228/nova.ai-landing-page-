@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
       } else {
         setError(data.message || 'Reset failed.')
       }
-    } catch {
+    } catch (_err) {
       setError('An error occurred. Please try again.')
     } finally {
       setSubmitting(false)
