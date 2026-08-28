@@ -1679,7 +1679,7 @@
   margin-top: 16px;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: #6d4cff;
   font-size: 0.82rem;
   cursor: pointer;
   text-align: center;
@@ -1687,10 +1687,11 @@
   padding: 4px 0;
   text-decoration: underline;
   text-underline-offset: 3px;
+  font-family: inherit;
 }
 
 .admin-forgot-link:hover {
-  color: rgba(255, 255, 255, 0.75);
+  color: #4f30d4;
 }
 
 .admin-forgot-sent {

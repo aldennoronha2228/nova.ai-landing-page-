@@ -103,7 +103,7 @@ export function AdminLogin() {
               onClick={() => { setView('forgot'); setError(''); setForgotStatus('') }}
             >
               Forgot password?
-            </button>
+            </button>            </button>
           </>
         ) : (
           <>
