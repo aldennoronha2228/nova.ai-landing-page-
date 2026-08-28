@@ -69,7 +69,18 @@ export const isApprovedAdminEmail = async (email: string) => {
   return approved.includes(normalizeEmail(email))
 }
 
-export const verifyAdminPassword = (password: string) => {
+export const verifyAdminPassword = async (password: string): Promise<boolean> => {
+  // First check Firestore for a password override (set via reset-password flow)
+  try {
+    const doc = await getAdminDb().collection('settings').doc('admin_auth').get()
+    if (doc.exists) {
+      const override = doc.data()?.passwordOverride
+      if (override && safeEqual(password, String(override))) return true
+    }
+  } catch {
+    // Fall through to env var check
+  }
+  // Fall back to env var
   const configured = process.env.ADMIN_PASSWORD
   return Boolean(configured && password && safeEqual(password, configured))
 }

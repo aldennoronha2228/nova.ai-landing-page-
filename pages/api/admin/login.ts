@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const isApproved = await isApprovedAdminEmail(email)
-    const isValidPassword = verifyAdminPassword(password)
+    const isValidPassword = await verifyAdminPassword(password)
 
     if (!isApproved || !isValidPassword) {
       await recordFailedLogin(email, ip)
